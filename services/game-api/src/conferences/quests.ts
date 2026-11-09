@@ -40,7 +40,10 @@ export function defaultQuests(newId: () => string): Quest[] {
  */
 export function nextQuests(current: Quest[], sent: PutQuestsRequest["quests"], newId: () => string): Quest[] {
   const known = new Set(current.map((q) => q.id));
-  return sent.map(({ id, ...q }) => ({ ...q, id: id && known.has(id) ? id : newId() }));
+  return sent.map(({ id, ...q }) => {
+    const keep = id !== undefined && known.delete(id);
+    return { ...q, id: keep ? id : newId() };
+  });
 }
 
 /**
