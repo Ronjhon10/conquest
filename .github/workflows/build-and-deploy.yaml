@@ -26,6 +26,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # One image's push failing must not cancel the other two (GHCR intermittently answers
+      # "denied: permission_denied: write_package" on one image per run; seen 2026-11-09 22:11-22:15).
+      fail-fast: false
       matrix:
         include:
           - name: web
@@ -50,6 +53,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
+        id: push
+        continue-on-error: true
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            SERVICE=${{ matrix.service }}
+            APP_VERSION=${{ steps.meta.outputs.tag }}
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+      - name: Retry the push once after a pause
+        if: steps.push.outcome == 'failure'
+        run: sleep 20
+      - uses: docker/build-push-action@v6
+        if: steps.push.outcome == 'failure'
         with:
           context: .
           file: ${{ matrix.dockerfile }}
