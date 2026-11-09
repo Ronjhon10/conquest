@@ -69,6 +69,7 @@ export function createApi(transport: Transport) {
   }
   const id = encodeURIComponent;
   return {
+    conferences: () => request("/api/game/conferences", C.ListConferencesResponse),
     conference: (conf: string) =>
       request(`/api/game/conferences/${id(conf)}`, C.ConferenceResponse),
     createConference: (body: C.CreateConferenceRequest) =>

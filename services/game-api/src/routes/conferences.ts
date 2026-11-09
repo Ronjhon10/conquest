@@ -1,5 +1,5 @@
 // Routes built in BUILD G.2 (030 Behavior 1-3). Mounted under /api/game by app.ts.
-import { type Conference, CreateConferenceRequest, PutQuestsRequest, PutRoomsRequest, type Quest, type Room } from "@conquest/contracts";
+import { type Conference, type ConferenceSummary, CreateConferenceRequest, PutQuestsRequest, PutRoomsRequest, type Quest, type Room } from "@conquest/contracts";
 import { Hono } from "hono";
 import { defaultQuests, nextQuests, syncAttendeeQuests } from "../conferences/quests";
 import { generateTheme } from "../conferences/theme";
@@ -23,6 +23,14 @@ export function conferencesRoutes(deps: Deps) {
     };
     await deps.repos.conferences.create(conference);
     return c.json({ conference });
+  });
+
+  r.get("/conferences", async (c) => {
+    const all = await deps.repos.conferences.find({}, { size: 100 });
+    const conferences: ConferenceSummary[] = all
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .map((conf) => ({ id: conf.id, name: conf.name, theme_name: conf.theme.name, created_at: conf.created_at }));
+    return c.json({ conferences });
   });
 
   r.get("/conferences/:id", async (c) => {

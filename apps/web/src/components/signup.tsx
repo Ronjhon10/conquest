@@ -148,7 +148,7 @@ export function SignupForm({
         if (imported.photo) setPhoto(imported.photo);
         setLinkedinNotice(
           imported.photo
-            ? "Connected to LinkedIn. Your name and photo are ready. You can add your profile link below."
+            ? "Connected to LinkedIn. Your name and photo are ready."
             : "Connected to LinkedIn. Your name is ready. Choose a photo below or use your class character.",
         );
       })
@@ -402,32 +402,6 @@ export function SignupForm({
                 {linkedinNotice}
               </p>
             </section>
-            <div className="form-field">
-              <label htmlFor="linkedin">
-                LinkedIn profile link <span>(optional)</span>
-              </label>
-              <input
-                id="linkedin"
-                className="cq-field"
-                type="text"
-                inputMode="url"
-                autoComplete="url"
-                value={fields.linkedin_url}
-                onChange={(e) => change("linkedin_url", e.target.value)}
-                aria-invalid={Boolean(fieldErrors.linkedin_url)}
-                aria-describedby={`linkedin-hint${fieldErrors.linkedin_url ? " linkedin-error" : ""}`}
-                placeholder="linkedin.com/in/your-name"
-              />
-              <p id="linkedin-hint" className="field-hint">
-                Copy your profile link from LinkedIn (Share profile → Copy
-                link). This lets your conference allies find you on LinkedIn.
-              </p>
-              {fieldErrors.linkedin_url && (
-                <p id="linkedin-error" className="field-error" role="alert">
-                  {fieldErrors.linkedin_url}
-                </p>
-              )}
-            </div>
             <div className="photo-field">
               <Avatar
                 name={fields.name.trim() || "Your adventurer"}

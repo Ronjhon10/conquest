@@ -161,6 +161,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | Method + path | Body | Returns |
 | --- | --- | --- |
 | `POST /api/game/conferences` | `{ name; theme_prompt; rooms?: Room[] }` | `{ conference: Conference }` |
+| `GET /api/game/conferences` | | `{ conferences: { id; name; theme_name; created_at }[] }` newest first, at most 100 (the Play and Organize pickers; added 2026-11-09) |
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
 | `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (organizer/sponsor quests only; goal quests are personal) (also updates every attendee's quests) |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |

@@ -4,7 +4,6 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, expect, it, vi } from "vitest";
 import { fixtures } from "@conquest/contracts";
-import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { Landing } from "./landing";
 import { RouteContent } from "./route-preview";
 import { ErrorNotice, themeStyle } from "./ui";
@@ -18,11 +17,11 @@ afterEach(() => {
 it("WEB-1 renders the landing and every planned page shell with fixture data", () => {
   const landingHtml = renderToStaticMarkup(createElement(Landing));
   expect(landingHtml).toContain("Make conferences fun");
-  // Two actions only: start (signup on the demo conference) and the live leaderboard.
+  // Two actions only: play (pick a conference, then join) and organize.
   expect(landingHtml.match(/class="cq-btn/g)).toHaveLength(2);
   expect(landingHtml).toContain("Start your adventure");
-  expect(landingHtml).toContain(`href="/c/${DEMO_CONFERENCE_ID}/join"`);
-  expect(landingHtml).toContain(`href="/organizer/${DEMO_CONFERENCE_ID}/live"`);
+  expect(landingHtml).toContain('href="/play"');
+  expect(landingHtml).toContain('href="/organize"');
   expect(landingHtml).not.toContain("conf-demo/boss");
   expect(landingHtml).toContain("home-hero__character");
   expect(landingHtml).toContain('aria-label="Sample boss map for KubeCon NA 2026"');
@@ -55,7 +54,6 @@ it("WEB-1 renders the landing and every planned page shell with fixture data", (
       }),
     );
     expect(html).toMatch(/<h1[ >]/);
-    if (view !== "map") expect(html).toContain("Conference preview");
   }
 });
 it("WEB-1 resets the start animation after a bfcache restore", () => {

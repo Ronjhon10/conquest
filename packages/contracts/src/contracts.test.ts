@@ -18,7 +18,7 @@ describe("contracts", () => {
   it("OV-2 exports every route body schema from 000", () => {
     const names = [
       "SearchTalksResponse", "GetTalkResponse", "RankRequest", "RankResponse", "SuggestGoalsRequest",
-      "SuggestGoalsResponse", "GetSpeakerResponse", "CreateConferenceRequest", "ConferenceResponse",
+      "SuggestGoalsResponse", "GetSpeakerResponse", "CreateConferenceRequest", "ConferenceResponse", "ListConferencesResponse",
       "PutQuestsRequest", "PutRoomsRequest", "DraftAttendeeRequest", "DraftAttendeeResponse",
       "CreateAttendeeRequest", "AttendeeResponse", "GetAttendeeResponse", "XpRequest", "XpResponse",
       "CreatePartyRequest", "JoinPartyRequest", "PartyResponse", "GiveCoinRequest", "GiveCoinResponse",

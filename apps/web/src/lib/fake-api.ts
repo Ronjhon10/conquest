@@ -113,7 +113,13 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
           goals: ["Platform engineering", "Observability", "Security"],
         };
     } else if (resource === "conferences") {
-      if (method === "POST") {
+      if (method === "GET" && !id) {
+        result = {
+          conferences: [...conferences]
+            .sort((a, b) => b.created_at.localeCompare(a.created_at))
+            .map((c) => ({ id: c.id, name: c.name, theme_name: c.theme.name, created_at: c.created_at })),
+        };
+      } else if (method === "POST") {
         const input = C.CreateConferenceRequest.parse(body);
         const created = {
           ...structuredClone(conference),
