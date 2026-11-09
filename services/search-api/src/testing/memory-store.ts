@@ -95,6 +95,10 @@ export class MemoryTalkStore implements TalkStore {
     return hits.sort((a, b) => b.score - a.score || a.talk.id.localeCompare(b.talk.id)).slice(0, limit);
   }
 
+  async rooms() {
+    return [...new Set([...this.talks.values()].map((t) => t.room))].sort();
+  }
+
   async getTalk(id: string) {
     return this.talks.get(id) ?? null;
   }

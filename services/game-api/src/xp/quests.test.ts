@@ -58,6 +58,32 @@ describe("quest completion", () => {
     expect((await deps.repos.attendees.get("a1"))?.xp).toBe(25 * 4 + 80);
   });
 
+  it("GM-10 concurrent quest completion only awards quest XP once", async () => {
+    const { deps } = setup();
+    await seed(deps, "a1", "AAAAAA", [quest("q-photo1", 80, "photo", 1, null)]);
+    await deps.repos.xpEvents.create({
+      id: "photo-1",
+      conference_id: "conf-demo",
+      attendee_id: "a1",
+      kind: "photo",
+      talk_id: null,
+      other_attendee_id: null,
+      quest_id: null,
+      party_id: null,
+      base_xp: 25,
+      multiplier: 1,
+      xp: 25,
+      at: "2026-11-09T19:00:00.000Z",
+    });
+
+    await Promise.all([checkQuests(deps, "a1"), checkQuests(deps, "a1")]);
+
+    const events = await questEvents(deps, "a1");
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ id: "a1:quest:q-photo1", quest_id: "q-photo1", xp: 80 });
+    expect((await deps.repos.attendees.get("a1"))?.xp).toBe(80);
+  });
+
   it("GM-10 talk_ids restricts which check-ins count", async () => {
     const { deps, post } = setup();
     await seed(deps, "a1", "AAAAAA", [quest("q-two", 60, "checkin", 2, ["talk-1", "talk-2"])]);

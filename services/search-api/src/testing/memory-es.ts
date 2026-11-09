@@ -4,7 +4,7 @@
 import type { EsPort, SearchResult } from "../es";
 
 export class MemoryEs implements EsPort {
-  readonly indexes = new Map<string, { body: { mappings: object }; docs: Map<string, object> }>();
+  readonly indexes = new Map<string, { body: { mappings: object; settings?: object }; docs: Map<string, object> }>();
   readonly requests: { method: string; path: string; body?: object }[] = [];
   bulkCalls = 0;
   /** Scripted answers for raw requests (inference, license, mapping); default 200 {}. */
@@ -19,7 +19,7 @@ export class MemoryEs implements EsPort {
   async indexExists(index: string) {
     return this.indexes.has(index);
   }
-  async createIndex(index: string, body: { mappings: object }) {
+  async createIndex(index: string, body: { mappings: object; settings?: object }) {
     if (!this.indexes.has(index)) this.indexes.set(index, { body, docs: new Map() });
   }
   async bulkIndex(index: string, docs: { id: string; doc: object }[]) {

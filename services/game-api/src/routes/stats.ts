@@ -3,6 +3,8 @@ import { LeaderboardQuery, type LeaderboardResponse, type ReportResponse } from 
 import { Hono } from "hono";
 import type { Deps } from "../deps";
 import { ApiError, parse } from "../http";
+import { leaderboardDuration } from "../telemetry";
+import { recoverPendingAwards } from "../xp/journal";
 
 export function statsRoutes(deps: Deps) {
   const r = new Hono();
@@ -15,14 +17,17 @@ export function statsRoutes(deps: Deps) {
     const id = c.req.param("id");
     const { limit } = parse(LeaderboardQuery, c.req.query());
     await requireConference(id);
-    // G.10: record conquest.leaderboard.duration
+    await recoverPendingAwards(deps, id);
+    const started = performance.now();
     const rows = await deps.stats.leaderboard(id, limit);
+    leaderboardDuration().record(performance.now() - started, { "conquest.conference.id": id });
     return c.json({ rows } satisfies LeaderboardResponse);
   });
 
   r.get("/conferences/:id/report", async (c) => {
     const id = c.req.param("id");
     await requireConference(id);
+    await recoverPendingAwards(deps, id);
     return c.json({ report: await deps.stats.report(id) } satisfies ReportResponse);
   });
 

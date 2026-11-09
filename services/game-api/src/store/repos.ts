@@ -52,7 +52,8 @@ function repo<S extends z.ZodType<{ id: string }>>(store: DocStore, index: GameI
         if (!current) return null;
         const next = check(change(check(current.doc)));
         try {
-          await store.put(index, id, next, current.version);
+          // Preserve storage-only metadata, such as the durable XP outbox.
+          await store.put(index, id, { ...current.doc, ...next }, current.version);
           return next;
         } catch (err) {
           if (!(err instanceof VersionConflictError) || attempt >= UPDATE_RETRIES) throw err;

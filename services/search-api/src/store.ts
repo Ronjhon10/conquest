@@ -11,13 +11,14 @@ export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
 export interface TalkStore {
   searchTalks(q: string, limit: number): Promise<TalkHit[]>;
+  rooms(): Promise<string[]>;
   getTalk(id: string): Promise<Talk | null>;
   getSpeakers(ids: string[]): Promise<Speaker[]>;
   getSpeaker(id: string): Promise<Speaker | null>;
   talksBySpeaker(id: string): Promise<Talk[]>;
   /** Tag and track counts over the top 50 BM25 matches for `about`, plus index-wide tag counts. */
   facets(about: string): Promise<Facets>;
-  /** Readiness: the backing indexes answer. */
+  /** Readiness: the backing indexes answer and hold the seeded schedule. */
   ready(): Promise<boolean>;
 }
 
@@ -48,6 +49,25 @@ export class EsTalkStore implements TalkStore {
     }
   }
 
+  async rooms(): Promise<string[]> {
+    const rooms: string[] = [];
+    let after: { room: string } | undefined;
+    for (;;) {
+      // Composite aggregation pages over every room, regardless of the talk hit limit.
+      const result = await this.es.search<never>(INDEX.talks, { size: 0, aggs: { rooms: { composite: {
+        size: 100, sources: [{ room: { terms: { field: "room" } } }], ...(after ? { after } : {}),
+      } } } });
+      const page = result.aggregations?.rooms as {
+        buckets: { key: { room: string } }[]; after_key?: { room: string };
+      } | undefined;
+      if (!page?.buckets.length) break;
+      rooms.push(...page.buckets.map((b) => b.key.room));
+      if (!page.after_key) break;
+      after = page.after_key;
+    }
+    return rooms;
+  }
+
   async getTalk(id: string) {
     const doc = await this.es.get<TalkDoc>(INDEX.talks, id);
     return doc ? fromTalkDoc(doc) : null;
@@ -67,7 +87,9 @@ export class EsTalkStore implements TalkStore {
   }
   async ready() {
     try {
-      return (await this.es.indexExists(INDEX.talks)) && (await this.es.indexExists(INDEX.speakers));
+      // Exists is not enough: a fresh deploy before the Seed Job runs would serve zero talks.
+      for (const index of [INDEX.talks, INDEX.speakers]) if (!(await this.es.indexExists(index)) || (await this.es.count(index)) === 0) return false;
+      return true;
     } catch {
       return false;
     }

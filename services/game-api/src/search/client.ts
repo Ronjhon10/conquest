@@ -6,6 +6,7 @@ import {
   RankResponse,
   type RankRequest,
   SearchTalksResponse,
+  SearchRoomsResponse,
   SuggestGoalsResponse,
   type Speaker,
   type Talk,
@@ -19,6 +20,7 @@ export interface SearchClient {
   /** null when the talk doesn't exist (030 Behavior 8: check-ins need a real talk). */
   getTalk(id: string): Promise<{ talk: Talk; speakers: Speaker[] } | null>;
   searchTalks(q: string, limit?: number): Promise<Talk[]>;
+  rooms(): Promise<string[]>;
 }
 
 export class SearchApiError extends Error {}
@@ -42,6 +44,9 @@ export function createHttpSearchClient(baseUrl: string, fetchImpl: typeof fetch 
   };
 
   return {
+    async rooms() {
+      return required(await call("/rooms", SearchRoomsResponse), "/rooms").rooms;
+    },
     async rank(req) {
       return required(await call("/rank", RankResponse, post(req)), "/rank").bosses;
     },
@@ -74,6 +79,9 @@ export function createFakeSearchClient(
   const overlaps = (a: Talk, b: Talk) => a.starts_at < b.ends_at && b.starts_at < a.ends_at;
 
   return {
+    async rooms() {
+      return [...new Set(talks.map((t) => t.room))].sort();
+    },
     async rank({ goals, about, limit = 6 }) {
       const scored = talks
         .map((talk) => {
