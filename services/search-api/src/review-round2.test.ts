@@ -23,7 +23,7 @@ it("GM-5 backfill searches later schedule pages when the first 100 talks clash",
   expect(new Set(map.map((b) => b.talk_id)).size).toBe(5);
 });
 
-it("SR-11 inference outages fall back to keyword results and can later recover semantic search", async () => {
+it("OV-5 inference outages fall back to keyword results and can later recover semantic search", async () => {
   const es = new MemoryEs(); let failed = true; let now = 0;
   const bodies: Record<string, unknown>[] = [];
   es.search = async <T,>(_index: string, body: Record<string, unknown>) => {
