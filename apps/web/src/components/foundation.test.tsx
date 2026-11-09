@@ -24,8 +24,7 @@ it("WEB-1 renders the landing and every planned page shell with fixture data", (
   expect(landingHtml).toContain('href="/organize"');
   expect(landingHtml).not.toContain("conf-demo/boss");
   expect(landingHtml).toContain("home-hero__character");
-  expect(landingHtml).toContain('aria-label="Sample boss map for KubeCon NA 2026"');
-  expect(landingHtml).toContain("Every speaker is a boss.");
+  expect(landingHtml).not.toContain("Sample boss map");
   for (const view of [
     "join",
     "map",
