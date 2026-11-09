@@ -10,6 +10,14 @@ export function linkedAttendeeId(conferenceId: string, url: string): string {
 export async function existingLinkedAttendee(deps: Deps, conferenceId: string, url: string) {
   const canonical = await deps.repos.attendees.get(linkedAttendeeId(conferenceId, url));
   if (canonical) return canonical;
+  try {
+    const [existing] = await deps.repos.attendees.find({ conference_id: conferenceId, linkedin_url: url }, { size: 1 });
+    return existing ?? null;
+  } catch (err) {
+    // Only legacy mapping errors justify a source scan; other outages must propagate.
+    const text = `${err instanceof Error ? err.message : ""} ${JSON.stringify((err as { meta?: { body?: unknown } })?.meta?.body ?? {})}`;
+    if (!/linkedin_url/i.test(text) || !/not indexed|unindexed/i.test(text)) throw err;
+  }
   // Older indexes kept linkedin_url unindexed, and that flag cannot be changed in place.
   // Read legacy source values instead of issuing a term query that fails on those indexes.
   for await (const attendee of scanRepo(deps.repos.attendees, { conference_id: conferenceId })) {

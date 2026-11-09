@@ -81,7 +81,10 @@ export type ConferenceResponse = z.infer<typeof ConferenceResponse>;
 
 /** Send a quest's existing id to edit it in place (finished stays finished); omit it for a new quest. */
 export const PutQuestsRequest = z.object({
-  quests: z.array(Quest.omit({ id: true }).extend({ id: z.string().min(1).optional() })),
+  quests: z.array(Quest.omit({ id: true }).extend({ id: z.string().min(1).optional() })).refine(
+    (quests) => quests.every((q) => q.kind !== "goal"),
+    { message: "Conference quests must be organizer or sponsor quests" },
+  ),
 });
 export type PutQuestsRequest = z.infer<typeof PutQuestsRequest>;
 

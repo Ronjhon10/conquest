@@ -52,14 +52,15 @@ export function nextQuests(current: Quest[], sent: PutQuestsRequest["quests"], n
  * then runs quest completion so progress they already made counts. Removed quests just disappear
  * from the list; XP already earned from them is kept (nothing takes XP away).
  */
-export async function syncAttendeeQuests(deps: Deps, conferenceId: string) {
+export async function syncAttendeeQuests(deps: Deps, conferenceId: string, previous: Quest[]) {
+  const previousIds = new Set(previous.map((q) => q.id));
   for await (const a of scanRepo(deps.repos.attendees, { conference_id: conferenceId })) {
     await deps.repos.attendees.update(a.id, async (cur) => {
       // Read the conference after the attendee version. A competing sync either wins
       // this CAS or causes us to retry against the latest conference, never an old PUT.
       const latest = await deps.repos.conferences.get(conferenceId);
       if (!latest) return cur;
-      return { ...cur, quests: [...cur.quests.filter((q) => q.kind === "goal"), ...latest.quests] };
+      return { ...cur, quests: [...cur.quests.filter((q) => q.kind === "goal" && !previousIds.has(q.id) && !latest.quests.some((shared) => shared.id === q.id)), ...latest.quests] };
     });
     await checkQuests(deps, a.id);
   }

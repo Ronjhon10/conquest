@@ -39,7 +39,7 @@ export function conferencesRoutes(deps: Deps) {
     const quests: Quest[] = nextQuests(before.quests, req.quests, deps.newId);
     const conference = await deps.repos.conferences.update(id, (conf) => ({ ...conf, quests }));
     if (!conference) throw notFound();
-    await syncAttendeeQuests(deps, id);
+    await syncAttendeeQuests(deps, id, before.quests);
     return c.json({ conference });
   });
 

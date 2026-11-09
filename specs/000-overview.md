@@ -162,7 +162,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | --- | --- | --- |
 | `POST /api/game/conferences` | `{ name; theme_prompt; rooms?: Room[] }` | `{ conference: Conference }` |
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
-| `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (also updates every attendee's quests) |
+| `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (organizer/sponsor quests only; goal quests are personal) (also updates every attendee's quests) |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |
 | `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url? }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
 | `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url?; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`; a known `linkedin_url` in this conference returns that existing attendee) |
