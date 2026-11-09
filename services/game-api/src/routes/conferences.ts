@@ -1,7 +1,7 @@
 // Routes built in BUILD G.2 (030 Behavior 1-3). Mounted under /api/game by app.ts.
 import { type Conference, CreateConferenceRequest, PutQuestsRequest, PutRoomsRequest, type Quest, type Room } from "@conquest/contracts";
 import { Hono } from "hono";
-import { defaultQuests } from "../conferences/quests";
+import { defaultQuests, nextQuests, syncAttendeeQuests } from "../conferences/quests";
 import { generateTheme } from "../conferences/theme";
 import type { Deps } from "../deps";
 import { ApiError, body } from "../http";
@@ -33,9 +33,13 @@ export function conferencesRoutes(deps: Deps) {
 
   r.put("/conferences/:id/quests", async (c) => {
     const req = await body(c, PutQuestsRequest);
-    const quests: Quest[] = req.quests.map((q) => ({ ...q, id: deps.newId() }));
-    const conference = await deps.repos.conferences.update(c.req.param("id"), (conf) => ({ ...conf, quests }));
+    const id = c.req.param("id");
+    const before = await deps.repos.conferences.get(id);
+    if (!before) throw notFound();
+    const quests: Quest[] = nextQuests(before.quests, req.quests, deps.newId);
+    const conference = await deps.repos.conferences.update(id, (conf) => ({ ...conf, quests }));
     if (!conference) throw notFound();
+    await syncAttendeeQuests(deps, id, before.quests, quests);
     return c.json({ conference });
   });
 

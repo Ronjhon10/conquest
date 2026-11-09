@@ -79,7 +79,10 @@ export type CreateConferenceRequest = z.infer<typeof CreateConferenceRequest>;
 export const ConferenceResponse = z.object({ conference: Conference });
 export type ConferenceResponse = z.infer<typeof ConferenceResponse>;
 
-export const PutQuestsRequest = z.object({ quests: z.array(Quest.omit({ id: true })) });
+/** Send a quest's existing id to edit it in place (finished stays finished); omit it for a new quest. */
+export const PutQuestsRequest = z.object({
+  quests: z.array(Quest.omit({ id: true }).extend({ id: z.string().min(1).optional() })),
+});
 export type PutQuestsRequest = z.infer<typeof PutQuestsRequest>;
 
 export const PutRoomsRequest = z.object({ rooms: z.array(Room) });
