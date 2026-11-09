@@ -23,6 +23,9 @@ add elasticsearch-api-key "${ELASTICSEARCH_API_KEY:-}"
 add openai-api-key "${OPENAI_API_KEY:-}"
 add dash0-otlp-endpoint "${OTEL_EXPORTER_OTLP_ENDPOINT:-}"
 add dash0-auth-token "${DASH0_AUTH_TOKEN:-}"
+add linkedin-client-id "${LINKEDIN_CLIENT_ID:-}"
+add linkedin-client-secret "${LINKEDIN_CLIENT_SECRET:-}"
+add linkedin-cookie-secret "${LINKEDIN_COOKIE_SECRET:-}"
 
 kubectl -n "team-$team" create secret generic conquest-secrets "${args[@]}" --dry-run=client -o yaml \
   | kubectl apply -f - >/dev/null

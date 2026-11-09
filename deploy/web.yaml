@@ -39,6 +39,32 @@ spec:
               value: demo
             - name: NEXT_PUBLIC_DASH0_DASHBOARD_URL
               value: "https://app.dash0.com/dashboards/dfbb1620-2d26-4ed5-99f1-50c27d553306?dataset=default"
+            - name: LINKEDIN_REDIRECT_URI
+              value: "https://conquest.cnh.radarhq.io/api/auth/linkedin/callback"
+            - name: LINKEDIN_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: conquest-secrets
+                  key: linkedin-client-id
+                  optional: true
+            - name: LINKEDIN_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: conquest-secrets
+                  key: linkedin-client-secret
+                  optional: true
+            - name: LINKEDIN_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: conquest-secrets
+                  key: linkedin-cookie-secret
+                  optional: true
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: conquest-secrets
+                  key: openai-api-key
+                  optional: true
           resources:
             requests:
               cpu: 100m
