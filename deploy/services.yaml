@@ -1,4 +1,4 @@
-# Service `app` port 80 is the only thing the platform routes to https://__TEAM__.cnh.radarhq.io,
+# Service `app` port 80 is the only thing the platform routes to https://conquest.cnh.radarhq.io,
 # so it points at web. web proxies /api/search and /api/game to the internal Services below.
 apiVersion: v1
 kind: Service

@@ -16,7 +16,7 @@ Check first, then set up. Keep replies short. At a check that fails, say in a se
 
 ## Check (read only)
 
-1. **Team.** If `namespace:` in `deploy/kustomization.yaml` still says `team-__TEAM__`, setup-team.sh hasn't run: you'll run it below. Use the team name they gave you, or ask for the one they typed on the join page. It's `<team>` below.
+1. **Team.** If `namespace:` in `deploy/kustomization.yaml` still says `team-conquest`, setup-team.sh hasn't run: you'll run it below. Use the team name they gave you, or ask for the one they typed on the join page. It's `<team>` below.
 
 2. **Radar connected?** If you have no Radar tools, or a call says the server needs authentication, the person signs in; you can't do it for them.
    - Claude Code: if `/mcp` doesn't list radar-cloud, run `claude mcp add --scope user radar-cloud --transport http https://api.radarhq.io/mcp` in a terminal and restart Claude Code. Then `/mcp` > radar-cloud > **Authenticate**.
