@@ -79,6 +79,11 @@ export const CreateConferenceRequest = z.object({
 export type CreateConferenceRequest = z.infer<typeof CreateConferenceRequest>;
 export const ConferenceResponse = z.object({ conference: Conference });
 export type ConferenceResponse = z.infer<typeof ConferenceResponse>;
+/** One row of GET /conferences: enough to pick a conference, newest first. */
+export const ConferenceSummary = Conference.pick({ id: true, name: true, created_at: true }).extend({ theme_name: z.string() });
+export type ConferenceSummary = z.infer<typeof ConferenceSummary>;
+export const ListConferencesResponse = z.object({ conferences: z.array(ConferenceSummary) });
+export type ListConferencesResponse = z.infer<typeof ListConferencesResponse>;
 
 /** Send a quest's existing id to edit it in place (finished stays finished); omit it for a new quest. */
 export const PutQuestsRequest = z.object({

@@ -2,7 +2,6 @@
 // Home hero (WEB-1): one character that hops when you start your adventure, then signup opens.
 import Link from "next/link";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { Avatar } from "./avatar";
 import { Icon } from "./icon";
 
@@ -11,7 +10,7 @@ export const HOP_MS = 520;
 export function HomeHero() {
   const [hopping, setHopping] = useState(false);
   const leaving = useRef(false);
-  const joinHref = `/c/${DEMO_CONFERENCE_ID}/join`;
+  const joinHref = "/play";
 
   useEffect(() => {
     const reset = (e: PageTransitionEvent) => {
@@ -52,8 +51,8 @@ export function HomeHero() {
           <Link className="cq-btn" href={joinHref} onClick={start}>
             Start your adventure <Icon name="arrow-right" />
           </Link>
-          <Link className="cq-btn cq-btn--secondary" href={`/organizer/${DEMO_CONFERENCE_ID}/live`}>
-            See the leaderboard
+          <Link className="cq-btn cq-btn--secondary" href="/organize">
+            I&apos;m organizing
           </Link>
         </div>
       </div>

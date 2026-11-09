@@ -1,4 +1,4 @@
-import { Conference, ErrorBody, fixtures } from "@conquest/contracts";
+import { Conference, ConferenceResponse, ErrorBody, fixtures, ListConferencesResponse } from "@conquest/contracts";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../app";
 import { memoryDeps } from "../deps";
@@ -163,4 +163,25 @@ describe("conferences", () => {
     expect(res.status).toBe(400);
     expect(ErrorBody.parse(await res.json()).error.code).toBe("bad_request");
   });
+});
+
+it("OV-2 GET /conferences lists every conference as a summary, newest first", async () => {
+  let n = 0;
+  let day = 0;
+  const deps = memoryDeps({ llm: null, now: () => new Date(Date.UTC(2026, 4, 1 + day)), newId: () => `id-${++n}` });
+  const app = createApp(deps);
+  const post = (name: string) =>
+    app.request("/api/game/conferences", {
+      method: "POST",
+      body: JSON.stringify({ name, theme_prompt: "", rooms: [] }),
+      headers: { "content-type": "application/json" },
+    });
+  const first = ConferenceResponse.parse(await (await post("Older Con")).json()).conference;
+  day = 1;
+  const second = ConferenceResponse.parse(await (await post("Newer Con")).json()).conference;
+  const res = await app.request("/api/game/conferences");
+  expect(res.status).toBe(200);
+  const body = ListConferencesResponse.parse(await res.json());
+  expect(body.conferences.map((c) => c.id)).toEqual([second.id, first.id]);
+  expect(body.conferences[0]).toEqual({ id: second.id, name: "Newer Con", theme_name: second.theme.name, created_at: second.created_at });
 });

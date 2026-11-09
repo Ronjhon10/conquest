@@ -94,7 +94,6 @@ export function RouteContent({
               ["report", "Report"],
             ]
           : [
-              ["join", "Join"],
               ["map", "Map"],
               ["connect", "Allies"],
               ["party", "Party"],
@@ -114,7 +113,6 @@ export function RouteContent({
           </Link>
         ))}
       </nav>
-      <p className="preview-note">Conference preview</p>
       {attendee && !organizer && view !== "join" && (
         <div className="player-strip">
           <Avatar

@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { Icon } from "./icon";
 import { Brand } from "./brand";
 import mapStyles from "./dungeon-map.module.css";
-import { DEMO_CONFERENCE_ID } from "../lib/demo";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -22,9 +21,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Brand />
         </Link>
         <nav aria-label="Main navigation">
-          <Link href={`/c/${DEMO_CONFERENCE_ID}/map`}>My map</Link>
-          <Link href="/organizer/new" className="nav-organize">
-            Organizers <Icon name="arrow-up-right" />
+          <Link href="/play">Play</Link>
+          <Link href="/organize" className="nav-organize">
+            Organize <Icon name="arrow-up-right" />
           </Link>
         </nav>
       </header>}

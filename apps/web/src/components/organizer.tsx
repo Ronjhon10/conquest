@@ -16,6 +16,7 @@ const orgHref = (conf: string, view = "") =>
 function OrganizerNav({ conf, view }: { conf: string; view: string }) {
   return (
     <nav className="section-nav" aria-label="Organizer pages">
+      <Link href="/organize">← All conferences</Link>
       {[
         ["setup", "Overview"],
         ["live", "Leaderboard"],

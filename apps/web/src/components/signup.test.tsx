@@ -25,11 +25,7 @@ function setup() {
   return { api, navigate, user };
 }
 async function fillProfile(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(
-    await screen.findByLabelText(/LinkedIn profile link/),
-    "linkedin.com/in/danny-nef?trk=profile",
-  );
-  await user.type(screen.getByLabelText(/^Name/), "Danny Nef");
+  await user.type(await screen.findByLabelText(/^Name/), "Danny Nef");
   await user.type(screen.getByLabelText(/Headline/), "Security engineer");
   await user.type(
     screen.getByLabelText(/About you/),
@@ -61,7 +57,7 @@ it("WEB-2 prefills class/goals and reaches a personal map in two taps after prof
   const { attendee } = await api.attendee(id!);
   expect(attendee.name).toBe("Danny Nef");
   expect(attendee.class).toBe("rogue");
-  expect(attendee.linkedin_url).toBe("https://www.linkedin.com/in/danny-nef/");
+  expect(attendee.linkedin_url).toBeNull();
   expect(isCharacterSheet(attendee.photo)).toBe(true);
   expect(attendee.goals).toHaveLength(3);
   expect(attendee.map.length).toBeGreaterThan(0);
@@ -93,23 +89,10 @@ it("WEB-2 lets attendees change class, add a goal with Enter, and go back withou
   expect(attendee.class).toBe("wizard");
   expect(attendee.goals).toContain("Meet other designers");
 });
-it("WEB-15 validates the profile link before drafting and keeps profile fields when going back", async () => {
-  const { api, user } = setup();
-  const draft = vi.spyOn(api, "draft");
-  await user.type(
-    await screen.findByLabelText(/LinkedIn profile link/),
-    "https://linkedin.com/company/example",
-  );
-  await user.type(screen.getByLabelText(/^Name/), "Danny");
-  await user.click(
-    screen.getByRole("button", { name: /Choose your character/ }),
-  );
-  expect(await screen.findByRole("alert")).toBeTruthy();
-  expect(screen.getByText(/Enter a LinkedIn profile link/)).toBeTruthy();
-  expect(draft).not.toHaveBeenCalled();
-  const link = screen.getByLabelText(/LinkedIn profile link/);
-  await user.clear(link);
-  await user.type(link, "www.linkedin.com/in/danny/");
+it("WEB-15 signup asks for no profile link and keeps profile fields when going back", async () => {
+  const { user } = setup();
+  await user.type(await screen.findByLabelText(/^Name/), "Danny");
+  expect(screen.queryByLabelText(/LinkedIn profile link/)).toBeNull();
   await user.click(
     screen.getByRole("button", { name: /Choose your character/ }),
   );
