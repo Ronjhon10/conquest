@@ -44,7 +44,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.2** Index mappings, idempotent seed. (SR-2) owner: Max
 - [x] **S.3** `GET /talks` hybrid search with highlight and fuzziness; `GET /talks/:id`, `GET /speakers/:id`. (SR-3, SR-4, SR-11, SR-12) owner: Max
 - [x] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
-- [ ] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
+- [x] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
 - [ ] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
 - [ ] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
 
@@ -92,3 +92,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
 - 2026-11-09 13:15  S.4  Max (Claude)  conquest-embeddings inference endpoint (OpenAI text-embedding-3-small) created on start and before seeding when OPENAI_API_KEY is set; semantic_text field; rrf retriever with a one-way fallback to bool.should (semantic 2x) when refused; `seed -- --recreate`. Unit tests for every fallback; SR-5 is an ES_INTEGRATION=1 + OPENAI_API_KEY test, not run here (no Docker, no key).
 - 2026-11-09 13:10  P.3  Jake Nef (Claude)  packages/telemetry: startTelemetry (NodeSDK, auto-instrumentations, OTLP/HTTP traces+metrics+logs to Dash0, ESM hook), log() with trace_id/span_id. PL-1, PL-2 tests. Smoke-tested under tsx against a local OTLP receiver: HTTP server spans, traces/metrics/logs all exported with the bearer header. Services not wired yet (their index.ts is Search/Game lane); README shows the 3-line entry.
+- 2026-11-09 13:25  S.5  Max (Claude)  POST /rank: one search per goal plus the about text at half weight (top 20 each, in parallel), reciprocal rank fusion (k=60), clash-free walk, reasons, time order. SR-6..SR-9 tests on the real schedule and on pure fusion.
