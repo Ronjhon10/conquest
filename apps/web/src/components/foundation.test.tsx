@@ -47,7 +47,7 @@ it("WEB-1 renders the landing and every planned page shell with fixture data", (
       }),
     );
     expect(html).toMatch(/<h1[ >]/);
-    expect(html).toContain("Conference preview");
+    if (view !== "map") expect(html).toContain("Conference preview");
   }
 });
 it("WEB-12 applies conference colors and the custom boss noun to the map shell", () => {

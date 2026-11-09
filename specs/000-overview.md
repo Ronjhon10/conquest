@@ -149,7 +149,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 
 | Method + path | Body / query | Returns |
 | --- | --- | --- |
-| `GET /api/search/talks` | `?q=&limit=20` | `{ results: { talk: Talk; score: number; highlight: string \| null }[] }` |
+| `GET /api/search/talks` | `?q=&limit=20&offset=0` (limit ≤100; offset 0–9900, only when q is empty) | `{ results: { talk: Talk; score: number; highlight: string \| null }[] }` |
 | `GET /api/search/rooms` | | `{ rooms: string[] }` (all distinct room names, sorted) |
 | `GET /api/search/talks/:id` | | `{ talk: Talk; speakers: Speaker[] }` |
 | `POST /api/search/rank` | `{ goals: string[]; about: string; limit?: number }` | `{ bosses: BossSlot[] }` |
@@ -162,7 +162,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | --- | --- | --- |
 | `POST /api/game/conferences` | `{ name; theme_prompt; rooms?: Room[] }` | `{ conference: Conference }` |
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
-| `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (also updates every attendee's quests) |
+| `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (organizer/sponsor quests only; goal quests are personal) (also updates every attendee's quests) |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |
 | `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url? }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
 | `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url?; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`; a known `linkedin_url` in this conference returns that existing attendee) |
@@ -212,7 +212,7 @@ The two-minute video follows this. Everything we build serves it first.
 
 ## Non-goals
 
-- Accounts, login, LinkedIn OAuth, or fetching anything from LinkedIn. The attendee pastes their profile link (we store it as text and link to it), picks their own profile photo from their device, and types or pastes their headline and about. Our servers never request linkedin.com. (Decided 2026-11-09: LinkedIn blocks server fetches and its terms forbid scraping.)
+- Required accounts or authorization for game/organizer routes, and scraping LinkedIn. Optional official LinkedIn OpenID Connect sign-in imports the consenting member's name/photo per 040 (user request, 2026-11-09); manual signup remains available. Public profile links are optional and self-entered, as are headline/about text. This authentication step does not add account protection to existing routes.
 - Storing photos taken for XP. Taking a photo awards XP; that photo stays on the device. The one exception is the profile photo the attendee chooses, stored small on their attendee document.
 - Anti-cheat on XP or the leaderboard.
 - More than one game type. It's always a dungeon crawler; only the theme changes.

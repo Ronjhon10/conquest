@@ -3,6 +3,8 @@
 .git
 .env
 .env.*
+**/.env
+**/.env.*
 *kubeconfig*
 meeting-recordings
 demo

@@ -1,5 +1,3 @@
-import { Icon } from "./icon";
-import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import type { Theme } from "@conquest/contracts";
@@ -87,40 +85,5 @@ export function LoadingNotice() {
       <span className="loading-dot" aria-hidden="true" /> Preparing your
       adventure…
     </div>
-  );
-}
-export function AppShell({ children }: { children: ReactNode }) {
-  const fake = process.env.NEXT_PUBLIC_FAKE_API === "1";
-  return (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <header className="site-header">
-        <Link href="/" className="brand" aria-label="Conquest home">
-          CONQUEST
-        </Link>
-        <nav aria-label="Main navigation">
-          <Link href={`/c/${DEMO_CONFERENCE_ID}/map`}>My map</Link>
-          <Link href="/organizer/new" className="nav-organize">
-            Organizers <Icon name="arrow-up-right" />
-          </Link>
-        </nav>
-      </header>
-      <main id="main">
-        {fake && (
-          <div className="demo-banner">
-            Demo world{" "}
-            <span>Sample conference · your character stays in this tab</span>
-          </div>
-        )}
-        {children}
-      </main>
-      <footer className="site-footer">
-        <span className="brand-small">CONQUEST</span>
-        <p>Find your talks. Meet your party.</p>
-        <span>Made for the moments between sessions.</span>
-      </footer>
-    </>
   );
 }

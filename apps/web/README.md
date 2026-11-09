@@ -1,5 +1,7 @@
 # Web lane
 
+Optional LinkedIn sign-in can import the attendee's name and photo. See [LinkedIn setup](LINKEDIN_SETUP.md) for developer-app activation, environment variables, and testing. It requires explicit member consent; pasting a profile URL does not import data.
+
 The Conquest frame follows `brand-assets/design-system/README.md`. Its tokens are imported directly in `app/layout.tsx`; `app/globals.css` implements the component treatments with local fonts (licenses in `public/fonts/`). Conference palette variables are scoped to `.dungeon-surface`, leaving the white/black/blue frame unchanged.
 
 From the repository root:
