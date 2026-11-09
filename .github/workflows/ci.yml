@@ -26,3 +26,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - name: WEB-1 production image font regression
+        run: bash scripts/test-web-image.sh
