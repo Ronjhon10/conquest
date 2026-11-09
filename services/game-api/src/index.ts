@@ -1,13 +1,6 @@
-import { serve } from "@hono/node-server";
-import { createApp } from "./app";
-import { depsFromEnv } from "./deps";
+// Entry point. Telemetry starts before the app loads so node:http and the rest get instrumented
+// (packages/telemetry/README.md). The app itself is in main.ts.
+import { startTelemetry } from "@conquest/telemetry";
 
-// startTelemetry("conquest-game-api") goes here first once packages/telemetry exists (BUILD P.3).
-const deps = depsFromEnv();
-for (const msg of deps.notes) console.log(JSON.stringify({ level: "warn", msg }));
-await deps.store.ensureIndexes(); // 000: each owner creates its indexes on start if missing
-
-const port = Number(process.env.PORT ?? process.env.GAME_API_PORT ?? 4002);
-serve({ fetch: createApp(deps).fetch, port }, () => {
-  console.log(JSON.stringify({ level: "info", msg: "conquest-game-api listening", port }));
-});
+startTelemetry("conquest-game-api");
+await import("./main");

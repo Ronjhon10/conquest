@@ -58,7 +58,9 @@ export function startTelemetry(serviceName: string, env: Env = process.env): Tel
   // ESM: patch modules (node:http, ...) imported after this point. Without it only fetch/undici
   // and libraries with built-in OTel (the Elasticsearch client) produce spans.
   try {
-    register("@opentelemetry/instrumentation/hook.mjs", import.meta.url);
+    // Skip our own TypeScript source (tsx compiles it; the hook can't parse it and warns). Only
+    // node built-ins and npm packages need patching.
+    register("@opentelemetry/instrumentation/hook.mjs", import.meta.url, { data: { exclude: [/\.tsx?$/] } });
   } catch {
     // Older runtimes or a loader already registered: keep going with what we have.
   }
