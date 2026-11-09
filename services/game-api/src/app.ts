@@ -1,13 +1,16 @@
 import { Hono } from "hono";
-import { installErrorHandling, notImplemented } from "./http";
+import { type Deps, memoryDeps } from "./deps";
+import { fail, installErrorHandling, notImplemented } from "./http";
 
-export function createApp() {
+export function createApp(deps: Deps = memoryDeps()) {
   const app = new Hono();
   installErrorHandling(app);
 
   const health = { ok: true as const };
   app.get("/healthz", (c) => c.json(health));
-  app.get("/readyz", (c) => c.json(health)); // lanes: check Elasticsearch here once it is wired
+  app.get("/readyz", async (c) =>
+    (await deps.store.ping()) ? c.json(health) : fail(c, 503, "not_ready", "Elasticsearch is not answering"),
+  );
 
   const api = new Hono();
   api.get("/healthz", (c) => c.json(health));

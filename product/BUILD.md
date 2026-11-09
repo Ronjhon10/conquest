@@ -50,7 +50,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Game (030)
 
-- [ ] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
+- [x] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
 - [ ] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
 - [ ] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
 - [ ] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
@@ -83,3 +83,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
+- 2026-11-09 12:40  G.1  Jacob (Claude)  game-api storage: strict mappings for the 5 Game indexes + idempotent ensureIndexes on start; DocStore seam (Elasticsearch with refresh wait_for and if_seq_no/if_primary_term; in-memory for tests); typed repos validated with contracts schemas, update() retries version conflicts up to 3 times; SearchClient (HTTP + fixture fake); /readyz checks Elasticsearch.
