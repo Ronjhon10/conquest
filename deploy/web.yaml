@@ -44,7 +44,7 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: 1000m
+              cpu: 500m   # team-quota caps limits.cpu at 10 for the whole vcluster (platform included)
               memory: 512Mi
           lifecycle:
             preStop:
