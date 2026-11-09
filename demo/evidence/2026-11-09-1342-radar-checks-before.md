@@ -1,0 +1,3 @@
+# Radar Checks: before (2026-11-09 13:42 MT)
+
+Radar Cloud Checks for cluster `conquest`, namespace `team-conquest`, taken right after the team cluster was created, while only Radar's starter `app` was running. Our namespace had **3 open checks, all Medium, none Critical or High**: missing PodDisruptionBudget (reliability), missing topology spread constraints (reliability), and service account token auto-mount (security). The cluster-wide view showed 361 of 397 checks passing, with 2 platform-managed findings hidden. These are the baseline for the "after" screenshot before 5:30. Findings that still apply to our `web`, `search-api` and `game-api` Deployments get fixed in PRs. Link: https://app.radarhq.io/checks?scope=yka3x0NpFNY&namespace=team-conquest
