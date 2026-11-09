@@ -103,6 +103,8 @@ Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 t
 - [ ] **W.7** RUM + traceparent: moved to P.W1 (Jake). owner: Jake Nef
 - [ ] **W.8** Accessibility: one axe test over the finished pages (WEB-9); keyboard-only Playwright flows (WEB-10) cut unless time. owner: whoever finishes first
 
+- [x] **W.logo** User-requested portal branding: shared website/footer/map logo, browser and Apple home-screen icons, brand usage guide. Existing WEB-1 and WEB-10 regressions cover shell/accessibility; merge remains gated by CI. owner: Jacob Bingham (Codex)
+
 ## Integration and demo (everyone, from 3:00)
 
 - [ ] **I.1** Turn off fakes on the cluster; run the 000 demo path on the public URL. (OV-1) owner:
@@ -166,3 +168,5 @@ Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 t
 
 - 2026-11-09 W.3 button consistency Danny/Codex: map day/filter controls, action buttons, quest close and bottom navigation now reuse cq-btn/cq-btn--secondary from the other pages. Removed map-specific font weights, borders, corners and shadows; retained responsive sizing and title-case labels from the phone reference. Existing map/shell tests, lint and production build pass.
 - 2026-11-09 16:20  G.W1  Jacob (Claude + Sonnet agents)  Connect (#83: QR + text code, typed code awards network XP, allies; adds qrcode dep), party (#82: create/join/members, x1.25 note) and coin button (#81: CoinButton for the boss page) as new components; Danny wires them into route-preview. Fake API has no /xp route, so connect submit errors under NEXT_PUBLIC_FAKE_API=1.
+
+- 2026-11-09 W.logo Jacob Bingham (Codex): implemented the user-approved portal concept as compact vector artwork, integrated shared branding across the site and map, added automatic favicon/Apple icon metadata and brand guidance. Initial PNG-based shell/map/foundation suite passed 17 tests locally; workspace disconnected before production build. Final vector implementation is validated by the required PR CI (lint, typecheck, tests and production image smoke) before auto-merge.
