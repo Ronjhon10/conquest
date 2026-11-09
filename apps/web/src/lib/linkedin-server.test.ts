@@ -50,11 +50,10 @@ async function fixture(tokenChanges: Record<string, unknown> = {}) {
   const { payload } = await jwtDecrypt(flow, config.key);
   const token = await new SignJWT({
     sub: "member-1",
-    nonce: payload.nonce,
     ...tokenChanges,
   })
     .setProtectedHeader({ alg: "RS256", kid: "test" })
-    .setIssuer("https://www.linkedin.com")
+    .setIssuer("https://www.linkedin.com/oauth")
     .setAudience("test-client")
     .setIssuedAt()
     .setExpirationTime("5m")
@@ -143,6 +142,7 @@ it("WEB-21 starts OIDC with only openid/profile, unpredictable state, encrypted 
   const url = new URL(first.headers.get("location")!);
   expect(url.origin).toBe("https://www.linkedin.com");
   expect(url.searchParams.get("scope")).toBe("openid profile");
+  expect(url.searchParams.has("nonce")).toBe(false);
   expect(url.searchParams.get("redirect_uri")).toBe(env.LINKEDIN_REDIRECT_URI);
   expect(url.searchParams.get("state")).not.toBe(
     new URL(second.headers.get("location")!).searchParams.get("state"),
@@ -225,8 +225,8 @@ it("WEB-22 validates the signed ID token and subject before importing name/photo
   expect(cookie.httpOnly).toBe(true);
   expect(fetcher).toHaveBeenCalledTimes(2);
 });
-it("WEB-22 rejects a signed token from another login transaction", async () => {
-  const { request, fetcher } = await fixture({ nonce: "another-login" });
+it("WEB-22 rejects a signed token identifying a different authorized client", async () => {
+  const { request, fetcher } = await fixture({ azp: "another-client" });
   const result = await callbackLinkedin(request, config, {
     fetch: fetcher,
     verifyKey,
@@ -240,7 +240,7 @@ it("WEB-22 rejects untrusted signatures, wrong audiences, and expired tokens", a
   for (const token of [
     await new SignJWT({ nonce: "irrelevant" })
       .setProtectedHeader({ alg: "RS256", kid: "test" })
-      .setIssuer("https://www.linkedin.com")
+      .setIssuer("https://www.linkedin.com/oauth")
       .setSubject("member-1")
       .setAudience("another-client")
       .setIssuedAt()
@@ -248,7 +248,7 @@ it("WEB-22 rejects untrusted signatures, wrong audiences, and expired tokens", a
       .sign(signingKey),
     await new SignJWT({})
       .setProtectedHeader({ alg: "RS256", kid: "test" })
-      .setIssuer("https://www.linkedin.com")
+      .setIssuer("https://www.linkedin.com/oauth")
       .setSubject("member-1")
       .setAudience("test-client")
       .setIssuedAt()
@@ -322,13 +322,11 @@ it("WEB-23 imports a 256-square JPEG below 40 KB and binds the import to its con
   })
     .png()
     .toBuffer();
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response(new Uint8Array(image), {
-        headers: { "Content-Type": "image/png" },
-      }),
-    );
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(new Uint8Array(image), {
+      headers: { "Content-Type": "image/png" },
+    }),
+  );
   const response = await profileLinkedin(request, config, fetcher);
   const data = await response.json();
   expect(data.name).toBe("Danny Nef");
@@ -359,13 +357,11 @@ it("WEB-23 refuses arbitrary photo URLs and oversized streams while preserving t
     expect(fetcher).not.toHaveBeenCalled();
   }
   const request = await profileRequest();
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      new Response(new Uint8Array(5 * 1024 * 1024 + 1), {
-        headers: { "Content-Type": "image/jpeg" },
-      }),
-    );
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(new Uint8Array(5 * 1024 * 1024 + 1), {
+      headers: { "Content-Type": "image/jpeg" },
+    }),
+  );
   expect(
     await (await profileLinkedin(request, config, fetcher)).json(),
   ).toMatchObject({ name: "Danny Nef", photo: null });
@@ -405,5 +401,112 @@ it("WEB-22 rejects an expired transaction cookie before contacting LinkedIn", as
     "http://localhost:3000/auth/linkedin/error",
   );
   expect(response.cookies.get("conquest_linkedin_flow")?.maxAge).toBe(0);
+  expect(fetcher).not.toHaveBeenCalled();
+});
+it("WEB-22 reports only safe stages and allowlisted error codes when a provider exchange fails", async () => {
+  const { request, fetcher } = await fixture();
+  const report = vi.fn();
+  fetcher.mockResolvedValueOnce(
+    Response.json(
+      { error: "invalid_client", error_description: "secret-provider-text" },
+      { status: 401 },
+    ),
+  );
+  await callbackLinkedin(request, config, {
+    fetch: fetcher,
+    verifyKey,
+    report,
+  });
+  expect(report).toHaveBeenLastCalledWith({
+    stage: "token_exchange",
+    code: "invalid_client",
+    status: 401,
+  });
+  fetcher.mockResolvedValueOnce(
+    Response.json(
+      {
+        error: "secret-provider-text",
+        error_description: "secret-provider-token",
+      },
+      { status: 400 },
+    ),
+  );
+  await callbackLinkedin(request, config, {
+    fetch: fetcher,
+    verifyKey,
+    report,
+  });
+  expect(report).toHaveBeenLastCalledWith({
+    stage: "token_exchange",
+    code: "request_failed",
+    status: 400,
+  });
+  const logged = JSON.stringify(report.mock.calls);
+  for (const secret of [
+    "secret-provider-text",
+    "secret-provider-token",
+    "provider-code",
+    env.LINKEDIN_CLIENT_SECRET,
+    "Danny Nef",
+  ])
+    expect(logged).not.toContain(secret);
+});
+it("WEB-22 supports LinkedIn code-flow tokens without a nonce and retains protected state", async () => {
+  const { request, fetcher } = await fixture();
+  const report = vi.fn();
+  const response = await callbackLinkedin(request, config, {
+    fetch: fetcher,
+    verifyKey,
+    report,
+  });
+  expect(response.headers.get("location")).toContain("linkedin=connected");
+  expect(report).not.toHaveBeenCalled();
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+it("WEB-22 requires the issuer published by LinkedIn's live discovery document", async () => {
+  const { request, fetcher } = await fixture();
+  const oldIssuerToken = await new SignJWT({
+    sub: "member-1",
+  })
+    .setProtectedHeader({ alg: "RS256", kid: "test" })
+    .setIssuer("https://www.linkedin.com")
+    .setAudience("test-client")
+    .setIssuedAt()
+    .setExpirationTime("5m")
+    .sign(signingKey);
+  fetcher.mockResolvedValueOnce(
+    Response.json({ access_token: "secret", id_token: oldIssuerToken }),
+  );
+  const report = vi.fn();
+  const response = await callbackLinkedin(request, config, {
+    fetch: fetcher,
+    verifyKey,
+    report,
+  });
+  expect(response.headers.get("location")).toContain("linkedin=failed");
+  expect(report).toHaveBeenCalledWith({
+    stage: "id_token",
+    code: "ERR_JWT_CLAIM_VALIDATION_FAILED",
+    claim: "iss",
+  });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+it("WEB-22 requires a fresh sign-in for old transactions that requested nonce validation", async () => {
+  const { request, payload, fetcher } = await fixture();
+  const legacy = await new EncryptJWT({ ...payload, nonce: "legacy-nonce" })
+    .setProtectedHeader({ alg: "dir", enc: "A256GCM" })
+    .setIssuedAt()
+    .setExpirationTime("10m")
+    .setIssuer("conquest")
+    .setAudience("linkedin-import")
+    .encrypt(config.key);
+  const oldRequest = new NextRequest(request.url, {
+    headers: { cookie: `conquest_linkedin_flow=${legacy}` },
+  });
+  const response = await callbackLinkedin(oldRequest, config, {
+    fetch: fetcher,
+    verifyKey,
+  });
+  expect(response.headers.get("location")).toContain("linkedin=failed");
   expect(fetcher).not.toHaveBeenCalled();
 });
