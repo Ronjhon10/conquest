@@ -1,0 +1,19 @@
+# Turns on Gitar auto-apply for every PR by adding the gitar-managed label.
+# Gitar has no repo-wide default for auto-apply; the label is the per-PR switch.
+name: gitar-managed
+on:
+  pull_request:
+    # synchronize: GitHub skips PR workflows while a PR has merge conflicts,
+    # so a PR that missed the label at open gets it on its next push.
+    types: [opened, reopened, ready_for_review, synchronize]
+permissions:
+  pull-requests: write
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr edit "$PR" --add-label gitar-managed --repo "$REPO"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}

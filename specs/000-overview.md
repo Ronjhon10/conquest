@@ -228,5 +228,9 @@ The two-minute video follows this. Everything we build serves it first.
 
 ## Open questions
 
-- Is RRF (reciprocal rank fusion) available on the Elastic Serverless trial? **Default:** try the `rrf` retriever; if refused, combine BM25 and semantic in one `bool.should` query (020 says how).
-- Video or live presentation? **Default:** record the two-minute video by 5:15; be ready to demo live too.
+None open.
+
+### Resolved
+
+- Is RRF (reciprocal rank fusion) available on the Elastic Serverless trial? **Resolved 2026-11-09:** yes. Elastic's reference lists the `rrf` retriever as generally available on Elastic Cloud Serverless. search-api uses it and keeps the `bool.should` fallback in case a cluster refuses it (020 Behavior 3).
+- Video or live presentation? **Resolved 2026-11-09:** both, as the default said: record the two-minute video by 5:15 and be ready to demo live.

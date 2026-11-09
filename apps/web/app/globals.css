@@ -679,3 +679,348 @@ svg {
     transform: none;
   }
 }
+
+/* W.2: signup and reusable player avatars. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.signup-page {
+  max-width: 1040px;
+}
+.signup-steps {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  font-size: 12px;
+}
+.signup-steps li {
+  padding: 8px 0;
+  border-bottom: 2px solid var(--ink);
+}
+.signup-steps [aria-current="step"] {
+  font-weight: 700;
+  border-bottom: 6px solid var(--blue);
+}
+.signup-form {
+  max-width: 720px;
+  margin: 0 6px 24px 0;
+  gap: 24px;
+}
+.form-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.form-fields legend {
+  margin-bottom: 24px;
+  width: 100%;
+}
+.form-field label,
+.photo-field label,
+.custom-goal > label {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+.form-field label span,
+.photo-field label span {
+  font-weight: 400;
+}
+.cq-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 16px;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font: 400 16px/24px var(--font-mono);
+}
+.cq-field:focus {
+  outline: var(--stroke) solid var(--blue);
+  outline-offset: 3px;
+}
+.cq-field[aria-invalid="true"] {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.cq-field::placeholder {
+  color: #595959;
+  opacity: 1;
+}
+textarea.cq-field {
+  resize: vertical;
+  min-height: 120px;
+}
+.field-hint {
+  font-size: 13px;
+  line-height: 19px;
+  margin: 10px 0 0;
+}
+.field-error {
+  font-size: 13px;
+  line-height: 19px;
+  margin: 12px 0 0;
+  border-left: 4px solid var(--ink);
+  padding: 4px 0 4px 12px;
+  font-weight: 700;
+}
+.photo-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.photo-field input[type="file"] {
+  max-width: 100%;
+  font-size: 13px;
+  padding-block: 8px;
+  min-height: 44px;
+}
+.photo-field > div {
+  min-width: 0;
+}
+.photo-field input::file-selector-button {
+  padding: 10px;
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  font: 700 13px var(--font-mono);
+  margin-right: 8px;
+  cursor: pointer;
+}
+.avatar {
+  display: block;
+  flex-shrink: 0;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  object-fit: cover;
+}
+.avatar-sprite {
+  image-rendering: pixelated;
+  object-fit: contain;
+  padding: 4px;
+}
+.avatar-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.text-button {
+  background: transparent;
+  border: 0;
+  padding: 8px 0;
+  min-height: 44px;
+  font-size: 13px;
+  text-decoration: underline;
+  font-weight: 700;
+}
+.signup-cta {
+  justify-content: center;
+  align-self: stretch;
+}
+.signup-form > .signup-cta {
+  margin-right: 6px;
+}
+.signup-character-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-right: 6px;
+  max-width: 850px;
+}
+.character-preview {
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+}
+.character-preview h2 {
+  font-size: 32px;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.character-preview h2:focus {
+  outline: none;
+}
+.character-class-name {
+  text-transform: capitalize;
+  margin: 0 0 12px;
+  font: 700 22px var(--font-display);
+}
+.class-fieldset,
+.goals-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding-top: 20px;
+}
+.class-fieldset legend,
+.goals-fieldset legend {
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  padding: 8px 12px;
+  max-width: 100%;
+  line-height: 1.5;
+}
+.class-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-right: 4px;
+}
+.cq-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition:
+    transform 0.2s linear,
+    box-shadow 0.2s linear;
+}
+.cq-tile[aria-pressed="true"] {
+  background: var(--blue);
+  color: var(--on-blue);
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+.class-option strong {
+  text-transform: capitalize;
+  font: 700 20px var(--font-display);
+}
+.class-option > span {
+  font-size: 11px;
+}
+.goal-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 4px 10px 0;
+}
+.goal-chip {
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  min-height: 44px;
+  padding: 10px 12px;
+  font: 400 13px var(--font-mono);
+  text-align: left;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.goal-chip[aria-pressed="true"] {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+.custom-goal {
+  margin-top: 12px;
+}
+.custom-goal > div {
+  display: flex;
+  gap: 16px;
+  padding-right: 6px;
+}
+.custom-goal .cq-field {
+  min-width: 0;
+}
+.signup-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.signup-actions > .signup-cta {
+  flex: 1;
+}
+.allies-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.allies-list li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 0;
+  border-bottom: 2px solid var(--ink);
+}
+.allies-list p {
+  font-size: 13px;
+  margin: 6px 0;
+}
+.allies-list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 13px;
+}
+.signup-page .error-notice {
+  margin-bottom: 24px;
+}
+@media (max-width: 640px) {
+  .signup-steps {
+    gap: 16px;
+    font-size: 11px;
+  }
+  .class-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .photo-field {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .character-preview {
+    gap: 16px;
+  }
+  .character-preview .avatar {
+    width: 80px;
+    height: 80px;
+  }
+  .character-preview h2 {
+    font-size: 26px;
+  }
+  .custom-goal > div {
+    flex-wrap: wrap;
+  }
+  .custom-goal .cq-field {
+    flex: 1;
+    min-width: 160px;
+  }
+  .signup-actions .cq-btn {
+    font-size: 16px;
+  }
+  .leaderboard .avatar-name {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cq-tile {
+    transition: none;
+  }
+}

@@ -4,7 +4,9 @@ import { SpanStatusCode } from "@opentelemetry/api";
 import type { Deps } from "../deps";
 import { checkinsCount, tracer, xpAwardedCounter } from "../telemetry";
 import { completeQuests } from "./quests";
-import { applyMultiplier, levelForXp, PARTY_MULTIPLIER } from "./rules";
+import { applyMultiplier, PARTY_MULTIPLIER } from "./rules";
+import { commitAward, publishPendingAwards } from "./journal";
+import { ApiError } from "../http";
 
 export type AwardSpec = {
   kind: XpKind;
@@ -36,12 +38,10 @@ export async function checkQuests(deps: Deps, attendeeId: string): Promise<Atten
   return completeQuests(deps, attendeeId);
 }
 
+type AwardResult = { event: XpEvent; attendee: Attendee; created: boolean };
+
 /** xp.award span + metrics around the award (GM-18). Attributes are ids, kinds and counts only. */
-export async function awardXp(
-  deps: Deps,
-  attendee: Attendee,
-  spec: AwardSpec,
-): Promise<{ event: XpEvent; attendee: Attendee }> {
+export async function awardXp(deps: Deps, attendee: Attendee, spec: AwardSpec): Promise<AwardResult> {
   return tracer().startActiveSpan("xp.award", async (span) => {
     try {
       const party = attendee.party_id ? await deps.repos.parties.get(attendee.party_id) : null;
@@ -53,8 +53,11 @@ export async function awardXp(
       });
       const result = await awardXpInner(deps, attendee, spec);
       span.setAttribute("conquest.xp.amount", result.event.xp);
-      xpAwardedCounter().add(result.event.xp, { kind: spec.kind });
-      if (spec.kind === "checkin") checkinsCount().add(1);
+      // A replayed award (created false) was already counted when it first happened.
+      if (result.created) {
+        xpAwardedCounter().add(result.event.xp, { kind: spec.kind });
+        if (spec.kind === "checkin") checkinsCount().add(1);
+      }
       return result;
     } catch (err) {
       span.recordException(err instanceof Error ? err : new Error(String(err)));
@@ -66,14 +69,11 @@ export async function awardXp(
   });
 }
 
-/** Writes the event, then bumps the attendee's xp/level/coins with a versioned update. */
-async function awardXpInner(
-  deps: Deps,
-  attendee: Attendee,
-  spec: AwardSpec,
-): Promise<{ event: XpEvent; attendee: Attendee }> {
+/** Atomically commit totals and the pending event, then publish and complete quests. */
+async function awardXpInner(deps: Deps, attendee: Attendee, spec: AwardSpec): Promise<AwardResult> {
   const multiplier = spec.multiplier ?? 1;
-  const event = await deps.repos.xpEvents.create({
+  await publishPendingAwards(deps, attendee.id);
+  const committed = await commitAward(deps, {
     id: deps.newId(),
     conference_id: attendee.conference_id,
     attendee_id: attendee.id,
@@ -86,12 +86,11 @@ async function awardXpInner(
     multiplier,
     xp: applyMultiplier(spec.baseXp, multiplier),
     at: deps.now().toISOString(),
-  });
-  const updated = await deps.repos.attendees.update(attendee.id, (a) => {
-    const xp = a.xp + event.xp;
-    return { ...a, xp, level: levelForXp(xp), coins: a.coins + (spec.coins ?? 0) };
-  });
-  if (!updated) throw new Error(`attendee ${attendee.id} vanished during award`);
-  const latest = await checkQuests(deps, attendee.id);
-  return { event, attendee: latest ?? updated };
+  }, spec.coins ?? 0);
+  await publishPendingAwards(deps, attendee.id);
+  if (!committed.created && spec.kind === "checkin") {
+    throw new ApiError(409, "already_checked_in", "Already checked into this talk");
+  }
+  const latest = committed.created ? await checkQuests(deps, attendee.id) : null;
+  return { ...committed, attendee: latest ?? committed.attendee };
 }

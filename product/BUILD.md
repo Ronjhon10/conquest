@@ -31,7 +31,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`; deploys go to branch `deploy`). (PL-4) owner: Max
 - [x] **P.2** Gitar: config committed (`.gitar/`); trial started and app installed on Ronjhon10/conquest (2026-11-09); turn on auto-apply per PR with `gitar auto-apply:on`. (PL-9) owner: Jake Nef
-- [ ] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner: Jake Nef
+- [x] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner: Jake Nef
 - [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner: Jake Nef
 - [ ] **P.5** **Human:** Radar cluster (join.cnh.radarhq.io), `./deploy/setup-team.sh <team>` PR, everyone connects Radar MCP, Checks "before" screenshot. (PL-8) owner: Jake Nef
 - [ ] **P.6** **Human:** Elastic Serverless project, Dash0 account and tokens, Secret `conquest-secrets`. Then the agent `get-started` skill applies `argocd/application.yaml`; first GitOps deploy verified on the URL. Seed Job. (PL-5) owner: Jake Nef
@@ -44,8 +44,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.2** Index mappings, idempotent seed. (SR-2) owner: Max
 - [x] **S.3** `GET /talks` hybrid search with highlight and fuzziness; `GET /talks/:id`, `GET /speakers/:id`. (SR-3, SR-4, SR-11, SR-12) owner: Max
 - [x] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
-- [ ] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
-- [ ] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
+- [x] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
+- [x] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
 - [ ] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
 
 ## Lane: Game (030)
@@ -61,10 +61,12 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
 - [x] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
 
+- [x] **G.R1** Review fixes: atomic XP totals/outbox, concurrent action limits, quest deduplication and exclusive party membership. (GM-6, GM-8..GM-10, GM-12, GM-14, GM-17) owner: Jake Nef
+
 ## Lane: Web (040)
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
-- [ ] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
+- [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
 - [ ] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
@@ -92,3 +94,10 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 13:00  W.1  Danny (Codex)  Brand-system frame, local fonts, all route previews, shared typed/validated API client, 12-talk/3-attendee memory fixtures, loading/error recovery, scoped dungeon theme variables. WEB-1/WEB-12/WEB-14 tests; full tests, lint, typecheck and production build pass. Browser host unavailable; visual QA remains for the next browser session. Theme studio recorded as W.5a, not implemented here.
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
 - 2026-11-09 13:15  S.4  Max (Claude)  conquest-embeddings inference endpoint (OpenAI text-embedding-3-small) created on start and before seeding when OPENAI_API_KEY is set; semantic_text field; rrf retriever with a one-way fallback to bool.should (semantic 2x) when refused; `seed -- --recreate`. Unit tests for every fallback; SR-5 is an ES_INTEGRATION=1 + OPENAI_API_KEY test, not run here (no Docker, no key).
+- 2026-11-09 13:10  P.3  Jake Nef (Claude)  packages/telemetry: startTelemetry (NodeSDK, auto-instrumentations, OTLP/HTTP traces+metrics+logs to Dash0, ESM hook), log() with trace_id/span_id. PL-1, PL-2 tests. Smoke-tested under tsx against a local OTLP receiver: HTTP server spans, traces/metrics/logs all exported with the bearer header. Services not wired yet (their index.ts is Search/Game lane); README shows the 3-line entry.
+- 2026-11-09 13:17  W.2  Danny (Codex)  Two-screen signup with LinkedIn format validation, optional local photo crop/compression, four editable classes, suggested/custom goals, saved attendee identity, personal map, shared photo/sprite avatars, and reload-safe tab demo data. Tests cover WEB-2, WEB-15, WEB-16, keyboard signup, failed requests and duplicate-submit prevention; tests/lint/typecheck/build verified before PR.
+- 2026-11-09 13:25  S.5  Max (Claude)  POST /rank: one search per goal plus the about text at half weight (top 20 each, in parallel), reciprocal rank fusion (k=60), clash-free walk, reasons, time order. SR-6..SR-9 tests on the real schedule and on pure fusion.
+- 2026-11-09 13:35  S.6  Max (Claude)  POST /suggest-goals: one request with a sampler (top 50 BM25 hits) of tag/track terms plus a global tag count; drops formats and tags on >60% of talks, tops up to 3, title-cases with acronyms. SR-10 tests on the real schedule.
+- 2026-11-09 14:10  S.5 follow-up  Max (Claude)  /rank picks one boss per goal before filling by fused order (SR-13); all spec open questions resolved (000, 010, 020, 030, 040).
+
+- 2026-11-09 13:26  G.R1  Jake Nef (Codex)  Fixed review findings CQ-REVIEW-001..003: versioned attendee XP journal/outbox with replay on startup, attendee reads and aggregate reads; atomic action limits and network/quest deduplication; attendee party claims with rollback on failed joins. Cross-instance concurrency and failed-write regressions use in-memory stores only.

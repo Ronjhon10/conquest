@@ -97,5 +97,9 @@ Allies: `GET /attendees/:id` returns `allies`, everyone the attendee networked w
 
 ## Open questions
 
-- Should gifts go to every speaker of a multi-speaker talk? **Default:** first speaker only (Behavior 15).
-- Should check-ins be limited to the talk's time window after the demo? **Default:** no time limit in the MVP.
+None open.
+
+### Resolved
+
+- Should gifts go to every speaker of a multi-speaker talk? **Resolved 2026-11-09:** first speaker only (Behavior 15), as built in `services/game-api/src/coins/coins.ts`.
+- Should check-ins be limited to the talk's time window after the demo? **Resolved 2026-11-09:** no time limit in the MVP (the demo is recorded on 2026-11-09, before most real talks run); anti-cheat is a 000 non-goal.

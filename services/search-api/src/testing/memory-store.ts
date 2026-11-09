@@ -4,6 +4,7 @@
 import type { Speaker, Talk } from "@conquest/contracts";
 import { HIGHLIGHT_CHARS } from "../queries";
 import type { TalkHit, TalkStore } from "../store";
+import { SAMPLE_SIZE, type Bucket, type Facets } from "../suggest";
 
 const STOP = new Set(["a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how", "in", "into", "is", "it", "of", "on", "or", "that", "the", "this", "to", "with", "you", "your", "my", "we", "our", "i"]);
 
@@ -108,6 +109,13 @@ export class MemoryTalkStore implements TalkStore {
       .filter((t) => t.speaker_ids.includes(id))
       .sort((a, b) => a.starts_at.localeCompare(b.starts_at) || a.id.localeCompare(b.id));
   }
+  async facets(about: string): Promise<Facets> {
+    const sample = about.trim() ? (await this.searchTalks(about, SAMPLE_SIZE)).map((h) => h.talk) : [];
+    return {
+      sample: { tags: count(sample.flatMap((t) => t.tags)), tracks: count(sample.flatMap((t) => (t.track ? [t.track] : []))) },
+      all: { docs: this.talks.size, tags: count([...this.talks.values()].flatMap((t) => t.tags)) },
+    };
+  }
   async ready() {
     return true;
   }
@@ -129,4 +137,10 @@ function snippet(abstract: string, terms: string[]): string | null {
   let text = abstract.slice(start, start + HIGHLIGHT_CHARS);
   for (const t of new Set(terms)) text = text.replace(new RegExp(`\\b(${t}[a-z0-9]*)`, "gi"), "<em>$1</em>");
   return text;
+}
+
+function count(terms: string[]): Bucket[] {
+  const m = new Map<string, number>();
+  for (const t of terms) m.set(t, (m.get(t) ?? 0) + 1);
+  return [...m.entries()].map(([term, n]) => ({ term, count: n })).sort((a, b) => b.count - a.count || a.term.localeCompare(b.term));
 }

@@ -2,12 +2,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type {
+  Ally,
   Attendee,
   Conference,
   LeaderboardRow,
   Talk,
 } from "@conquest/contracts";
-import { getApi, readableError } from "../lib/api";
+import { Avatar } from "./avatar";
+import { currentAttendee, forgetAttendee } from "../lib/identity";
+import { ApiError, getApi, readableError } from "../lib/api";
 import {
   ErrorNotice,
   LoadingNotice,
@@ -35,6 +38,7 @@ export type PreviewData = {
   talks: Talk[];
   attendee: Attendee | null;
   rows: LeaderboardRow[];
+  allies?: Ally[];
 };
 export function RouteContent({
   data,
@@ -101,6 +105,12 @@ export function RouteContent({
       <p className="preview-note">Conference preview</p>
       {attendee && !organizer && view !== "join" && (
         <div className="player-strip">
+          <Avatar
+            name={attendee.name}
+            photo={attendee.photo}
+            characterClass={attendee.class}
+            seed={attendee.avatar_seed}
+          />
           <div>
             <strong>{attendee.name}</strong>
             <span>
@@ -146,7 +156,7 @@ export function RouteContent({
             </ol>
           </section>
           <Panel title="Your quests">
-            {conference.quests.map((q) => (
+            {(attendee?.quests ?? conference.quests).map((q) => (
               <p key={q.id}>
                 <strong>{q.title}</strong>
                 <br />
@@ -170,7 +180,18 @@ export function RouteContent({
             <tbody>
               {rows.map((row) => (
                 <tr key={row.attendee_id}>
-                  <th scope="row">{row.name}</th>
+                  <th scope="row">
+                    <span className="avatar-name">
+                      <Avatar
+                        name={row.name}
+                        photo={row.photo}
+                        characterClass={row.class}
+                        seed={row.avatar_seed}
+                        size={44}
+                      />
+                      {row.name}
+                    </span>
+                  </th>
                   <td>{row.class}</td>
                   <td>{row.level}</td>
                   <td>{row.xp}</td>
@@ -178,6 +199,36 @@ export function RouteContent({
               ))}
             </tbody>
           </table>
+        </Panel>
+      ) : view === "connect" ? (
+        <Panel title="Your allies">
+          {(data.allies ?? []).length ? (
+            <ul className="allies-list">
+              {data.allies?.map((ally) => (
+                <li key={ally.attendee_id}>
+                  <Avatar
+                    name={ally.name}
+                    photo={ally.photo}
+                    seed={ally.attendee_id}
+                  />
+                  <div>
+                    <strong>{ally.name}</strong>
+                    <p>{ally.headline}</p>
+                    <a
+                      href={ally.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      View on LinkedIn
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>People you connect with at the conference will appear here.</p>
+          )}
         </Panel>
       ) : view === "boss" ? (
         <Panel title={selectedTalk?.title ?? "Choose a talk from your map"}>
@@ -277,9 +328,8 @@ export function RoutePreview({
     const api = getApi();
     // Only fake mode uses the seeded attendee. Live mode waits for signup/local identity.
     const attendeeId =
-      process.env.NEXT_PUBLIC_FAKE_API === "1"
-        ? "att-jane"
-        : localStorage.getItem(`conquest:${conf}:attendee`);
+      currentAttendee(conf) ??
+      (process.env.NEXT_PUBLIC_FAKE_API === "1" ? "att-jane" : null);
     // New-conference and speaker shells have no conference to load in live mode.
     if (
       (view === "new" || view === "speaker") &&
@@ -288,10 +338,24 @@ export function RoutePreview({
       return () => {
         active = false;
       };
+    const attendeeRequest = attendeeId
+      ? api.attendee(attendeeId).catch((error: unknown) => {
+          if (
+            process.env.NEXT_PUBLIC_FAKE_API === "1" &&
+            attendeeId !== "att-jane" &&
+            error instanceof ApiError &&
+            error.status === 404
+          ) {
+            forgetAttendee(conf);
+            return api.attendee("att-jane");
+          }
+          throw error;
+        })
+      : Promise.resolve(null);
     Promise.all([
       api.conference(conf),
       api.talks(),
-      attendeeId ? api.attendee(attendeeId) : Promise.resolve(null),
+      attendeeRequest,
       view === "live" ? api.leaderboard(conf) : Promise.resolve({ rows: [] }),
     ])
       .then(([conference, talks, attendee, leaderboard]) => {
@@ -301,6 +365,7 @@ export function RoutePreview({
             talks: talks.results.map((r) => r.talk),
             attendee: attendee?.attendee ?? null,
             rows: leaderboard.rows,
+            allies: attendee?.allies ?? [],
           });
       })
       .catch((e) => {
