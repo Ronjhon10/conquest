@@ -1,6 +1,7 @@
 # Kickoff ideation: summary
 
 Transcript: [2026-11-09-1040-kickoff-ideation-transcript.md](2026-11-09-1040-kickoff-ideation-transcript.md)
+Whiteboard: [photo](2026-11-09-1040-kickoff-whiteboard.jpg) and [transcribed text](2026-11-09-1040-kickoff-whiteboard.md)
 
 Team brainstorm at the hackathon kickoff. The first half widens the idea (organizers, speakers, party mechanics, sponsor tools) and the second half boils it down to a two-minute demo flow. The date is the day it was pushed. Speaker labels in the transcript are unreliable, so nothing below is attributed to a person.
 
@@ -40,10 +41,12 @@ Team brainstorm at the hackathon kickoff. The first half widens the idea (organi
 - Whether the badge-scan idea (a sticker with your avatar that's scanned like a QR code) goes into the MVP or just a slide.
 - Do judges care about the "simple, real user, real problem" angle? The LinkedIn notes on judges suggest yes.
 - Crowd heat map for organizers was floated near the end with no discussion.
+- Second track: the whiteboard's tech step says "Elastic Search + Sonar", but the transcript discusses Guitar (CI/CD checks). Which one is it, or is "Guitar" a transcription error?
+- The whiteboard also lists XP for helping with accessibility and giving coins or swag to speakers, and still has "Radar/Kubernetes is Dungeon" in red. Are these in or out?
 
 ## Action items
 
-- Make the repo and put the whiteboard photos of this flow into it (they said "take pictures of this all"). The repo exists now, so the photos still need to be added.
+- ~~Make the repo and put the whiteboard photos of this flow into it (they said "take pictures of this all").~~ Done: [whiteboard photo and text](2026-11-09-1040-kickoff-whiteboard.md). Add any other photos the same way.
 - Turn this into a spec in `specs/` with numbered criteria, and add build steps to `product/BUILD.md`.
 - Fill in `idea/overview.md` (event, tracks, deadline, judging criteria). The submission deadline was mentioned as 5:30.
 - Look into what Dash0 does and decide whether to use it (someone said they'd read up on it).
