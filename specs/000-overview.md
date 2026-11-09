@@ -104,7 +104,9 @@ type Conference = { id: string; name: string; theme: Theme; quests: Quest[]; roo
 type CharacterClass = "knight" | "wizard" | "rogue" | "bard";
 type Attendee = {
   id: string; conference_id: string;
-  name: string; headline: string; linkedin_url: string | null;
+  name: string; headline: string;
+  linkedin_url: string;          // pasted by the attendee, normalized to https://www.linkedin.com/in/<slug>/
+  photo: string | null;          // profile photo the attendee picked: JPEG data URL, 256x256, <= 40 KB; null = class sprite
   class: CharacterClass; avatar_seed: string;
   goals: string[];
   code: string;                  // 6-char code shown as QR for networking
@@ -124,7 +126,8 @@ type XpEvent = {
 };
 type Party = { id: string; conference_id: string; name: string; member_ids: string[] };   // max 4
 type CoinGift = { id: string; conference_id: string; from_attendee_id: string; speaker_id: string; talk_id: string; note: string; at: string };
-type LeaderboardRow = { attendee_id: string; name: string; class: CharacterClass; xp: number; level: number };
+type LeaderboardRow = { attendee_id: string; name: string; class: CharacterClass; xp: number; level: number; photo: string | null; avatar_seed: string };
+type Ally = { attendee_id: string; name: string; headline: string; linkedin_url: string; photo: string | null };   // someone you networked with
 type Recap = { post_text: string; stats: { bosses: number; allies: number; xp: number; level: number; coins_given: number } };
 type Report = {
   attendees: number; checkins: number; photos: number; connections: number; parties: number;
@@ -157,9 +160,9 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
 | `PUT /api/game/conferences/:id/quests` | `{ quests: Omit<Quest,"id">[] }` | `{ conference: Conference }` |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |
-| `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url? }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
-| `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`) |
-| `GET /api/game/attendees/:id` | | `{ attendee: Attendee; party: Party \| null }` |
+| `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
+| `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`) |
+| `GET /api/game/attendees/:id` | | `{ attendee: Attendee; party: Party \| null; allies: Ally[] }` |
 | `POST /api/game/xp` | `{ attendee_id; kind; talk_id?; other_code?; quest_id? }` | `{ event: XpEvent; attendee: Attendee }` |
 | `POST /api/game/parties` | `{ attendee_id; name }` | `{ party: Party }` |
 | `POST /api/game/parties/:id/join` | `{ attendee_id }` | `{ party: Party }` |
@@ -197,15 +200,15 @@ The two-minute video follows this. Everything we build serves it first.
 
 1. Slide: the problem.
 2. Organizer creates "KubeCon NA 2026", types a theme prompt, gets a generated theme; edits a quest; marks a room not step-free. (040 organizer screens, 030 conferences)
-3. Attendee signs up: pastes LinkedIn headline and about, gets a class and suggested goals, picks goals, sees **their map of real KubeCon talks as bosses** with the reason each was picked, and their quests. (020 rank, 030 attendees, 040)
+3. Attendee signs up: pastes their LinkedIn link, picks a profile photo, types or pastes their headline and about, gets a class and suggested goals, picks goals, sees **their map of real KubeCon talks as bosses** with the reason each was picked, and their quests. (020 rank, 030 attendees, 040)
 4. At the conference, split screen with real-life footage: check into a boss talk with a party (1.25x shown), take a photo, scan a friend's code, finish a quest, give a speaker a coin. The leaderboard on the "monitor" updates. (030 xp, 040)
 5. After: attendee recap post, organizer report, speaker recognition. (030, 040)
 6. Slides: Elasticsearch hybrid ranking, the cluster in Radar with a real AI investigation, the Dash0 dashboard/SLO with a real Agent0 finding, a Gitar review and auto-fix on one of our PRs, accessibility.
 
 ## Non-goals
 
-- Accounts, login, LinkedIn OAuth or scraping LinkedIn. Attendees paste their own headline and about text.
-- Storing photos. Taking a photo awards XP; the photo stays on the device.
+- Accounts, login, LinkedIn OAuth, or fetching anything from LinkedIn. The attendee pastes their profile link (we store it as text and link to it), picks their own profile photo from their device, and types or pastes their headline and about. Our servers never request linkedin.com. (Decided 2026-11-09: LinkedIn blocks server fetches and its terms forbid scraping.)
+- Storing photos taken for XP. Taking a photo awards XP; that photo stays on the device. The one exception is the profile photo the attendee chooses, stored small on their attendee document.
 - Anti-cheat on XP or the leaderboard.
 - More than one game type. It's always a dungeon crawler; only the theme changes.
 - Emails, push notifications, native apps.

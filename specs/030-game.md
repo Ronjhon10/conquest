@@ -31,7 +31,9 @@ The game-api routes and types in [000](000-overview.md#contracts). game-api call
 ### Attendees (signup)
 
 4. `POST /attendees/draft` suggests a class and goals without saving: goals from search-api `suggest-goals` with the about text; class from OpenAI given headline + about, falling back to keyword rules on headline + about (security/compliance → rogue, platform/infra/SRE/ops → knight, data/ML/AI/research → wizard, devrel/community/PM/design/anything else → bard). `avatar_seed` is a random 8-char string.
-5. `POST /attendees` saves the attendee with `xp 0`, `level 1`, `coins 3`, a unique 6-char uppercase `code` (no `0 O 1 I`), and `map` from search-api `rank(goals, about, 6)`. It adds one **goal quest** per goal that has a boss: "Defeat the <boss_noun> of <goal>" (checkin, 1, `talk_ids` = the bosses whose reason names that goal, 100 XP), plus the conference's quests.
+5. `POST /attendees` validates and normalizes `linkedin_url` (accepts `linkedin.com/in/<slug>` with or without `https://`, `www.`, a country subdomain, a trailing slash or query string; stores `https://www.linkedin.com/in/<slug>/`; anything else is `400 bad_linkedin_url`). It never requests the URL. `photo`, when given, must be a `data:image/jpeg;base64,` URL of at most 40 KB (`400 bad_photo`); it is stored with `index: false`. It saves the attendee with `xp 0`, `level 1`, `coins 3`, a unique 6-char uppercase `code` (no `0 O 1 I`), and `map` from search-api `rank(goals, about, 6)`. It adds one **goal quest** per goal that has a boss: "Defeat the <boss_noun> of <goal>" (checkin, 1, `talk_ids` = the bosses whose reason names that goal, 100 XP), plus the conference's quests.
+
+Allies: `GET /attendees/:id` returns `allies`, everyone the attendee networked with (from their `network` events), with name, headline, LinkedIn link and photo, so they can connect on LinkedIn after the conference.
 
 ### XP
 
@@ -76,6 +78,9 @@ The game-api routes and types in [000](000-overview.md#contracts). game-api call
 - **GM-3** A new conference has the three default quests.
 - **GM-4** Draft without OpenAI picks the class by the keyword rules (`"Staff SRE"` → knight, `"Security engineer"` → rogue, `"ML researcher"` → wizard, `"Developer advocate"` → bard).
 - **GM-5** A new attendee has xp 0, level 1, coins 3, a 6-char code without `0 O 1 I`, a map from search `rank`, and one goal quest per goal that has a boss.
+- **GM-19** `linkedin_url` variants (`linkedin.com/in/jane-doe`, `https://uk.linkedin.com/in/jane-doe/?trk=x`, `www.linkedin.com/in/jane-doe/`) all store `https://www.linkedin.com/in/jane-doe/`; a non-profile URL (`linkedin.com/company/x`, `example.com`) is `400 bad_linkedin_url`; no network request is made.
+- **GM-20** A photo that isn't a JPEG data URL or is over 40 KB is `400 bad_photo`; a valid one is returned on the attendee and on leaderboard rows.
+- **GM-21** After two attendees network, each one's `allies` contains the other with their LinkedIn link.
 - **GM-6** Boss check-in gives 150 XP and +1 coin; non-boss check-in gives 100 XP; a second check-in to the same talk is refused (`409 already_checked_in`).
 - **GM-7** A check-in gets multiplier 1.25 and `xp = round(base * 1.25)` when a party member already checked into that talk, else 1.0.
 - **GM-8** Photo gives 25 XP and the 21st photo is refused (`409 photo_limit`).

@@ -52,7 +52,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - [ ] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner:
 - [ ] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner:
-- [ ] **G.3** Attendees: draft (class + goals) and create (code, map via rank, goal quests). (GM-4, GM-5) owner:
+- [ ] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner:
 - [ ] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner:
 - [ ] **G.5** Parties and the 1.25x bonus. (GM-7, GM-12) owner:
 - [ ] **G.6** Quest completion. (GM-10) owner:
@@ -64,9 +64,9 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Lane: Web (040)
 
 - [ ] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner:
-- [ ] **W.2** Attendee signup flow. (WEB-2) owner:
+- [ ] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner:
 - [ ] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner:
-- [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code), party page, XP feedback. (WEB-6, WEB-11) owner:
+- [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner:
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner:
 - [ ] **W.6** Recap page and speaker page. (WEB-8) owner:
 - [ ] **W.7** RUM + traceparent. owner:
