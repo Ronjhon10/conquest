@@ -1,19 +1,48 @@
+import { GetSpeakerResponse, GetTalkResponse, SearchTalksQuery, SearchTalksResponse } from "@conquest/contracts";
 import { Hono } from "hono";
-import { installErrorHandling, notImplemented } from "./http";
+import { ApiError, installErrorHandling, notImplemented, parse } from "./http";
+import type { TalkStore } from "./store";
 
-export function createApp() {
+export type AppDeps = { store?: TalkStore };
+
+export function createApp({ store }: AppDeps = {}) {
   const app = new Hono();
   installErrorHandling(app);
 
   const health = { ok: true as const };
+  const need = (): TalkStore => {
+    if (!store) throw new ApiError(503, "unavailable", "Search backend is not configured");
+    return store;
+  };
   app.get("/healthz", (c) => c.json(health));
-  app.get("/readyz", (c) => c.json(health)); // lanes: check Elasticsearch here once it is wired
+  app.get("/readyz", async (c) => {
+    if (store && !(await store.ready())) return c.json({ error: { code: "not_ready", message: "Search indexes not reachable" } }, 503);
+    return c.json(health);
+  });
 
   const api = new Hono();
   api.get("/healthz", (c) => c.json(health));
-  api.get("/talks", notImplemented("S.3"));
-  api.get("/talks/:id", notImplemented("S.3"));
-  api.get("/speakers/:id", notImplemented("S.3"));
+
+  api.get("/talks", async (c) => {
+    const { q, limit } = parse(SearchTalksQuery, c.req.query());
+    const results = await need().searchTalks(q, limit);
+    return c.json(SearchTalksResponse.parse({ results }));
+  });
+
+  api.get("/talks/:id", async (c) => {
+    const s = need();
+    const talk = await s.getTalk(c.req.param("id"));
+    if (!talk) throw new ApiError(404, "not_found", "No talk with that id");
+    return c.json(GetTalkResponse.parse({ talk, speakers: await s.getSpeakers(talk.speaker_ids) }));
+  });
+
+  api.get("/speakers/:id", async (c) => {
+    const s = need();
+    const speaker = await s.getSpeaker(c.req.param("id"));
+    if (!speaker) throw new ApiError(404, "not_found", "No speaker with that id");
+    return c.json(GetSpeakerResponse.parse({ speaker, talks: await s.talksBySpeaker(speaker.id) }));
+  });
+
   api.post("/rank", notImplemented("S.5"));
   api.post("/suggest-goals", notImplemented("S.6"));
   app.route("/api/search", api);

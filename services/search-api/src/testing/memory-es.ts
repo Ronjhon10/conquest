@@ -1,7 +1,7 @@
 // In-memory EsPort for unit tests (OV-6). Stores documents by id like Elasticsearch does, so
 // re-indexing an id overwrites it. It does not run queries: search logic is tested through
 // the query builders and the TalkStore fake.
-import type { EsPort } from "../es";
+import type { EsPort, SearchResult } from "../es";
 
 export class MemoryEs implements EsPort {
   readonly indexes = new Map<string, { body: { mappings: object }; docs: Map<string, object> }>();
@@ -38,7 +38,7 @@ export class MemoryEs implements EsPort {
     const docs = this.idx(index).docs;
     return ids.flatMap((id) => (docs.has(id) ? [docs.get(id) as T] : []));
   }
-  async search(): Promise<never> {
+  async search<T>(_index: string, _body: Record<string, unknown>): Promise<SearchResult<T>> {
     throw new Error("MemoryEs does not run queries; use a TalkStore fake");
   }
   async request(method: "GET" | "PUT" | "POST", path: string, body?: object) {
