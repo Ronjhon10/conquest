@@ -1,7 +1,7 @@
 // DocStore on Elasticsearch (000: the only datastore). Writes use refresh "wait_for" so reads,
 // the leaderboard and the report see them right away (030 Behavior 13).
 import { Client, errors, type estypes } from "@elastic/elasticsearch";
-import { MAPPINGS, type GameIndex } from "./indexes";
+import { MAPPINGS, GAME_INDEXES, XP_JOURNAL_MAPPING, type GameIndex } from "./indexes";
 import {
   AlreadyExistsError,
   DEFAULT_FIND_SIZE,
@@ -39,7 +39,10 @@ export function createElasticStore(es: Client): DocStore {
 
     async ensureIndexes() {
       for (const [index, mappings] of Object.entries(MAPPINGS)) {
-        if (await es.indices.exists({ index })) continue;
+        if (await es.indices.exists({ index })) {
+          if (index === GAME_INDEXES.attendees) await es.indices.putMapping({ index, properties: XP_JOURNAL_MAPPING });
+          continue;
+        }
         try {
           await es.indices.create({ index, mappings });
         } catch (err) {

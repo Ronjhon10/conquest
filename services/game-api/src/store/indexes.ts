@@ -33,6 +33,12 @@ export const GAME_INDEXES = {
 } as const;
 export type GameIndex = (typeof GAME_INDEXES)[keyof typeof GAME_INDEXES];
 
+// Additive, storage-only fields; the public attendee contract is unchanged.
+export const XP_JOURNAL_MAPPING = {
+  _xp_journal: { type: "object", enabled: false },
+  _xp_pending: { type: "boolean" },
+} as const;
+
 export const MAPPINGS: Record<GameIndex, Mapping> = {
   [INDEX.conferences]: {
     dynamic: "strict",
@@ -59,6 +65,7 @@ export const MAPPINGS: Record<GameIndex, Mapping> = {
       goals: keyword,
       code: keyword,
       party_id: keyword,
+      ...XP_JOURNAL_MAPPING,
       xp: integer,
       level: integer,
       coins: integer,
