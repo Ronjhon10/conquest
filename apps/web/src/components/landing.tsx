@@ -17,7 +17,7 @@ export function Landing() {
     <div className="landing">
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero__copy">
-          <p className="cq-label">For conference attendees</p>
+          <p className="cq-label">Make conferences fun</p>
           <h1 id="home-title">
             YOUR NEXT
             <br />
@@ -32,9 +32,12 @@ export function Landing() {
             <ActionLink href="/c/conf-demo/join">
               Start your adventure <Icon name="arrow-right" />
             </ActionLink>
-            <ActionLink href="#how-it-works" secondary>
-              How it works
+            <ActionLink href="/organizer/new" secondary>
+              Create a conference
             </ActionLink>
+            <a href="#how-it-works" className="text-link">
+              How it works
+            </a>
           </div>
         </div>
         <figure className="home-stage">
