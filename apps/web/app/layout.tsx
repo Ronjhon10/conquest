@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
+import { AppShell } from "../src/components/ui";
+import "../../../brand-assets/design-system/tokens.css";
 import "./globals.css";
-
 export const metadata: Metadata = {
-  title: "Conquest",
-  description: "Make conferences fun.",
+  title: {
+    default: "Conquest — Make conferences fun",
+    template: "%s | Conquest",
+  },
+  description:
+    "Great talks become quests. Strangers become allies. Your conference becomes an adventure.",
 };
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }
