@@ -11,6 +11,7 @@ import type {
 import { Avatar } from "./avatar";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
+import { formatTalkTime } from "../lib/time";
 import {
   ErrorNotice,
   LoadingNotice,
@@ -142,7 +143,7 @@ export function RouteContent({
                 return talk ? (
                   <li className="cq-card" key={talk.id}>
                     <div className="talk-meta">
-                      {formatTime(talk.starts_at)} · {talk.room}
+                      {formatTalkTime(talk.starts_at)} · {talk.room}
                     </div>
                     <Link
                       href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(talk.id)}`}
@@ -236,7 +237,7 @@ export function RouteContent({
             <>
               <p>{selectedTalk.abstract}</p>
               <p>
-                {formatTime(selectedTalk.starts_at)} · {selectedTalk.room}
+                {formatTalkTime(selectedTalk.starts_at)} · {selectedTalk.room}
               </p>
             </>
           )}
@@ -301,13 +302,6 @@ export function RouteContent({
       )}
     </div>
   );
-}
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/Denver",
-  }).format(new Date(value));
 }
 export function RoutePreview({
   view,

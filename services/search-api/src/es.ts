@@ -23,6 +23,9 @@ export function clientFromEnv(env: NodeJS.ProcessEnv = process.env): Client {
   const node = env.ELASTICSEARCH_URL;
   if (!node) throw new Error("ELASTICSEARCH_URL is not set");
   const apiKey = env.ELASTICSEARCH_API_KEY;
+  // The client makes its own OTel spans. It must never record request bodies (they hold goal and
+  // about text): @elastic/transport's `captureSearchQuery` is off by default and client 9.5 has no
+  // option to turn it on. Re-check this if the client is upgraded.
   return new Client({ node, ...(apiKey ? { auth: { apiKey } } : {}) });
 }
 

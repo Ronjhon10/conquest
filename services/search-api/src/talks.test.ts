@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "./app";
 import { DATA_FILE } from "./data";
 import { clientFromEnv, esPort, type EsPort, type SearchResult } from "./es";
+import { ensureIndexes } from "./indexes";
 import { searchTalksBody } from "./queries";
 import { seed, toTalkDoc } from "./seed";
 import { EsTalkStore } from "./store";
@@ -117,6 +118,15 @@ describe("GET /talks, /talks/:id, /speakers/:id (S.3)", () => {
     const res = await app.request("/api/search/talks?limit=0");
     expect(res.status).toBe(400);
     expect(ErrorBody.parse(await res.json()).error.code).toBe("bad_request");
+  });
+
+  it("OV-3 /readyz is 503 while the indexes exist but are empty, and 200 once seeded", async () => {
+    const es = new MemoryEs();
+    const live = createApp({ store: new EsTalkStore(es) });
+    await ensureIndexes(es, { semantic: false });
+    expect((await live.request("/readyz")).status).toBe(503);
+    await seed(es, data, { semantic: false });
+    expect((await live.request("/readyz")).status).toBe(200);
   });
 
   it("OV-3 /readyz is 503 when the indexes are missing", async () => {

@@ -1,3 +1,4 @@
+import { log as tlog, type LogLevel } from "@conquest/telemetry";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { loadSchedule } from "./data";
@@ -7,7 +8,9 @@ import { ensureIndexes } from "./indexes";
 import { EsTalkStore, type TalkStore } from "./store";
 import { MemoryTalkStore } from "./testing/memory-store";
 
-const log = (level: string, msg: string, extra: object = {}) => console.log(JSON.stringify({ level, msg, ...extra }));
+// JSON lines with trace_id/span_id, also sent as OTel logs (000). IDs and flags only, never text.
+const log = (level: string, msg: string, extra: object = {}) =>
+  tlog(level as LogLevel, msg, Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, typeof v === "object" ? JSON.stringify(v) : v])));
 
 async function makeStore(): Promise<TalkStore> {
   if (!process.env.ELASTICSEARCH_URL) {

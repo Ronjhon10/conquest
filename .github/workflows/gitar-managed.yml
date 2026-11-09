@@ -3,7 +3,9 @@
 name: gitar-managed
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review]
+    # synchronize: GitHub skips PR workflows while a PR has merge conflicts,
+    # so a PR that missed the label at open gets it on its next push.
+    types: [opened, reopened, ready_for_review, synchronize]
 permissions:
   pull-requests: write
 jobs:
