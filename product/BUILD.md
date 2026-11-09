@@ -32,6 +32,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`; deploys go to branch `deploy`). (PL-4) owner: Max
 - [x] **P.2** Gitar: config committed (`.gitar/`); trial started and app installed on Ronjhon10/conquest (2026-11-09); turn on auto-apply per PR with `gitar auto-apply:on`. (PL-9) owner: Jake Nef
 - [x] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner: Jake Nef
+- [ ] **P.W2** XP latency: on the live cluster `POST /api/game/xp` check-ins now succeed but take 4-6 s each (measured 2026-11-09 15:05 MT, after #71); 010/030 target p95 < 300 ms. Investigate with Dash0 + Radar first (AGENTS rule 13), save evidence. owner: Jake Nef
+- [ ] **P.W1** Web help (split 2026-11-09, see Lane: Web "Helping on Web"): recap page and speaker recognition page (WEB-8, was W.6), then RUM + traceparent (was W.7). Allowed files: new `apps/web/src/components/recap.tsx`, `apps/web/src/components/speaker.tsx`, RUM setup in `apps/web/app/layout.tsx`. Calls: `api.recap`, `api.recognition`. owner: Jake Nef
 - [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner: Jake Nef
 - [ ] **P.5** **Human:** Radar cluster (join.cnh.radarhq.io), `./deploy/setup-team.sh <team>` PR, everyone connects Radar MCP, Checks "before" screenshot. (PL-8) owner: Jake Nef
 - [x] **P.6** **Human:** Elastic Serverless project, Dash0 account and tokens, Secret `conquest-secrets`. Then the agent `get-started` skill applies `argocd/application.yaml`; first GitOps deploy verified on the URL. Seed Job. (PL-5) owner: Jake Nef
@@ -50,6 +52,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
 - [x] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
 - [x] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
+- [ ] **S.W1** Web help (split 2026-11-09, see Lane: Web "Helping on Web"): front page links point at the live demo conference instead of `conf-demo` (it 404s live), then the new-conference form and the report page (WEB-7, from W.5), then a live talk search box on the front page. Allowed files: `apps/web/src/components/landing.tsx`, new `apps/web/src/components/organizer-new.tsx`, new `apps/web/src/components/report.tsx`. Calls: `api.createConference`, `api.report`, `api.talks`. owner: Max
 
 - [x] **S.R1** Complete room-discovery contract and Game conference integration, independent of talk-search limits. (OV-2, GM-3) owner: Jake Nef
 - [x] **S.R2** Repair completed map backfill beyond the first schedule page and keyword fallback during inference outages. (GM-5, SR-11, OV-2, OV-5) owner: Jake Nef
@@ -71,20 +74,34 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **G.R2** Live QA: rebuild a game index whose live mapping can't search a field we filter on, keeping its documents (issue #61). (GM-23) owner: Jake Nef
 - [x] **G.R3** Live QA: game-api writes refresh explicitly instead of wait_for so check-in and network finish under the proxy timeout on Serverless (issue #62). (GM-6, GM-14, GM-17) owner: Jake Nef
 - [x] **G.R4** Review repairs: legacy-safe and atomic character recovery, durable coin gifts, and latest conference quest synchronization, indexed recovery fast paths and organizer quest validation. (GM-13, GM-22, GM-23) owner: Jake Nef
+- [ ] **G.W1** Web help (split 2026-11-09, see Lane: Web "Helping on Web"): connect page (show my code as QR + text, type a friend's code, allies list), party page (create, join, members), and a coin button for the boss page (WEB-6, WEB-11, from W.4). Allowed files: new `apps/web/src/components/connect.tsx`, `apps/web/src/components/party.tsx`, `apps/web/src/components/coin.tsx`. Calls: `api.awardXp` (kind `network`), `api.createParty`, `api.joinParty`, `api.giveCoin`, `api.attendee`. owner: Jacob Bingham
 
 ## Lane: Web (040)
+
+### Helping on Web (split 2026-11-09, freeze 4:30)
+
+Danny owns this lane; the other three lanes each took a slice so it lands by the freeze. Their steps are **S.W1** (Max), **G.W1** (Jacob) and **P.W1** (Jake), in their own lane sections. Rules for anyone working one of those steps:
+
+1. Touch only the files your step lists. Build each view as a **new** component in `apps/web/src/components/`. Don't edit `route-preview.tsx`, `ui.tsx` or `api.ts`: Danny adds the one-line branch that renders your view. Say in your PR which view name and route it is for.
+2. Use the existing client in `apps/web/src/lib/api.ts` (every API call already exists) and the existing look (`Panel`, `ActionLink`, `cq-card`, `Icon`). No new API calls, no contract changes.
+3. Read `apps/web/AGENTS.md` first: this Next.js version differs from what agents expect.
+4. Develop with `NEXT_PUBLIC_FAKE_API=1`. Test live against the demo conference `d2927cdd-f3e6-404f-b34f-4c4b766b8520` (KubeCon NA 2026, 8 made-up players): `https://conquest.cnh.radarhq.io/c/d2927cdd-f3e6-404f-b34f-4c4b766b8520/join`.
+5. One small PR per view, auto-merge on. Your own branch or worktree, never a shared checkout.
+
+Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 the rest. Cut unless someone is idle: W.5a theme studio, quest and room editors, keyboard-only Playwright flows.
+
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
 - [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
 - [x] **W.2b** Optional LinkedIn OpenID Connect profile import, credential setup and recovery. (WEB-21..WEB-23) owner: Danny
 - [x] **W.2c** **Human activation:** enable the LinkedIn developer app's OpenID Connect product, add client ID/secret to the Web runtime settings, then verify a real consent round trip. User confirmed the newest version worked after the live compatibility fixes. Setup: `apps/web/LINKEDIN_SETUP.md`. owner: Danny
 - [x] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
-- [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
-- [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
-- [ ] **W.5a** Organizer theme studio: description → preview → revise/apply, themed map scenery and optional background within Conquest's consistent style. Coordinate theme preview/update and presentation contracts with Game before integration. (WEB-18..WEB-20) owner: Danny
-- [ ] **W.6** Recap page and speaker page. (WEB-8) owner: Danny
-- [ ] **W.7** RUM + traceparent. owner: Danny
-- [ ] **W.8** Accessibility tests: axe + keyboard-only Playwright flows. (WEB-9, WEB-10) owner: Danny
+- [ ] **W.4** Boss page: check in, photo, XP feedback (WEB-6, WEB-17); merge #59; then wire in the helpers' views (S.W1, G.W1, P.W1) as their PRs land. Connect, party and coin moved to G.W1 (Jacob). owner: Danny
+- [ ] **W.5** Organizer: setup page and live leaderboard (WEB-13). New-conference form and report moved to S.W1 (Max). Quest and room editors: cut unless time. owner: Danny
+- [ ] **W.5a** (cut unless idle: no API changes a theme and the cluster has no OpenAI key) Organizer theme studio: description → preview → revise/apply, themed map scenery and optional background within Conquest's consistent style. Coordinate theme preview/update and presentation contracts with Game before integration. (WEB-18..WEB-20) owner: Danny
+- [ ] **W.6** Recap page and speaker page: moved to P.W1 (Jake). owner: Jake Nef
+- [ ] **W.7** RUM + traceparent: moved to P.W1 (Jake). owner: Jake Nef
+- [ ] **W.8** Accessibility: one axe test over the finished pages (WEB-9); keyboard-only Playwright flows (WEB-10) cut unless time. owner: whoever finishes first
 
 ## Integration and demo (everyone, from 3:00)
 
@@ -145,3 +162,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - 2026-11-09 W.3 phone screen Danny/Codex: rebuilt the full map route around the supplied Cobalt reference (saved in apps/web/design-references/). Integrated player summary, day/access controls, world, encounter panel, action buttons, quests panel and bottom navigation. Map-only shell removes surrounding website chrome; other pages and character artwork unchanged. 287 tests pass after integrating concurrent changes; lint/typecheck/production build pass; browser visual QA pending.
 - 2026-11-09 15:50  Radar after  Jake Nef (Claude)  Checks for team-conquest went from 3 Medium to 0 (PR #66: 2 replicas, PDBs, topology spread, no SA token, preStop drain). The rollout hit team-quota limits.cpu (10, platform included); Radar diagnose found it, PR #73 lowered CPU limits, and all Deployments are 2/2. Evidence: demo/evidence/2026-11-09-1550-radar-checks-after.*. P.8 load script in #65; the smoke run found 10 s XP check-ins (refresh wait_for, Game lane), evidence in #68.
+- 2026-11-09 15:10  Web split  Max (Claude)  Remaining Web work split across lanes so it lands by the freeze: S.W1 Max, G.W1 Jacob, P.W1 + P.W2 Jake, W.4/W.5 Danny; helper rules under Lane: Web. Live demo conference d2927cdd-f3e6-404f-b34f-4c4b766b8520 created and seeded with 8 made-up players.
