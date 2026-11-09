@@ -52,7 +52,7 @@ Judged on: features land through Gitar-reviewed PRs; project rules; CI failure d
 - **Organizer dashboard link (Web, W.5).** `NEXT_PUBLIC_DASH0_DASHBOARD_URL` is already set in `deploy/web.yaml`.
 - **kubeconfig expires (~2 h).** Get a fresh one from Radar Cloud: Secret `kubeconfig` in namespace `default`, key `config`. Radar MCP doesn't need it.
 
-**Resolved:** the stale `conquest-attendees` mapping (G.R2 rebuilds drifted indexes on startup); `conf-demo` links (S.W1 points them at the live demo conference `d2927cdd-…`); **deploys blocked 15:11–15:33** (GHCR denied one random image per run, cross-package pushes of shared base layers). Fixed in #89: all images now go to one package, `conquest-web`, tagged `<name>-<sha>`.
+**Resolved:** photo-to-character always failing live (504 at the 15 s gateway limit; now a background job, `2026-11-09-1700-chrome-character-504.md`); the stale `conquest-attendees` mapping (G.R2 rebuilds drifted indexes on startup); `conf-demo` links (S.W1 points them at the live demo conference `d2927cdd-…`); **deploys blocked 15:11–15:33** (GHCR denied one random image per run, cross-package pushes of shared base layers). Fixed in #89: all images now go to one package, `conquest-web`, tagged `<name>-<sha>`.
 
 ## Where to find things
 

@@ -6,7 +6,12 @@ import {
   JPEG_PREFIX,
   outfitPosition,
 } from "./character-sheet";
-import { generateCharacter } from "./character-server";
+import {
+  characterJob,
+  generateCharacter,
+  signJob,
+  verifyJob,
+} from "./character-server";
 const image = () =>
   sharp({
     create: { width: 256, height: 256, channels: 3, background: "#775588" },
@@ -20,34 +25,96 @@ function request(photo: string, origin = "http://localhost:3000") {
     body: JSON.stringify({ photo }),
   });
 }
-it("WEB-24 generates and returns a marked 256-square JPEG below the existing photo limit", async () => {
+const started = () => Response.json({ id: "resp_test123", status: "queued" });
+it("WEB-24 starts a background job and returns a marked 256-square JPEG below the existing photo limit when it completes", async () => {
   const source = await image();
   const photo =
     JPEG_PREFIX + (await sharp(source).jpeg().toBuffer()).toString("base64");
-  const fetcher = vi
-    .fn<typeof fetch>()
-    .mockResolvedValue(
-      Response.json({ data: [{ b64_json: source.toString("base64") }] }),
-    );
-  const response = await generateCharacter(request(photo), {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(started());
+  const now = () => 1_000_000;
+  const start = await generateCharacter(request(photo), {
     key: "test-key",
     reference: async () => source,
     fetcher,
+    now,
   });
-  const output = await response.json();
+  const started_ = await start.json();
+  expect(started_).toMatchObject({ photo: null, reason: null });
+  expect(typeof started_.job).toBe("string");
+  expect(start.headers.get("cache-control")).toBe("no-store");
+  expect(JSON.stringify(started_)).not.toContain("test-key");
+  const [url, init] = fetcher.mock.calls[0]!;
+  expect(url).toBe("https://api.openai.com/v1/responses");
+  const body = JSON.parse(init!.body as string);
+  expect(body.background).toBe(true);
+  expect(body.tools[0]).toMatchObject({
+    type: "image_generation",
+    model: "gpt-image-2",
+  });
+  expect(
+    body.input[0].content.filter(
+      (part: { type: string }) => part.type === "input_image",
+    ),
+  ).toHaveLength(2);
+
+  const check = (status: string, result?: string) =>
+    vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json({
+        id: "resp_test123",
+        status,
+        output: result ? [{ type: "image_generation_call", result }] : [],
+      }),
+    );
+  const poll = (fetcher: typeof fetch) =>
+    characterJob(
+      new Request(
+        `http://localhost:3000/api/characters?job=${encodeURIComponent(started_.job)}`,
+      ),
+      { key: "test-key", fetcher, now: () => 1_030_000 },
+    );
+  const pendingFetcher = check("in_progress");
+  expect(await (await poll(pendingFetcher)).json()).toEqual({
+    photo: null,
+    reason: null,
+    pending: true,
+  });
+  expect(pendingFetcher.mock.calls[0]![0]).toBe(
+    "https://api.openai.com/v1/responses/resp_test123",
+  );
+  const done = await poll(check("completed", source.toString("base64")));
+  const output = await done.json();
   expect(isCharacterSheet(output.photo)).toBe(true);
   expect(output.photo.length).toBeLessThanOrEqual(40 * 1024);
-  expect(response.headers.get("cache-control")).toBe("no-store");
+  expect(done.headers.get("cache-control")).toBe("no-store");
   const metadata = await sharp(
     Buffer.from(output.photo.slice(JPEG_PREFIX.length), "base64"),
   ).metadata();
   expect(metadata).toMatchObject({ format: "jpeg", width: 256, height: 256 });
-  expect(fetcher).toHaveBeenCalledTimes(1);
-  const init = fetcher.mock.calls[0]![1]!;
-  const form = init.body as FormData;
-  expect(form.get("model")).toBe("gpt-image-2");
-  expect(form.getAll("image[]")).toHaveLength(2);
-  expect(JSON.stringify(output)).not.toContain("test-key");
+  expect(await (await poll(check("failed"))).json()).toEqual({
+    photo: null,
+    reason: "unavailable",
+  });
+});
+it("WEB-24 rejects forged, tampered and expired jobs without contacting OpenAI", async () => {
+  const fetcher = vi.fn<typeof fetch>();
+  const job = signJob("test-key", "resp_abc", 1_000_000);
+  const poll = (job: string, key = "test-key", at = 1_000_500) =>
+    characterJob(
+      new Request(
+        `http://localhost:3000/api/characters?job=${encodeURIComponent(job)}`,
+      ),
+      { key, fetcher, now: () => at },
+    );
+  expect(verifyJob("test-key", job, 1_000_500)).toBe("resp_abc");
+  for (const response of [
+    await poll(job.replace("resp_abc", "resp_abd")),
+    await poll(job, "other-key"),
+    await poll(job, "test-key", 1_000_000 + 11 * 60_000),
+    await poll("resp_abc.1000000.short"),
+    await poll(""),
+  ])
+    expect(response.status).toBe(400);
+  expect(fetcher).not.toHaveBeenCalled();
 });
 it("WEB-25 locks exactly the same head pixels into all four outfit cells", async () => {
   const input = await sharp({
@@ -98,6 +165,14 @@ it("WEB-24 preserves the fallback without contacting OpenAI when settings or pho
   expect(
     await (
       await generateCharacter(request(photo), { key: "", fetcher })
+    ).json(),
+  ).toEqual({ photo: null, reason: "unconfigured" });
+  expect(
+    await (
+      await characterJob(
+        new Request("http://localhost:3000/api/characters?job=x"),
+        { key: "", fetcher },
+      )
     ).json(),
   ).toEqual({ photo: null, reason: "unconfigured" });
   for (const invalid of [
