@@ -18,7 +18,7 @@ export function createApp({ store }: AppDeps = {}) {
   };
   app.get("/healthz", (c) => c.json(health));
   app.get("/readyz", async (c) => {
-    if (store && !(await store.ready())) return c.json({ error: { code: "not_ready", message: "Search indexes not reachable" } }, 503);
+    if (store && !(await store.ready())) return c.json({ error: { code: "not_ready", message: "Search indexes not reachable or not seeded yet" } }, 503);
     return c.json(health);
   });
 

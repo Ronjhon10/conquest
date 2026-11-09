@@ -46,7 +46,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
 - [x] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
 - [x] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
-- [ ] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
+- [x] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
 
 ## Lane: Game (030)
 
@@ -100,3 +100,5 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 14:10  S.5 follow-up  Max (Claude)  /rank picks one boss per goal before filling by fused order (SR-13); all spec open questions resolved (000, 010, 020, 030, 040).
 
 - 2026-11-09 13:26  G.R1  Jake Nef (Codex)  Fixed review findings CQ-REVIEW-001..003: versioned attendee XP journal/outbox with replay on startup, attendee reads and aggregate reads; atomic action limits and network/quest deduplication; attendee party claims with rollback on failed joins. Cross-instance concurrency and failed-write regressions use in-memory stores only.
+- 2026-11-09 14:40  S.7  Max (Claude)  search.rank span with a search.rank.query child per search, conquest.search.rank.duration histogram (ms, outcome), goals_count/limit/bosses_count attributes, errors by class only; main.ts logs via @conquest/telemetry. Tests check no goal/about/talk text reaches telemetry.
+- 2026-11-09 14:50  S follow-up  Max (Claude)  search-api /readyz is 503 until conquest-talks and conquest-speakers hold documents, not just exist.
