@@ -13,6 +13,9 @@ export function xpMessage(result: XpResponse, before: Attendee): string {
   const what = event.kind === "checkin" ? "Checked in" : event.kind === "photo" ? "Photo taken" : "Done";
   const parts = [`${what}: +${event.xp} XP.`];
   if (event.multiplier > 1) parts.push(`Party bonus x${event.multiplier}.`);
+  // Quest awards are separate events; they show up as XP beyond this event's own.
+  const questXp = attendee.xp - before.xp - event.xp;
+  if (questXp > 0) parts.push(`Quest complete: +${questXp} XP.`);
   if (attendee.level > before.level) parts.push(`Level up! You are now level ${attendee.level}.`);
   parts.push(`Total ${attendee.xp} XP.`);
   return parts.join(" ");

@@ -37,7 +37,7 @@ it("WEB-6 check-in shows the XP gained, the party multiplier and a level-up in a
   const calls: string[] = [];
   const transport: Transport = async (path, init) => {
     calls.push(`${init?.method ?? "GET"} ${path} ${init?.body ?? ""}`);
-    return { event: xpEvent("checkin", 100, 1.25), attendee: { ...attendee, xp: 215, level: 2 } };
+    return { event: xpEvent("checkin", 100, 1.25), attendee: { ...attendee, xp: 315, level: 2 } };
   };
   const api = createApi(transport);
   render(<BossActions attendee={attendee} talkId="talk-1" api={() => api} />);
@@ -48,6 +48,7 @@ it("WEB-6 check-in shows the XP gained, the party multiplier and a level-up in a
   expect(await screen.findByText(/\+125 XP/)).toBeTruthy();
   expect(live.textContent).toContain("Party bonus x1.25");
   expect(live.textContent).toContain("Level up! You are now level 2.");
+  expect(live.textContent).toContain("Quest complete: +100 XP.");
   expect(calls[0]).toContain('"kind":"checkin"');
   expect(calls[0]).toContain('"talk_id":"talk-1"');
 });
@@ -112,4 +113,10 @@ it("WEB-13 the organizer page links to the Dash0 dashboard, and hides the link w
   render(<OrganizerSetup conf={fixtures.conference.id} api={stableApi} />);
   expect(await screen.findByRole("link", { name: "Attendee signup link" })).toBeTruthy();
   expect(screen.queryByRole("link", { name: /Dash0/ })).toBeNull();
+});
+
+it("WEB-1 theme nouns read as English plurals on the organizer page", async () => {
+  const { plural } = await import("./organizer");
+  expect(plural("boss")).toBe("bosses");
+  expect(plural("chamber")).toBe("chambers");
 });

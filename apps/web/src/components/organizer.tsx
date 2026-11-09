@@ -47,6 +47,9 @@ function useConference(conf: string, api: () => Api) {
   return { conference, error, retry: () => setAttempt((n) => n + 1) };
 }
 
+/** English plural for a theme noun ("boss" → "bosses", "chamber" → "chambers"). */
+export const plural = (noun: string) => (/(s|x|z|ch|sh)$/i.test(noun) ? `${noun}es` : `${noun}s`);
+
 export function NewConference({ api = getApi }: { api?: () => Api }) {
   const router = useRouter();
   const nameId = useId();
@@ -142,7 +145,7 @@ export function OrganizerSetup({
           <h2>{theme.name}</h2>
           <p>{theme.intro}</p>
           <p>
-            Talks are {theme.boss_noun}s, rooms are {theme.room_noun}s.
+            Talks are {plural(theme.boss_noun)}, rooms are {plural(theme.room_noun)}.
           </p>
           <ul aria-label="Theme palette" style={{ display: "flex", gap: "0.5rem", listStyle: "none", padding: 0 }}>
             {(["bg", "fg", "accent"] as const).map((k) => (
@@ -306,6 +309,11 @@ export function ReportView({ conf, api = getApi }: { conf: string; api?: () => A
     };
   }, [conf, api, attempt]);
 
+  // Conference quests by title; each attendee's personal goal quests are summed into one line.
+  const conferenceQuests = report?.quest_completion.filter((q) => conference?.quests.some((c) => c.id === q.quest_id)) ?? [];
+  const goalQuestsDone = (report?.quest_completion ?? [])
+    .filter((q) => !conferenceQuests.includes(q))
+    .reduce((n, q) => n + q.completed, 0);
   const questTitle = (id: string) => conference?.quests.find((q) => q.id === id)?.title ?? id;
 
   return (
@@ -348,11 +356,12 @@ export function ReportView({ conf, api = getApi }: { conf: string; api?: () => A
           <Panel title="Quest completion">
             {report.quest_completion.length ? (
               <ul>
-                {report.quest_completion.map((q) => (
+                {conferenceQuests.map((q) => (
                   <li key={q.quest_id}>
                     {questTitle(q.quest_id)}: {q.completed} completed
                   </li>
                 ))}
+                {goalQuestsDone > 0 && <li>Personal goal quests: {goalQuestsDone} completed</li>}
               </ul>
             ) : (
               <p>No quests completed yet.</p>
