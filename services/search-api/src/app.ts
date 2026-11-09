@@ -7,6 +7,7 @@ export function createApp() {
 
   const health = { ok: true as const };
   app.get("/healthz", (c) => c.json(health));
+  app.get("/readyz", (c) => c.json(health)); // lanes: check Elasticsearch here once it is wired
 
   const api = new Hono();
   api.get("/healthz", (c) => c.json(health));

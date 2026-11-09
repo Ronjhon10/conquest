@@ -29,12 +29,12 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Platform (010)
 
-- [ ] **P.1** CI workflow (lint, typecheck, test) and branch protection on `main` (**human** for protection). (PL-4) owner:
-- [ ] **P.2** Gitar installed with the 010 rules, review instructions, CI diagnosis + auto-apply (**human** installs the app). (PL-9) owner:
+- [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`, Actions bypass). (PL-4) owner: Max
+- [ ] **P.2** Gitar: config committed (`.gitar/`); **human** starts the trial and installs the app; turn on auto-apply. (PL-9) owner:
 - [ ] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner:
-- [ ] **P.4** Dockerfiles for web, search-api, game-api; `docker-compose.yml` with Elasticsearch + collector. (PL-3) owner:
-- [ ] **P.5** Get the event cluster kubeconfig (**human**); connect Radar and its MCP. Write `deploy/README.md`. (PL-8) owner:
-- [ ] **P.6** `deploy/k8s`: namespace, ECK + Elasticsearch, OTel collector → Dash0, Deployments/Services/Ingress, seed Job. Images workflow to GHCR. First deploy (**human**). (PL-5) owner:
+- [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner:
+- [ ] **P.5** **Human:** Radar cluster (join.cnh.radarhq.io), `./deploy/setup-team.sh <team>` PR, everyone connects Radar MCP, Checks "before" screenshot. (PL-8) owner:
+- [ ] **P.6** **Human:** Elastic Serverless project, Dash0 account and tokens, Secret `conquest-secrets`. Then the agent `get-started` skill applies `argocd/application.yaml`; first GitOps deploy verified on the URL. Seed Job. (PL-5) owner:
 - [ ] **P.7** Dash0: verify traces/RUM/logs arrive; "Conquest live" dashboard + XP SLO; Dash0 MCP/Agent0 connected. (PL-6, PL-7) owner:
 - [ ] **P.8** Load script `scripts/load/`; evidence folder filled as things happen. (PL-10) owner:
 
@@ -82,3 +82,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
+- 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.

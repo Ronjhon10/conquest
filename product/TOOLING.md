@@ -30,7 +30,9 @@ Secrets (Dash0 token, kubeconfig, API keys) go in `.env` or cluster secrets, nev
 4. **Log it.** Each evidence item is a screenshot plus a one-paragraph `.md` note (what happened, what the tool found, root cause, the PR). Naming is in [`demo/evidence/README.md`](../demo/evidence/README.md).
 5. **Privacy.** The hackathon rules ban private, personal or login-protected data in the repo or demo. No personal text in telemetry, and don't index scraped LinkedIn data.
 
-## Where the research disagrees with our specs (decide, log in [DECISIONS.md](DECISIONS.md), fix specs via PR)
+## Where the research disagrees with our specs
+
+Resolved 2026-11-09 (see [DECISIONS.md](DECISIONS.md)): Elastic Serverless, no collector, Argo CD GitOps, and the setup is in [`deploy/README.md`](../deploy/README.md). The original list, kept for history:
 
 - **Elasticsearch location.** `specs/010-platform.md` Behavior 2 installs Elasticsearch in the cluster with ECK. Radar's cluster budget is 2 CPU / 4 GiB requests, and the research says to keep Elasticsearch on Elastic Serverless. Behavior 2 already allows the Elastic Cloud fallback.
 - **OTel collector.** Behavior 3 deploys an in-cluster collector. The research says node agents often stay Pending on the Radar cluster and to send OTel straight from the app to Dash0.

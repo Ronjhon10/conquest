@@ -1,0 +1,43 @@
+# Service `app` port 80 is the only thing the platform routes to https://__TEAM__.cnh.radarhq.io,
+# so it points at web. web proxies /api/search and /api/game to the internal Services below.
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  labels:
+    app: web
+spec:
+  selector:
+    app: web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-api
+  labels:
+    app: search-api
+spec:
+  selector:
+    app: search-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-api
+  labels:
+    app: game-api
+spec:
+  selector:
+    app: game-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
