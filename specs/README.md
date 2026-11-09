@@ -16,4 +16,10 @@ New spec: copy `_template.md`, pick the next free number (`000` is the overview)
 
 | Spec | Module | Prefix | Owner |
 | --- | --- | --- | --- |
-| [000 Overview](000-overview.md) | whole product | `OV` | |
+| [000 Overview](000-overview.md) | architecture, contracts, lanes, demo path | `OV` | everyone |
+| [010 Platform](010-platform.md) | Kubernetes, Radar, Dash0, Gitar, CI, deploy, `packages/telemetry` | `PL` | Platform lane |
+| [020 Search](020-search.md) | `services/search-api`, talk + speaker indexes, KubeCon seed | `SR` | Search lane |
+| [030 Game](030-game.md) | `services/game-api`, game state, XP, leaderboard | `GM` | Game lane |
+| [040 Web](040-web.md) | `apps/web`, accessibility (Merge Forward), RUM | `WEB` | Web lane |
+
+Lanes, build order and the timeline are in [product/BUILD.md](../product/BUILD.md).
