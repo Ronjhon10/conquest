@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { xpForLevel } from "@conquest/contracts";
 import type { Attendee, Conference, Speaker, Talk } from "@conquest/contracts";
 import { CONFERENCE_TIME_ZONE, formatTalkTime } from "../lib/time";
@@ -58,7 +58,11 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
   const [stepFreeOnly, setStepFreeOnly] = useState(false);
   const [dayChoice, setDayChoice] = useState<string | null>(null);
   const questsButtonRef = useRef<HTMLButtonElement>(null);
+  const questsPanelRef = useRef<HTMLElement>(null);
   const [questsOpen, setQuestsOpen] = useState(false);
+  useEffect(() => {
+    if (questsOpen) questsPanelRef.current?.focus();
+  }, [questsOpen]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const showList = listChoice ?? reducedMotion;
   const stops: MapStop[] = (attendee?.map ?? []).flatMap((boss) => {
@@ -160,7 +164,7 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
               )}
               </>}
               {questsOpen && (
-                <section className={styles.questPanel} id={`map-quests-${conf}`} aria-label="Your quests">
+                <section ref={questsPanelRef} tabIndex={-1} className={styles.questPanel} id={`map-quests-${conf}`} aria-label="Your quests">
                   <div><h2>Your quests</h2><button type="button" onClick={() => { setQuestsOpen(false); questsButtonRef.current?.focus(); }} aria-label="Close quests">×</button></div>
                   <ul>{attendee.quests.map((quest) => <li key={quest.id}><strong>{quest.title}</strong><p>{quest.description}</p><span>{quest.xp} XP</span></li>)}</ul>
                   {!attendee.quests.length && <p>No quests yet.</p>}
