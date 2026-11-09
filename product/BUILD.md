@@ -51,15 +51,15 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Lane: Game (030)
 
 - [x] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
-- [ ] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
-- [ ] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
-- [ ] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
-- [ ] **G.5** Parties and the 1.25x bonus. (GM-7, GM-12) owner: Jacob Bingham
-- [ ] **G.6** Quest completion. (GM-10) owner: Jacob Bingham
-- [ ] **G.7** Coins and speaker recognition. (GM-13) owner: Jacob Bingham
-- [ ] **G.8** Leaderboard and report aggregations. (GM-14, GM-15) owner: Jacob Bingham
-- [ ] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
-- [ ] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
+- [x] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
+- [x] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
+- [x] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
+- [x] **G.5** Parties and the 1.25x bonus. (GM-7, GM-12) owner: Jacob Bingham
+- [x] **G.6** Quest completion. (GM-10) owner: Jacob Bingham
+- [x] **G.7** Coins and speaker recognition. (GM-13) owner: Jacob Bingham
+- [x] **G.8** Leaderboard and report aggregations. (GM-14, GM-15) owner: Jacob Bingham
+- [x] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
+- [x] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
 
 ## Lane: Web (040)
 
@@ -85,3 +85,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
 - 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.
 - 2026-11-09 12:40  G.1  Jacob (Claude)  game-api storage: strict mappings for the 5 Game indexes + idempotent ensureIndexes on start; DocStore seam (Elasticsearch with refresh wait_for and if_seq_no/if_primary_term; in-memory for tests); typed repos validated with contracts schemas, update() retries version conflicts up to 3 times; SearchClient (HTTP + fixture fake); /readyz checks Elasticsearch.
+- 2026-11-09 13:20  G.2-G.10  Jacob (Claude + Sonnet agents in parallel)  All game-api routes built against fakes: conferences + theme fallback/contrast, attendees (LinkedIn normalize, photo, code, map, goal quests, allies), POST /xp with rules module, parties + 1.25x, quest completion (incl. coin quests), coins + recognition, leaderboard/report as ES aggregations (memory twin for tests), recap with template fallback, xp.award span + metrics. 116 tests green; demo path smoke-tested in memory. Not yet run against real Elasticsearch.
