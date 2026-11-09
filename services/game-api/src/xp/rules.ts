@@ -6,7 +6,7 @@ export const XP = {
   network: 50,
 } as const;
 
-export const PHOTO_LIMIT = 20;
+export const PHOTO_LIMIT = 6;
 /** 030 Behavior 7: bonus when a party member already checked into the same talk. */
 export const PARTY_MULTIPLIER = 1.25;
 /** 030 Behavior 14: max party members. */
