@@ -12,6 +12,9 @@ import type {
 } from "@conquest/contracts";
 import { Avatar } from "./avatar";
 import { DungeonMap } from "./dungeon-map";
+import { BossActions } from "./boss-actions";
+import { ConnectView } from "./connect";
+import { PartyPage } from "./party";
 import mapStyles from "./dungeon-map.module.css";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
@@ -172,37 +175,9 @@ export function RouteContent({
           </table>
         </Panel>
       ) : view === "connect" ? (
-        <Panel title="Your allies">
-          {(data.allies ?? []).length ? (
-            <ul className="allies-list">
-              {data.allies?.map((ally) => (
-                <li key={ally.attendee_id}>
-                  <Avatar
-                    name={ally.name}
-                    photo={ally.photo}
-                    seed={ally.attendee_id}
-                  />
-                  <div>
-                    <strong>{ally.name}</strong>
-                    <p>{ally.headline}</p>
-                    {ally.linkedin_url && (
-                      <a
-                        href={ally.linkedin_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View on LinkedIn
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </a>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>People you connect with at the conference will appear here.</p>
-          )}
-        </Panel>
+        <ConnectView conf={conf} />
+      ) : view === "party" ? (
+        <PartyPage conf={conf} />
       ) : view === "boss" ? (
         <Panel title={selectedTalk?.title ?? "Choose a talk from your map"}>
           {selectedTalk && (
@@ -220,7 +195,27 @@ export function RouteContent({
             Back to your map
           </Link>
         </Panel>
-      ) : view === "theme" || view === "setup" || view === "new" ? (
+      ) : null}
+      {view === "boss" && selectedTalk && (
+        attendee ? (
+          <BossActions
+            attendee={attendee}
+            talkId={selectedTalk.id}
+            speakerName={data.speakers
+              ?.filter((s) => selectedTalk.speaker_ids.includes(s.id))
+              .map((s) => s.name)
+              .join(" and ") || undefined}
+          />
+        ) : (
+          <p>
+            <Link className="text-link" href={`/c/${encodeURIComponent(conf)}/join`}>
+              Create your adventurer
+            </Link>{" "}
+            to check in and earn XP.
+          </p>
+        )
+      )}
+      {["boss", "live", "connect", "party"].includes(view) ? null : view === "theme" || view === "setup" || view === "new" ? (
         <div className="preview-grid">
           <Panel title="Your conference theme">
             <p>
