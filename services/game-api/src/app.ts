@@ -1,6 +1,13 @@
 import { Hono } from "hono";
 import { type Deps, memoryDeps } from "./deps";
-import { fail, installErrorHandling, notImplemented } from "./http";
+import { fail, installErrorHandling } from "./http";
+import { attendeesRoutes } from "./routes/attendees";
+import { coinsRoutes } from "./routes/coins";
+import { conferencesRoutes } from "./routes/conferences";
+import { partiesRoutes } from "./routes/parties";
+import { recapRoutes } from "./routes/recap";
+import { statsRoutes } from "./routes/stats";
+import { xpRoutes } from "./routes/xp";
 
 export function createApp(deps: Deps = memoryDeps()) {
   const app = new Hono();
@@ -12,23 +19,12 @@ export function createApp(deps: Deps = memoryDeps()) {
     (await deps.store.ping()) ? c.json(health) : fail(c, 503, "not_ready", "Elasticsearch is not answering"),
   );
 
+  // One file per area so steps can be built in parallel without touching each other.
   const api = new Hono();
   api.get("/healthz", (c) => c.json(health));
-  api.post("/conferences", notImplemented("G.2"));
-  api.get("/conferences/:id", notImplemented("G.2"));
-  api.put("/conferences/:id/quests", notImplemented("G.2"));
-  api.put("/conferences/:id/rooms", notImplemented("G.2"));
-  api.get("/conferences/:id/leaderboard", notImplemented("G.8"));
-  api.get("/conferences/:id/report", notImplemented("G.8"));
-  api.post("/attendees/draft", notImplemented("G.3"));
-  api.post("/attendees", notImplemented("G.3"));
-  api.get("/attendees/:id", notImplemented("G.3"));
-  api.post("/attendees/:id/recap", notImplemented("G.9"));
-  api.post("/xp", notImplemented("G.4"));
-  api.post("/parties", notImplemented("G.5"));
-  api.post("/parties/:id/join", notImplemented("G.5"));
-  api.post("/coins", notImplemented("G.7"));
-  api.get("/speakers/:id/recognition", notImplemented("G.7"));
+  for (const routes of [conferencesRoutes, statsRoutes, attendeesRoutes, recapRoutes, xpRoutes, partiesRoutes, coinsRoutes]) {
+    api.route("/", routes(deps));
+  }
   app.route("/api/game", api);
 
   return app;
