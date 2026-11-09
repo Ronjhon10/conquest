@@ -33,7 +33,7 @@ export const conference: Conference = {
   },
   quests: [
     { id: "q-meet5", title: "Meet five adventurers", description: "Network with five people.", xp: 150, kind: "organizer", sponsor: null, target: { type: "network", count: 5, talk_ids: null } },
-    { id: "q-boss3", title: "Defeat three bosses", description: "Check into three talks.", xp: 200, kind: "organizer", sponsor: null, target: { type: "checkin", count: 3, talk_ids: null } },
+    { id: "q-boss3", title: "Defeat three bosses", description: "Check into three talks on your map.", xp: 200, kind: "organizer", sponsor: null, target: { type: "boss", count: 3, talk_ids: null } },
     { id: "q-photo3", title: "Capture the moment", description: "Take three photos.", xp: 75, kind: "organizer", sponsor: null, target: { type: "photo", count: 3, talk_ids: null } },
   ],
   rooms: [

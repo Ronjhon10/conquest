@@ -95,7 +95,7 @@ type Theme = {
   room_noun: string;             // "chamber", "deck", ...
   intro: string;                 // one-paragraph story shown on the map
 };
-type QuestTarget = { type: "checkin" | "photo" | "network" | "coin"; count: number; talk_ids: string[] | null };  // talk_ids: only these talks count
+type QuestTarget = { type: "checkin" | "boss" | "photo" | "network" | "coin"; count: number; talk_ids: string[] | null };  // boss: check-ins to talks on the attendee's own map; talk_ids: only these talks count
 type Quest = {
   id: string; title: string; description: string; xp: number;
   kind: "organizer" | "sponsor" | "goal"; sponsor: string | null;
@@ -161,7 +161,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | --- | --- | --- |
 | `POST /api/game/conferences` | `{ name; theme_prompt; rooms?: Room[] }` | `{ conference: Conference }` |
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
-| `PUT /api/game/conferences/:id/quests` | `{ quests: Omit<Quest,"id">[] }` | `{ conference: Conference }` |
+| `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (also updates every attendee's quests) |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |
 | `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
 | `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`) |

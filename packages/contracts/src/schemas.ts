@@ -46,7 +46,8 @@ export const Theme = z.object({
 });
 export type Theme = z.infer<typeof Theme>;
 
-export const QuestTargetType = z.enum(["checkin", "photo", "network", "coin"]);
+/** "boss" counts check-ins to talks on the attendee's own map; "checkin" counts any talk. */
+export const QuestTargetType = z.enum(["checkin", "boss", "photo", "network", "coin"]);
 export type QuestTargetType = z.infer<typeof QuestTargetType>;
 
 export const QuestTarget = z.object({

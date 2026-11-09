@@ -69,6 +69,18 @@ describe("quest completion", () => {
     expect(await questEvents(deps, "a1")).toHaveLength(1);
   });
 
+  it("GM-10 a boss quest counts only check-ins to talks on the attendee's map", async () => {
+    const { deps, post } = setup();
+    // fixtures.attendee's map is talk-1, talk-2, talk-4
+    await seed(deps, "a1", "AAAAAA", [quest("q-bosses", 200, "boss", 2, null)]);
+    await post({ attendee_id: "a1", kind: "checkin", talk_id: "talk-3" });
+    await post({ attendee_id: "a1", kind: "checkin", talk_id: "talk-5" });
+    await post({ attendee_id: "a1", kind: "checkin", talk_id: "talk-1" });
+    expect(await questEvents(deps, "a1")).toHaveLength(0);
+    await post({ attendee_id: "a1", kind: "checkin", talk_id: "talk-2" });
+    expect(await questEvents(deps, "a1")).toHaveLength(1);
+  });
+
   it("GM-10 the POST /xp response includes the quest XP", async () => {
     const { deps, post } = setup();
     await seed(deps, "a1", "AAAAAA", [quest("q-photo1", 75, "photo", 1, null)]);
