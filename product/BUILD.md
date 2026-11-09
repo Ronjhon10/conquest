@@ -25,7 +25,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Step 0 (anyone, first)
 
-- [ ] **0.1** npm workspace (`apps/*`, `services/*`, `packages/*`, `scripts/*`), root `tsconfig.base.json`, eslint, vitest, `.env.example`, and `packages/contracts` with every type and zod schema from 000. Empty Hono apps for both services with `/healthz` and the 000 error helper; empty Next app. (OV-2, OV-3, OV-4) owner:
+- [x] **0.1** npm workspace (`apps/*`, `services/*`, `packages/*`, `scripts/*`), root `tsconfig.base.json`, eslint, vitest, `.env.example`, and `packages/contracts` with every type and zod schema from 000. Empty Hono apps for both services with `/healthz` and the 000 error helper; empty Next app. (OV-2, OV-3, OV-4) owner: Max
 
 ## Lane: Platform (010)
 
@@ -81,3 +81,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Log
 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
+- 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
