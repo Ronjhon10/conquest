@@ -3,7 +3,32 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { fixtures } from "@conquest/contracts";
 import { Avatar, classSpriteSource } from "./avatar";
+import defaultWardrobe from "../lib/default-wardrobe.json";
 import { RouteContent, type PreviewData } from "./route-preview";
+it("WEB-25 renders outfit windows from one saved character sheet at every avatar size", () => {
+  for (const variant of ["portrait", "full"] as const)
+    for (const characterClass of [
+      "knight",
+      "wizard",
+      "rogue",
+      "bard",
+    ] as const) {
+      const html = renderToStaticMarkup(
+        createElement(Avatar, {
+          name: "Danny",
+          photo: defaultWardrobe.photo,
+          characterClass,
+          variant,
+          size: 40,
+          eager: true,
+        }),
+      );
+      expect(html.includes(defaultWardrobe.photo)).toBe(true);
+      expect(html).toContain(`${characterClass} game character`);
+      expect(html).toContain("overflow:hidden");
+      expect(html).toContain("viewBox=");
+    }
+});
 it("WEB-16 gives all four classes distinct deterministic sprites with text alternatives", () => {
   const classes = ["knight", "wizard", "rogue", "bard"] as const;
   expect(new Set(classes.map((c) => classSpriteSource(c, "seed"))).size).toBe(

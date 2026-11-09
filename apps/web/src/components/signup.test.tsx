@@ -8,6 +8,7 @@ import { currentAttendee, rememberAttendee } from "../lib/identity";
 import * as photos from "../lib/photo";
 import { RoutePreview } from "./route-preview";
 import { SignupForm } from "./signup";
+import { isCharacterSheet } from "../lib/character-sheet";
 
 afterEach(() => {
   cleanup();
@@ -61,7 +62,7 @@ it("WEB-2 prefills class/goals and reaches a personal map in two taps after prof
   expect(attendee.name).toBe("Danny Nef");
   expect(attendee.class).toBe("rogue");
   expect(attendee.linkedin_url).toBe("https://www.linkedin.com/in/danny-nef/");
-  expect(attendee.photo).toBeNull();
+  expect(isCharacterSheet(attendee.photo)).toBe(true);
   expect(attendee.goals).toHaveLength(3);
   expect(attendee.map.length).toBeGreaterThan(0);
   expect(localStorage.getItem("conquest:conf-demo:attendee")).toBe(id);
@@ -198,7 +199,8 @@ it("WEB-15 uploads an optional prepared photo and includes it in the created cha
   expect(await screen.findByAltText("Danny Nef's profile photo")).toBeTruthy();
   await user.click(screen.getByRole("button", { name: /Enter the dungeon/ }));
   await waitFor(() => expect(navigate).toHaveBeenCalled());
-  expect(save.mock.calls[0]?.[0].photo).toBe(photo);
+  // An unconverted source photo remains a reference; save the reviewed default.
+  expect(isCharacterSheet(save.mock.calls[0]?.[0].photo)).toBe(true);
 });
 it("WEB-2 completes the default character signup using only the keyboard after typing", async () => {
   const { user, navigate } = setup();

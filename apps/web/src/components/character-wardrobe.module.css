@@ -1,0 +1,152 @@
+.studio {
+  display: grid;
+  gap: 18px;
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr);
+  gap: 28px;
+  padding: 0;
+  overflow: hidden;
+}
+.stage {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 24px 12px;
+  min-height: 370px;
+  background: #eee9dd;
+  border-right: 2px solid var(--ink);
+}
+.stage :global(.avatar) {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+}
+.badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+.pedestal {
+  width: 146px;
+  height: 12px;
+  border: 2px solid #292b33;
+  background: #c2baa7;
+  box-shadow: 0 6px 0 #292b33;
+  margin-top: -10px;
+}
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 28px 24px 28px 0;
+}
+.details h2 {
+  font-size: 32px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.details p {
+  margin: 0;
+}
+.details h2:focus {
+  outline: none;
+}
+.className {
+  text-transform: capitalize;
+  font: 700 22px var(--font-display);
+}
+.className span {
+  display: block;
+  margin-top: 6px;
+  font: 700 11px var(--font-mono);
+  text-transform: uppercase;
+}
+.source {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.upload {
+  font: 700 13px/1.5 var(--font-mono);
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.upload input {
+  max-width: 100%;
+  font-size: 12px;
+  min-height: 44px;
+}
+.status {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.status:empty {
+  display: none;
+}
+.outfits {
+  min-width: 0;
+  margin: 0;
+}
+.outfits legend {
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+.options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 6px;
+}
+.option strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 20px var(--font-display);
+  text-transform: capitalize;
+}
+.option > span:not(:global(.avatar)) {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.option :global(.avatar) {
+  max-width: 100%;
+  background: #eee9dd;
+}
+@media (max-width: 680px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .stage {
+    border-right: 0;
+    border-bottom: 2px solid var(--ink);
+    min-height: 330px;
+  }
+  .details {
+    padding: 24px 20px;
+  }
+  .options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+}

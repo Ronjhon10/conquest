@@ -108,6 +108,13 @@ export function createApi(transport: Transport) {
       ),
     attendee: (attendee: string) =>
       request(`/api/game/attendees/${id(attendee)}`, C.GetAttendeeResponse),
+    updateAttendee: (attendee: string, body: C.UpdateAttendeeRequest) =>
+      request(
+        `/api/game/attendees/${id(attendee)}`,
+        C.AttendeeResponse,
+        "PATCH",
+        C.UpdateAttendeeRequest.parse(body),
+      ),
     awardXp: (body: C.XpRequest) =>
       request("/api/game/xp", C.XpResponse, "POST", C.XpRequest.parse(body)),
     createParty: (body: C.CreatePartyRequest) =>

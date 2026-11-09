@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { CharacterClass } from "@conquest/contracts";
+import { isCharacterSheet, outfitPosition } from "../lib/character-sheet";
 
 const characterArt: Record<CharacterClass, string> = {
   knight: "/characters/knight-v1.png",
@@ -34,6 +35,35 @@ export function Avatar({
   /** Load immediately; for art above the fold. */
   eager?: boolean;
 }) {
+  if (isCharacterSheet(photo)) {
+    const { x, y } = outfitPosition(characterClass);
+    const viewBox =
+      variant === "full"
+        ? `${x * 128} ${y * 128} 128 128`
+        : `${x * 128 + 24} ${y * 128} 80 80`;
+    return (
+      <span
+        className={`avatar avatar-sprite avatar-${variant}`}
+        style={{ width: size, height: size }}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox={viewBox}
+          role="img"
+          aria-label={`${name}'s ${characterClass ?? "adventurer"} game character`}
+          style={{
+            width: "100%",
+            height: "100%",
+            imageRendering: "pixelated",
+            overflow: "hidden",
+          }}
+        >
+          <image href={photo} x="0" y="0" width="256" height="256" />
+        </svg>
+      </span>
+    );
+  }
   if (photo?.startsWith("data:image/jpeg;base64,")) {
     return (
       <img

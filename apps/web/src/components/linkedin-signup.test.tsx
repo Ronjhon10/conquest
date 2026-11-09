@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { SignupForm } from "./signup";
 import { createApi } from "../lib/api";
 import { createFakeTransport } from "../lib/fake-api";
+import { isCharacterSheet } from "../lib/character-sheet";
 
 afterEach(() => {
   cleanup();
@@ -80,9 +81,9 @@ it("WEB-23 restores the signup draft, imports name/photo, and saves the photo wi
   );
   expect(save.mock.calls[0]?.[0]).toMatchObject({
     name: "Danny Nef",
-    photo,
     headline: "Engineer",
   });
+  expect(isCharacterSheet(save.mock.calls[0]?.[0].photo)).toBe(true);
 });
 it("WEB-23 lets a LinkedIn-authenticated attendee continue without manually pasting a profile link", async () => {
   window.history.replaceState(null, "", "/c/conf-demo/join?linkedin=connected");
