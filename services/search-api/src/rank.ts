@@ -40,14 +40,35 @@ export function overlaps(a: Pick<Talk, "starts_at" | "ends_at">, b: Pick<Talk, "
   return Date.parse(a.starts_at) < Date.parse(b.ends_at) && Date.parse(b.starts_at) < Date.parse(a.ends_at);
 }
 
-/** Walk the fused list in order, skip talks that clash with one already picked (4.3), then order by time (4.5). */
-export function pickBosses(fused: Fused[], talks: Map<string, Talk>, limit: number): BossSlot[] {
+/**
+ * Pick the bosses (020 Behavior 4.3):
+ * 1. One per goal first: for each goal in order, its own best-ranked talk that isn't picked and
+ *    doesn't clash, with that goal as the reason. So the about text can't hand every slot to the
+ *    one goal it shares words with.
+ * 2. Fill the rest by walking the fused list, skipping clashes.
+ * Then order by start time (4.5).
+ */
+export function pickBosses(fused: Fused[], talks: Map<string, Talk>, limit: number, lists: RankedList[] = []): BossSlot[] {
   const picked: { slot: BossSlot; talk: Talk }[] = [];
+  const score = new Map(fused.map((f) => [f.talkId, f.score]));
+  const fits = (talkId: string) => {
+    const talk = talks.get(talkId);
+    if (!talk || picked.some((p) => p.slot.talk_id === talkId || overlaps(p.talk, talk))) return null;
+    return talk;
+  };
+  for (const list of lists) {
+    if (list.goal === null || picked.length >= limit) continue;
+    for (const talkId of list.talkIds) {
+      const talk = fits(talkId);
+      if (!talk) continue;
+      picked.push({ slot: { talk_id: talkId, score: score.get(talkId) ?? 0, reason: goalReason(list.goal) }, talk });
+      break;
+    }
+  }
   for (const f of fused) {
     if (picked.length >= limit) break;
-    const talk = talks.get(f.talkId);
-    if (!talk || picked.some((p) => overlaps(p.talk, talk))) continue;
-    picked.push({ slot: { talk_id: f.talkId, score: f.score, reason: f.reason }, talk });
+    const talk = fits(f.talkId);
+    if (talk) picked.push({ slot: { talk_id: f.talkId, score: f.score, reason: f.reason }, talk });
   }
   return picked
     .sort((a, b) => a.talk.starts_at.localeCompare(b.talk.starts_at) || a.talk.id.localeCompare(b.talk.id))
@@ -70,5 +91,5 @@ export async function rank(store: TalkStore, req: RankRequest): Promise<BossSlot
     for (const h of results[i]!) talks.set(h.talk.id, h.talk);
     return { goal: q.goal, weight: q.weight, talkIds: results[i]!.map((h) => h.talk.id) };
   });
-  return pickBosses(fuse(lists), talks, limit);
+  return pickBosses(fuse(lists), talks, limit, lists);
 }
