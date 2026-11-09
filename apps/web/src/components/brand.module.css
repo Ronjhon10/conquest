@@ -13,22 +13,19 @@
   height: 40px;
 }
 .mark svg { display: block; width: 100%; height: 100%; }
-.name {
-  font: 800 28px/1 var(--font-display);
-  letter-spacing: -0.04em;
-}
+.name { display: block; height: 21px; width: auto; aspect-ratio: 344 / 58; }
 .compact { gap: 7px; }
 .compact .mark { flex-basis: 28px; width: 28px; height: 28px; }
-.compact .name { font-size: 20px; }
+.compact .name { height: 15px; }
 .onDark { color: #fff; }
 .onDark .mark { background: #fff; border-radius: 4px; padding: 2px; }
 @media (max-width: 640px) {
   .brand { gap: 7px; }
   .mark { flex-basis: 32px; width: 32px; height: 32px; }
-  .name { font-size: 23px; }
-  .compact .name { font-size: 18px; }
+  .name { height: 17px; }
+  .compact .name { height: 14px; }
 }
 @media (max-width: 380px) {
   .mark { flex-basis: 28px; width: 28px; height: 28px; }
-  .name { font-size: 20px; }
+  .name { height: 15px; }
 }
