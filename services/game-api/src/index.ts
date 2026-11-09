@@ -1,8 +1,13 @@
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
+import { depsFromEnv } from "./deps";
 
 // startTelemetry("conquest-game-api") goes here first once packages/telemetry exists (BUILD P.3).
+const deps = depsFromEnv();
+for (const msg of deps.notes) console.log(JSON.stringify({ level: "warn", msg }));
+await deps.store.ensureIndexes(); // 000: each owner creates its indexes on start if missing
+
 const port = Number(process.env.PORT ?? process.env.GAME_API_PORT ?? 4002);
-serve({ fetch: createApp().fetch, port }, () => {
+serve({ fetch: createApp(deps).fetch, port }, () => {
   console.log(JSON.stringify({ level: "info", msg: "conquest-game-api listening", port }));
 });

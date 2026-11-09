@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@conquest/contracts": "*",
+    "@elastic/elasticsearch": "^9.5.1",
     "@hono/node-server": "^2.1.6",
     "hono": "^4.13.17",
     "tsx": "^4.23.15",

@@ -50,7 +50,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Game (030)
 
-- [ ] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
+- [x] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
 - [ ] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
 - [ ] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
 - [ ] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
@@ -85,6 +85,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
 - 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.
+- 2026-11-09 12:40  G.1  Jacob (Claude)  game-api storage: strict mappings for the 5 Game indexes + idempotent ensureIndexes on start; DocStore seam (Elasticsearch with refresh wait_for and if_seq_no/if_primary_term; in-memory for tests); typed repos validated with contracts schemas, update() retries version conflicts up to 3 times; SearchClient (HTTP + fixture fake); /readyz checks Elasticsearch.
 - 2026-11-09 12:50  S.1  Max (Claude)  scripts/seed scraper (one GET of the LF schedule page, embedded Sessionize JSON) -> data/kubecon-na-2026.ndjson: 480 real talks, 703 speakers. SR-1 tests on the transform and the committed file.
 - 2026-11-09 12:55  S.2  Max (Claude)  search-api EsPort (client adapter + in-memory fake), conquest-talks/conquest-speakers mappings (semantic field only when embeddings are on), idempotent `npm run seed -w services/search-api` by id. SR-2 unit tests; ES_INTEGRATION=1 test written, not run locally (no Docker on this Mac).
 - 2026-11-09 13:00  W.1  Danny (Codex)  Brand-system frame, local fonts, all route previews, shared typed/validated API client, 12-talk/3-attendee memory fixtures, loading/error recovery, scoped dungeon theme variables. WEB-1/WEB-12/WEB-14 tests; full tests, lint, typecheck and production build pass. Browser host unavailable; visual QA remains for the next browser session. Theme studio recorded as W.5a, not implemented here.
