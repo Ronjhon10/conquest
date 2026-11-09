@@ -1,6 +1,8 @@
 // Every XP award goes through awardXp (030 Behavior 6-13). Later steps hook in at the marked points.
 import type { Attendee, XpEvent, XpKind } from "@conquest/contracts";
+import { SpanStatusCode } from "@opentelemetry/api";
 import type { Deps } from "../deps";
+import { checkinsCount, tracer, xpAwardedCounter } from "../telemetry";
 import { applyMultiplier, levelForXp } from "./rules";
 
 export type AwardSpec = {
@@ -21,13 +23,42 @@ export async function partyMultiplier(_deps: Deps, _attendee: Attendee, _talkId:
 // G.6 (GM-10)
 export async function checkQuests(_deps: Deps, _attendeeId: string): Promise<void> {}
 
-/** Writes the event, then bumps the attendee's xp/level/coins with a versioned update. */
+/** xp.award span + metrics around the award (GM-18). Attributes are ids, kinds and counts only. */
 export async function awardXp(
   deps: Deps,
   attendee: Attendee,
   spec: AwardSpec,
 ): Promise<{ event: XpEvent; attendee: Attendee }> {
-  // G.10: xp.award span + metrics here (GM-18)
+  return tracer().startActiveSpan("xp.award", async (span) => {
+    try {
+      const party = attendee.party_id ? await deps.repos.parties.get(attendee.party_id) : null;
+      span.setAttributes({
+        "conquest.conference.id": attendee.conference_id,
+        "conquest.xp.kind": spec.kind,
+        "conquest.xp.amount": applyMultiplier(spec.baseXp, spec.multiplier ?? 1),
+        "conquest.party.size": party?.member_ids.length ?? 0,
+      });
+      const result = await awardXpInner(deps, attendee, spec);
+      span.setAttribute("conquest.xp.amount", result.event.xp);
+      xpAwardedCounter().add(result.event.xp, { kind: spec.kind });
+      if (spec.kind === "checkin") checkinsCount().add(1);
+      return result;
+    } catch (err) {
+      span.recordException(err instanceof Error ? err : new Error(String(err)));
+      span.setStatus({ code: SpanStatusCode.ERROR });
+      throw err;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+/** Writes the event, then bumps the attendee's xp/level/coins with a versioned update. */
+async function awardXpInner(
+  deps: Deps,
+  attendee: Attendee,
+  spec: AwardSpec,
+): Promise<{ event: XpEvent; attendee: Attendee }> {
   const multiplier = spec.multiplier ?? 1;
   const event = await deps.repos.xpEvents.create({
     id: deps.newId(),
