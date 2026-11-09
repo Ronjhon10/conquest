@@ -39,6 +39,16 @@ export async function ensureInferenceEndpoint(es: EsPort, env: NodeJS.ProcessEnv
   return false;
 }
 
+/**
+ * Whether embeddings can be used. With a key, make sure the endpoint exists (creating it if
+ * needed). Without one, use an endpoint someone already created: Elasticsearch keeps the OpenAI
+ * key inside it, so only the machine that seeds needs the key, not the running service.
+ */
+export async function embeddingsAvailable(es: EsPort, env: NodeJS.ProcessEnv = process.env, log: Log = quiet): Promise<boolean> {
+  if (env.OPENAI_API_KEY?.trim()) return ensureInferenceEndpoint(es, env, log);
+  return (await es.request("GET", ENDPOINT_PATH)).status === 200;
+}
+
 /** Whether the live talks index has the semantic field (an index created without it never gains it). */
 export async function talksIndexHasSemantic(es: EsPort): Promise<boolean> {
   const res = await es.request("GET", `/${INDEX.talks}/_mapping`);
