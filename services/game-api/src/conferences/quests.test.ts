@@ -103,6 +103,16 @@ describe("quest edits reach every attendee", () => {
     expect(after.xp).toBe(75 + 75);
   });
 
+  it("GM-22 reuses an existing quest id at most once", async () => {
+    const t = setup();
+    const conf = await t.conference();
+    const existing = conf.quests[0]!;
+    const updated = await t.putQuests(conf.id, [{ ...existing }, { ...existing }]);
+    expect(updated.quests[0]?.id).toBe(existing.id);
+    expect(updated.quests[1]?.id).not.toBe(existing.id);
+    expect(updated.quests[1]?.id).not.toBe(updated.quests[0]?.id);
+  });
+
   it("GM-22 an id that isn't one of the conference's quests gets a fresh one", async () => {
     const t = setup();
     const conf = await t.conference();
