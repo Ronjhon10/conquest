@@ -25,4 +25,18 @@ Add a folder when something doesn't fit, and add a row here when you do.
 
 This repo is **public**. Everything here, transcripts included, can be read by anyone. Never commit keys or secrets: they go in `.env`, which is gitignored.
 
+## Running it
+
+```sh
+npm install
+cp .env.example .env        # fill in what you have; everything works with fakes when keys are blank
+npm test                    # vitest, all workspaces
+npm run typecheck && npm run lint
+npm run dev:search          # http://localhost:4001/api/search/healthz
+npm run dev:game            # http://localhost:4002/api/game/healthz
+npm run dev:web             # http://localhost:3000 (NEXT_PUBLIC_FAKE_API=1 uses fixtures)
+```
+
+Shared types, route bodies, index names and fixture data live in `packages/contracts` (`import { Talk, fixtures } from "@conquest/contracts"`). Routes that aren't built yet answer `501 not_implemented` naming their BUILD.md step.
+
 Agents working in this repo: read `AGENTS.md`.

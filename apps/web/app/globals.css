@@ -1,0 +1,13 @@
+/* Theme variables. Attendee pages override these from the conference Theme (WEB-12). */
+:root {
+  --bg: #14111f;
+  --fg: #f4efe6;
+  --accent: #f2a541;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, sans-serif; }
+a, button { min-height: 44px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
