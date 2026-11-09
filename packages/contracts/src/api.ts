@@ -44,6 +44,10 @@ export const SearchTalksResponse = z.object({
 });
 export type SearchTalksResponse = z.infer<typeof SearchTalksResponse>;
 
+/** All distinct venue rooms, independent of the paginated talk search results. */
+export const SearchRoomsResponse = z.object({ rooms: z.array(z.string()) });
+export type SearchRoomsResponse = z.infer<typeof SearchRoomsResponse>;
+
 export const GetTalkResponse = z.object({ talk: Talk, speakers: z.array(Speaker) });
 export type GetTalkResponse = z.infer<typeof GetTalkResponse>;
 
