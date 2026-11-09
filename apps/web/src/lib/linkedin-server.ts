@@ -14,7 +14,8 @@ import { NextRequest, NextResponse } from "next/server";
 const AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization";
 const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
 const USERINFO_URL = "https://api.linkedin.com/v2/userinfo";
-const ISSUER = "https://www.linkedin.com";
+// Current public discovery uses /oauth; the written guide shows the older value.
+const ISSUER = "https://www.linkedin.com/oauth";
 const FLOW_COOKIE = "conquest_linkedin_flow";
 const PROFILE_COOKIE = "conquest_linkedin_profile";
 const COOKIE_PATH = "/api/auth/linkedin";
@@ -30,17 +31,73 @@ type Config = {
   redirect: URL;
   key: Uint8Array;
 };
-type Flow = { conference: string; state: string; nonce: string };
+type Flow = { conference: string; state: string };
 type ImportedProfile = {
   conference: string;
   name: string;
   picture: string | null;
 };
-type Dependencies = { fetch: typeof fetch; verifyKey: JWTVerifyGetKey };
+type FailureStage =
+  | "transaction"
+  | "authorization"
+  | "token_exchange"
+  | "id_token"
+  | "userinfo"
+  | "profile_cookie";
+type SigninFailure = {
+  stage: FailureStage;
+  code: string;
+  status?: number;
+  claim?: string;
+};
+type Dependencies = {
+  fetch: typeof fetch;
+  verifyKey: JWTVerifyGetKey;
+  report?: (failure: SigninFailure) => void;
+};
 const defaults: Dependencies = {
   fetch: (...args) => fetch(...args),
   verifyKey: jwks,
+  // Fixed stages/codes and claim names only; never log claim values or errors.
+  report: (failure) =>
+    console.warn(
+      JSON.stringify({ event: "linkedin.signin.failed", ...failure }),
+    ),
 };
+const safeFailureCodes = new Set([
+  "invalid_client",
+  "invalid_client_id",
+  "invalid_client_secret",
+  "invalid_grant",
+  "invalid_redirect_uri",
+  "invalid_request",
+  "unauthorized_client",
+  "invalid_scope",
+  "ERR_JWT_CLAIM_VALIDATION_FAILED",
+  "ERR_JWT_EXPIRED",
+  "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
+  "ERR_JWKS_NO_MATCHING_KEY",
+  "ERR_JWKS_TIMEOUT",
+  "ERR_JWS_INVALID",
+  "ERR_JWT_INVALID",
+  "ENOTFOUND",
+  "ECONNRESET",
+  "ETIMEDOUT",
+  "UND_ERR_CONNECT_TIMEOUT",
+  "CERT_HAS_EXPIRED",
+]);
+function safeFailureCode(value: unknown) {
+  return typeof value === "string" && safeFailureCodes.has(value)
+    ? value
+    : "request_failed";
+}
+async function providerFailureCode(response: Response) {
+  try {
+    return safeFailureCode((await response.json())?.error);
+  } catch {
+    return "request_failed";
+  }
+}
 
 export function linkedinConfig(
   env: Record<string, string | undefined> = process.env,
@@ -172,7 +229,6 @@ export async function startLinkedin(
   const flow: Flow = {
     conference,
     state: randomBytes(32).toString("base64url"),
-    nonce: randomBytes(32).toString("base64url"),
   };
   const url = new URL(AUTH_URL);
   url.search = new URLSearchParams({
@@ -181,7 +237,6 @@ export async function startLinkedin(
     redirect_uri: config.redirect.href,
     scope: "openid profile",
     state: flow.state,
-    nonce: flow.nonce,
   }).toString();
   const response = noCache(NextResponse.redirect(url, 303));
   response.cookies.set(
@@ -234,22 +289,42 @@ export async function callbackLinkedin(
   if (
     !data ||
     typeof data.state !== "string" ||
-    typeof data.nonce !== "string" ||
+    // Reject old in-flight requests which asked LinkedIn to echo a nonce.
+    data.nonce !== undefined ||
     !equalState(request.nextUrl.searchParams.get("state"), data.state)
   ) {
+    deps.report?.({ stage: "transaction", code: "state_or_cookie_invalid" });
     const destination = data
       ? signupUrl(config, data.conference as string, "failed")
       : new URL("/auth/linkedin/error", config.redirect.origin);
     return clearFlow(NextResponse.redirect(destination, 303));
   }
   const conference = data.conference as string;
-  const failed = (status: string) =>
-    clearFlow(
+  const failed = (
+    status: string,
+    stage: FailureStage,
+    code: string,
+    httpStatus?: number,
+    claim?: string,
+  ) => {
+    deps.report?.({
+      stage,
+      code,
+      ...(httpStatus ? { status: httpStatus } : {}),
+      ...(claim && ["iss", "aud", "sub", "iat", "exp", "nbf"].includes(claim)
+        ? { claim }
+        : {}),
+    });
+    return clearFlow(
       NextResponse.redirect(signupUrl(config, conference, status), 303),
     );
-  if (request.nextUrl.searchParams.has("error")) return failed("cancelled");
+  };
+  if (request.nextUrl.searchParams.has("error"))
+    return failed("cancelled", "authorization", "provider_declined");
   const code = request.nextUrl.searchParams.get("code");
-  if (!code || code.length > 4096) return failed("failed");
+  if (!code || code.length > 4096)
+    return failed("failed", "authorization", "code_missing");
+  let stage: FailureStage = "token_exchange";
   try {
     const tokenResponse = await deps.fetch(TOKEN_URL, {
       method: "POST",
@@ -265,13 +340,20 @@ export async function callbackLinkedin(
       redirect: "error",
       signal: AbortSignal.timeout(15000),
     });
-    if (!tokenResponse.ok) return failed("failed");
+    if (!tokenResponse.ok)
+      return failed(
+        "failed",
+        stage,
+        await providerFailureCode(tokenResponse),
+        tokenResponse.status,
+      );
     const tokens = await tokenResponse.json();
     if (
       typeof tokens.id_token !== "string" ||
       typeof tokens.access_token !== "string"
     )
-      return failed("failed");
+      return failed("failed", stage, "tokens_missing");
+    stage = "id_token";
     const { payload } = await jwtVerify(tokens.id_token, deps.verifyKey, {
       issuer: ISSUER,
       audience: config.clientId,
@@ -279,32 +361,40 @@ export async function callbackLinkedin(
       requiredClaims: ["sub", "iat", "exp"],
     });
     if (
-      payload.nonce !== data.nonce ||
       !payload.sub ||
+      (payload.azp !== undefined && payload.azp !== config.clientId) ||
       (Array.isArray(payload.aud) &&
         payload.aud.length > 1 &&
         payload.azp !== config.clientId)
     )
-      return failed("failed");
+      return failed("failed", stage, "invalid_subject_or_audience");
+    stage = "userinfo";
     const userResponse = await deps.fetch(USERINFO_URL, {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
       cache: "no-store",
       redirect: "error",
       signal: AbortSignal.timeout(15000),
     });
-    if (!userResponse.ok) return failed("failed");
+    if (!userResponse.ok)
+      return failed(
+        "failed",
+        stage,
+        await providerFailureCode(userResponse),
+        userResponse.status,
+      );
     const user = await userResponse.json();
     if (
       user.sub !== payload.sub ||
       typeof user.name !== "string" ||
       !user.name.trim()
     )
-      return failed("failed");
+      return failed("failed", stage, "invalid_profile_or_subject");
     const profile: ImportedProfile = {
       conference,
       name: user.name.trim().slice(0, 200),
       picture: photoUrl(user.picture),
     };
+    stage = "profile_cookie";
     const response = clearFlow(
       NextResponse.redirect(signupUrl(config, conference, "connected"), 303),
     );
@@ -315,8 +405,19 @@ export async function callbackLinkedin(
     );
     // Provider tokens are never persisted or returned to the browser.
     return response;
-  } catch {
-    return failed("failed");
+  } catch (error) {
+    const reason = error as {
+      code?: unknown;
+      cause?: { code?: unknown };
+      claim?: unknown;
+    } | null;
+    return failed(
+      "failed",
+      stage,
+      safeFailureCode(reason?.code ?? reason?.cause?.code),
+      undefined,
+      typeof reason?.claim === "string" ? reason.claim : undefined,
+    );
   }
 }
 

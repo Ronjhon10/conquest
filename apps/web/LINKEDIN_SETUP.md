@@ -24,8 +24,8 @@ This is optional LinkedIn authentication for profile import. Existing attendee I
 
 ## Implementation
 
-- `GET /api/auth/linkedin/start?conference=<id>` starts authorization with a random state and nonce and an encrypted, ten-minute, HttpOnly transaction cookie.
-- `GET /api/auth/linkedin/callback` validates state, exchanges the code server-side, validates the ID token's RS256 signature, issuer, audience, expiry and nonce, and checks the userinfo subject matches the token. Provider tokens are not persisted.
+- `GET /api/auth/linkedin/start?conference=<id>` starts authorization with a random state and an encrypted, ten-minute, HttpOnly transaction cookie. This is the confidential authorization-code flow; no nonce is requested because the observed LinkedIn tokens do not echo it.
+- `GET /api/auth/linkedin/callback` validates state, exchanges the code server-side using the client secret, validates the ID token's RS256 signature, issuer, audience, expiry and authorized client, and checks the userinfo subject matches the token. Provider tokens are not persisted. Old in-flight requests from the nonce-based implementation must restart sign-in rather than bypassing their original nonce check.
 - `GET /api/auth/linkedin/profile?conference=<id>` reads the encrypted, ten-minute import cookie and returns the name and prepared photo for the correct conference. The client only calls this after a completed sign-in. Cookies and responses are private; responses use `Cache-Control: no-store`.
 - Production cookies use Secure when the configured callback is HTTPS. Callback URLs are fixed in server configuration; the request Host header never chooses the return origin. Rotating the cookie secret invalidates outstanding sign-ins and imports.
 - No personal fields, authorization codes, or provider tokens are logged by this implementation. Next's development request logs exclude these auth routes. Ensure infrastructure HTTP access logs and browser telemetry also redact callback query strings and exclude the auth/import endpoints from body capture.
@@ -39,3 +39,5 @@ For production, the Web lane's runtime environment needs the same four server-on
 Tests use locally signed tokens, mocked provider responses, and synthetic images. They never contact LinkedIn. A real consent round trip must be verified once developer-app credentials and the product permission are available.
 
 Official references: [LinkedIn OpenID Connect](https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2), [authorization code flow](https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow).
+
+Issuer compatibility: LinkedIn's [live discovery document](https://www.linkedin.com/oauth/.well-known/openid-configuration), checked 2026-11-09, publishes `https://www.linkedin.com/oauth` as its issuer. The written integration guide still illustrates `https://www.linkedin.com`. Token validation requires the live issuer value exactly. Safe server diagnostics record only fixed failure stages, allowlisted codes/statuses and JWT claim names; no claim values, credentials, authorization codes, tokens or provider descriptions are logged.
