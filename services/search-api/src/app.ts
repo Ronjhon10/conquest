@@ -1,6 +1,8 @@
-import { GetSpeakerResponse, GetTalkResponse, SearchTalksQuery, SearchTalksResponse } from "@conquest/contracts";
+import { GetSpeakerResponse, GetTalkResponse, RankRequest, RankResponse, SearchTalksQuery, SearchTalksResponse, SuggestGoalsRequest, SuggestGoalsResponse } from "@conquest/contracts";
 import { Hono } from "hono";
-import { ApiError, installErrorHandling, notImplemented, parse } from "./http";
+import { ApiError, body, installErrorHandling, parse } from "./http";
+import { rank } from "./rank";
+import { pickGoals } from "./suggest";
 import type { TalkStore } from "./store";
 
 export type AppDeps = { store?: TalkStore };
@@ -43,8 +45,14 @@ export function createApp({ store }: AppDeps = {}) {
     return c.json(GetSpeakerResponse.parse({ speaker, talks: await s.talksBySpeaker(speaker.id) }));
   });
 
-  api.post("/rank", notImplemented("S.5"));
-  api.post("/suggest-goals", notImplemented("S.6"));
+  api.post("/rank", async (c) => {
+    const req = await body(c, RankRequest);
+    return c.json(RankResponse.parse({ bosses: await rank(need(), req) }));
+  });
+  api.post("/suggest-goals", async (c) => {
+    const { about } = await body(c, SuggestGoalsRequest);
+    return c.json(SuggestGoalsResponse.parse({ goals: pickGoals(await need().facets(about)) }));
+  });
   app.route("/api/search", api);
 
   return app;

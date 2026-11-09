@@ -5,6 +5,7 @@ import { INDEX, type Speaker, type Talk } from "@conquest/contracts";
 import type { EsPort } from "./es";
 import { searchTalksBody, talksBySpeakerBody, type SearchOptions } from "./queries";
 import { fromTalkDoc, type TalkDoc } from "./seed";
+import { facetsFromAggs, suggestBody, type Facets } from "./suggest";
 
 export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
@@ -14,6 +15,8 @@ export interface TalkStore {
   getSpeakers(ids: string[]): Promise<Speaker[]>;
   getSpeaker(id: string): Promise<Speaker | null>;
   talksBySpeaker(id: string): Promise<Talk[]>;
+  /** Tag and track counts over the top 50 BM25 matches for `about`, plus index-wide tag counts. */
+  facets(about: string): Promise<Facets>;
   /** Readiness: the backing indexes answer. */
   ready(): Promise<boolean>;
 }
@@ -58,6 +61,9 @@ export class EsTalkStore implements TalkStore {
   async talksBySpeaker(id: string) {
     const res = await this.es.search<TalkDoc>(INDEX.talks, talksBySpeakerBody(id));
     return res.hits.map((h) => fromTalkDoc(h.source));
+  }
+  async facets(about: string) {
+    return facetsFromAggs((await this.es.search<TalkDoc>(INDEX.talks, suggestBody(about))).aggregations);
   }
   async ready() {
     try {
