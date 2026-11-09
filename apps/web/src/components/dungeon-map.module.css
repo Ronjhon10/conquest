@@ -1,0 +1,278 @@
+.layout {
+  grid-template-columns: minmax(0, 3fr) minmax(220px, 1fr);
+  align-items: start;
+}
+
+.map {
+  min-width: 0;
+  container-type: inline-size;
+  padding: 24px;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--dungeon-fg) 9%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.header h2 {
+  font-size: clamp(28px, 5vw, 40px);
+  margin-bottom: 12px;
+}
+
+.header > p:last-child {
+  max-width: 55ch;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  padding: 8px 14px;
+  margin: 24px 0 12px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.controls input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--blue);
+}
+
+.hint, .count {
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.count {
+  font-weight: 700;
+}
+
+.trailStart, .trailEnd {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.trailStart {
+  margin: 28px 0 0;
+}
+
+.trailStart span {
+  display: block;
+  font-size: 24px;
+  margin-top: 8px;
+}
+
+.path {
+  position: relative;
+  list-style: none;
+  padding: 24px 6px 12px 22px;
+  margin: 0;
+}
+
+.path::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 24px 50%;
+  border-inline-start: 3px dashed var(--dungeon-fg);
+  opacity: 0.45;
+}
+
+.room {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  margin: 0 16px 40px 0;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  isolation: isolate;
+}
+
+.room:nth-child(even) {
+  margin-inline: 16px 0;
+}
+
+.scene {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: #e5e1d7;
+  border-bottom: 2px solid var(--ink);
+  padding: 16px 14px 12px;
+}
+
+.roomLabel {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-self: stretch;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.marker {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.roomArt {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sceneCaption {
+  padding: 5px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+}
+
+.details {
+  min-width: 0;
+  padding: 20px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.chips > * {
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  padding: 5px 7px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.details .bossLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+.details .talkLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font: 700 clamp(24px, 4cqi, 30px)/1.1 var(--font-display);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.room .talkLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+
+.room:focus-within {
+  outline: 3px solid var(--dungeon-fg);
+  outline-offset: 5px;
+}
+
+.room:hover .talkLink, .talkLink:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.details .speaker, .details .reason, .details .access {
+  font-size: 12px;
+  line-height: 1.65;
+  margin: 12px 0 0;
+}
+
+.details .speaker {
+  font-weight: 700;
+}
+
+.details .access {
+  font-size: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--steel);
+}
+
+.enter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 2px solid var(--ink);
+  font: 700 16px/1.3 var(--font-display);
+  text-transform: uppercase;
+}
+
+.list .details {
+  padding: 0 18px;
+}
+
+@container (min-width: 620px) {
+  .room {
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 1fr);
+  }
+  .scene {
+    border-bottom: 0;
+    border-right: 2px solid var(--ink);
+    border-radius: 10px 0 0 10px;
+    align-content: space-between;
+  }
+  .roomArt {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .map {
+    padding: 16px;
+  }
+  .path {
+    padding-inline: 0 6px;
+  }
+  .room, .room:nth-child(even) {
+    margin-inline: 0;
+  }
+  .details {
+    padding: 16px;
+  }
+}

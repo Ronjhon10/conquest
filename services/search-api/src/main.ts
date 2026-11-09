@@ -2,7 +2,7 @@ import { log as tlog, type LogLevel } from "@conquest/telemetry";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { loadSchedule } from "./data";
-import { ensureInferenceEndpoint, searchOptions } from "./embeddings";
+import { embeddingsAvailable, searchOptions } from "./embeddings";
 import { clientFromEnv, esPort } from "./es";
 import { ensureIndexes } from "./indexes";
 import { EsTalkStore, type TalkStore } from "./store";
@@ -20,7 +20,7 @@ async function makeStore(): Promise<TalkStore> {
   const es = esPort(clientFromEnv());
   let opts = { semantic: false, rrf: false };
   try {
-    const embeddings = await ensureInferenceEndpoint(es, process.env, log);
+    const embeddings = await embeddingsAvailable(es, process.env, log);
     const { created } = await ensureIndexes(es, { semantic: embeddings });
     if (created.length) log("info", "created indexes", { created });
     opts = await searchOptions(es, embeddings, log);
@@ -29,7 +29,8 @@ async function makeStore(): Promise<TalkStore> {
     // Keep serving; /readyz reports not ready until Elasticsearch answers.
     log("error", "could not ensure indexes", { error: err instanceof Error ? err.message : String(err) });
   }
-  return new EsTalkStore(es, opts);
+  // While BM25 only, keep checking: a later `seed -- --recreate` with a key turns semantic on.
+  return new EsTalkStore(es, opts, async () => searchOptions(es, await embeddingsAvailable(es)));
 }
 
 const port = Number(process.env.PORT ?? process.env.SEARCH_API_PORT ?? 4001);

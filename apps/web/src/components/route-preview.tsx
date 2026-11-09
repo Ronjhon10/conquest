@@ -6,9 +6,12 @@ import type {
   Attendee,
   Conference,
   LeaderboardRow,
+  Speaker,
   Talk,
 } from "@conquest/contracts";
 import { Avatar } from "./avatar";
+import { DungeonMap } from "./dungeon-map";
+import mapStyles from "./dungeon-map.module.css";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
 import { formatTalkTime } from "../lib/time";
@@ -40,6 +43,7 @@ export type PreviewData = {
   attendee: Attendee | null;
   rows: LeaderboardRow[];
   allies?: Ally[];
+  speakers?: Speaker[];
 };
 export function RouteContent({
   data,
@@ -129,33 +133,8 @@ export function RouteContent({
         </div>
       )}
       {view === "map" ? (
-        <div className="preview-grid">
-          <section
-            className="dungeon-surface"
-            style={themeStyle(conference.theme)}
-          >
-            <p className="cq-label">{conference.theme.name}</p>
-            <h2>Your {conference.theme.boss_noun} trail</h2>
-            <p>{conference.theme.intro}</p>
-            <ol className="talk-list">
-              {(attendee?.map ?? []).map((boss) => {
-                const talk = talks.find((t) => t.id === boss.talk_id);
-                return talk ? (
-                  <li className="cq-card" key={talk.id}>
-                    <div className="talk-meta">
-                      {formatTalkTime(talk.starts_at)} · {talk.room}
-                    </div>
-                    <Link
-                      href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(talk.id)}`}
-                    >
-                      {talk.title}
-                    </Link>
-                    <p>{boss.reason}</p>
-                  </li>
-                ) : null;
-              })}
-            </ol>
-          </section>
+        <div className={`preview-grid ${mapStyles.layout}`}>
+          <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} />
           <Panel title="Your quests">
             {(attendee?.quests ?? conference.quests).map((q) => (
               <p key={q.id}>
@@ -215,14 +194,16 @@ export function RouteContent({
                   <div>
                     <strong>{ally.name}</strong>
                     <p>{ally.headline}</p>
-                    <a
-                      href={ally.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on LinkedIn
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    {ally.linkedin_url && (
+                      <a
+                        href={ally.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View on LinkedIn
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    )}
                   </div>
                 </li>
               ))}
@@ -348,7 +329,15 @@ export function RoutePreview({
       : Promise.resolve(null);
     Promise.all([
       api.conference(conf),
-      api.talks(),
+      view === "map"
+        ? attendeeRequest.then(async (result) => ({
+            results: (
+              await Promise.allSettled(
+                (result?.attendee.map ?? []).map((boss) => api.talk(boss.talk_id)),
+              )
+            ).flatMap((result) => result.status === "fulfilled" ? [result.value] : []),
+          }))
+        : api.talks(),
       attendeeRequest,
       view === "live" ? api.leaderboard(conf) : Promise.resolve({ rows: [] }),
     ])
@@ -357,6 +346,11 @@ export function RoutePreview({
           setData({
             conference: conference.conference,
             talks: talks.results.map((r) => r.talk),
+            speakers: [...new Map(
+              talks.results
+                .flatMap((r) => "speakers" in r ? r.speakers : [])
+                .map((speaker) => [speaker.id, speaker]),
+            ).values()],
             attendee: attendee?.attendee ?? null,
             rows: leaderboard.rows,
             allies: attendee?.allies ?? [],

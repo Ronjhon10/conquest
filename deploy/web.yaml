@@ -24,7 +24,7 @@ spec:
             - name: DEPLOY_ENV
               value: demo
             - name: NEXT_PUBLIC_DASH0_DASHBOARD_URL
-              value: \"\"
+              value: "https://app.dash0.com/dashboards/dfbb1620-2d26-4ed5-99f1-50c27d553306?dataset=default"
           resources:
             requests:
               cpu: 100m

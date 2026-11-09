@@ -5,7 +5,7 @@ import { INDEX, type Speaker, type Talk } from "@conquest/contracts";
 import type { EsPort } from "./es";
 import { searchTalksBody, talksBySpeakerBody, type SearchOptions } from "./queries";
 import { fromTalkDoc, type TalkDoc } from "./seed";
-import { facetsFromAggs, suggestBody, type Facets } from "./suggest";
+import { facetsFromResult, suggestBody, type Facets } from "./suggest";
 
 export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
@@ -22,17 +22,50 @@ export interface TalkStore {
   ready(): Promise<boolean>;
 }
 
+/** How often a store in BM25 mode re-checks whether semantic search has become available. */
+export const REDETECT_MS = 60_000;
+
 export class EsTalkStore implements TalkStore {
+  private lastCheck = 0;
+  private checking: Promise<void> | null = null;
+
+  /**
+   * `redetect`: when given and search is BM25 only, re-checked at most every REDETECT_MS in the
+   * background, so a reseed with embeddings turns semantic search on without a restart.
+   */
   constructor(
     private readonly es: EsPort,
     private opts: SearchOptions = { semantic: false, rrf: false },
-  ) {}
+    private readonly redetect?: () => Promise<SearchOptions>,
+    private readonly now: () => number = Date.now,
+  ) {
+    this.lastCheck = this.now();
+  }
+
+  /** Background re-check; never blocks or fails a search. Exposed for tests. */
+  maybeRedetect(): Promise<void> | null {
+    if (!this.redetect || this.opts.semantic || this.checking || this.now() - this.lastCheck < REDETECT_MS) return this.checking;
+    this.lastCheck = this.now();
+    this.checking = this.redetect()
+      .then((next) => {
+        if (next.semantic) {
+          this.opts = next;
+          console.log(JSON.stringify({ level: "info", msg: "semantic search is now available", ...next }));
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        this.checking = null;
+      });
+    return this.checking;
+  }
 
   get options(): SearchOptions {
     return this.opts;
   }
 
   async searchTalks(q: string, limit: number): Promise<TalkHit[]> {
+    void this.maybeRedetect();
     const res = await this.searchWithFallback(q, limit);
     return res.hits.map((h) => ({ talk: fromTalkDoc(h.source), score: h.score, highlight: h.highlight?.abstract?.[0] ?? null }));
   }
@@ -83,7 +116,8 @@ export class EsTalkStore implements TalkStore {
     return res.hits.map((h) => fromTalkDoc(h.source));
   }
   async facets(about: string) {
-    return facetsFromAggs((await this.es.search<TalkDoc>(INDEX.talks, suggestBody(about))).aggregations);
+    const res = await this.es.search<Pick<TalkDoc, "tags" | "track">>(INDEX.talks, suggestBody(about));
+    return facetsFromResult(res.hits.map((h) => h.source), res.aggregations);
   }
   async ready() {
     try {
