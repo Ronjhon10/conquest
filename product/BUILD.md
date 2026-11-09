@@ -34,7 +34,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner: Jake Nef
 - [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner: Jake Nef
 - [ ] **P.5** **Human:** Radar cluster (join.cnh.radarhq.io), `./deploy/setup-team.sh <team>` PR, everyone connects Radar MCP, Checks "before" screenshot. (PL-8) owner: Jake Nef
-- [ ] **P.6** **Human:** Elastic Serverless project, Dash0 account and tokens, Secret `conquest-secrets`. Then the agent `get-started` skill applies `argocd/application.yaml`; first GitOps deploy verified on the URL. Seed Job. (PL-5) owner: Jake Nef
+- [x] **P.6** **Human:** Elastic Serverless project, Dash0 account and tokens, Secret `conquest-secrets`. Then the agent `get-started` skill applies `argocd/application.yaml`; first GitOps deploy verified on the URL. Seed Job. (PL-5) owner: Jake Nef
 - [ ] **P.7** Dash0: verify traces/RUM/logs arrive; "Conquest live" dashboard + XP SLO; Dash0 MCP/Agent0 connected. (PL-6, PL-7) owner: Jake Nef
 - [ ] **P.8** Load script `scripts/load/`; evidence folder filled as things happen. (PL-10) owner: Jake Nef
 
@@ -113,6 +113,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 14:40  S.7  Max (Claude)  search.rank span with a search.rank.query child per search, conquest.search.rank.duration histogram (ms, outcome), goals_count/limit/bosses_count attributes, errors by class only; main.ts logs via @conquest/telemetry. Tests check no goal/about/talk text reaches telemetry.
 - 2026-11-09 14:50  S follow-up  Max (Claude)  search-api /readyz is 503 until conquest-talks and conquest-speakers hold documents, not just exist.
 - 2026-11-09 15:00  S follow-up  Max (Claude)  `npm run verify` (read-only 020 checks against the .env cluster), `npm run demo` + DEMO-SNAPSHOT.md (in-memory for now), search-api README with slide text; tags get a lowercase normalizer so title-cased goals match their tags.
+- 2026-11-09 13:55  P.5 (part)  Jake Nef (Claude)  Radar team cluster `conquest` (id yka3x0NpFNY), Radar MCP connected for Jake, setup-team PR #47, Checks "before" in demo/evidence (3 Medium, PR #46). Still open in P.5: each teammate connects Radar MCP.
+- 2026-11-09 13:55  P.6  Jake Nef (Claude)  Elastic Serverless + Dash0 set up; Secret conquest-secrets created with deploy/create-secret.sh (values never left the terminal). Argo CD Application applied and synced through Radar at deploy 2a32eff (images 7e388e5); starter app pruned. search-api stayed 0/1 Ready: Radar diagnose showed /readyz 503 because the fresh indexes were empty (readyz requires seeded talks by design). Ran one-off Job search-seed-001 (search-api image, src/seed-cli.ts): 480 talks, 703 speakers; search-api went Ready. PL-5 verified on https://conquest.cnh.radarhq.io: / serves web, /api/search/healthz and /api/game/healthz 200, /api/search/talks returns real talks.
 
 - 2026-11-09 W.3 Danny/Codex: separate DungeonMap component with chronological path/list, reduced-motion list default, keyboard toggles, step-free path filter and persistent list access notes. Fetch selected boss details directly so the search page limit cannot hide mapped talks. WEB-3..WEB-5 regression tests; 234 tests pass (3 integration skips), lint, typecheck and production build pass. Browser host unavailable; visual QA pending.
 
