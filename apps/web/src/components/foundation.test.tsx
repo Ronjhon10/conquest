@@ -89,6 +89,7 @@ it("WEB-12 applies conference colors and the custom boss noun to the map shell",
     }),
   );
   expect(html).toContain("Your kraken trail");
+  expect(html).toContain("Kraken");
   expect(html).toContain("--dungeon-bg:#102030");
   expect(themeStyle(conference.theme)).toMatchObject({
     "--dungeon-fg": conference.theme.palette.fg,

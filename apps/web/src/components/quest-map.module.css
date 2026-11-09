@@ -1,0 +1,173 @@
+/* Attendee map: phone-first. On a laptop the dungeon is a window inside the branded page. */
+.map {
+  max-width: 480px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+.head h1 {
+  margin: 4px 0;
+}
+.day {
+  margin: 0;
+  font-size: 13px;
+}
+.player {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: var(--stroke, 2px) solid var(--ink, #000);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface, #fff);
+  box-shadow: var(--shadow-sm);
+}
+.level {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.level progress {
+  width: 100%;
+  height: 10px;
+  accent-color: var(--blue, #00f);
+}
+.stat {
+  display: grid;
+  text-align: center;
+  line-height: 1.1;
+}
+.stat strong {
+  font-size: 18px;
+}
+.stat span {
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.window {
+  border: var(--stroke, 2px) solid var(--ink, #000);
+  border-radius: var(--radius-md, 10px);
+  box-shadow: var(--shadow-md, 6px 6px 0 #000);
+  overflow: hidden;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.world {
+  position: relative;
+  width: 100%;
+}
+.floorPlan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  shape-rendering: crispEdges;
+}
+.rooms {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rooms li {
+  position: absolute;
+}
+.room {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 6px 4px;
+  background: transparent;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+.room time {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 4px;
+}
+.room:hover,
+.room:focus-visible {
+  border-color: var(--accent);
+}
+.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.4) inset;
+}
+.boss {
+  display: block;
+  width: 72%;
+  max-width: 96px;
+  margin-top: 4px;
+  image-rendering: pixelated;
+  transform-origin: center bottom;
+}
+.boss img {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.you {
+  position: absolute;
+  width: 12%;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+.you img {
+  width: 100%;
+  height: auto;
+}
+.empty {
+  padding: 32px 16px;
+  margin: 0;
+  background: var(--surface, #fff);
+}
+.encounter h2 {
+  margin: 4px 0 8px;
+  font-size: 20px;
+}
+.meta {
+  font-size: 13px;
+}
+.quests summary {
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.quests ul {
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+@media (max-width: 720px) {
+  .window {
+    margin-inline: -16px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+    max-height: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .selected .boss {
+    animation: bob 1.2s steps(2) infinite;
+  }
+}
+@keyframes bob {
+  50% {
+    translate: 0 -3px;
+  }
+}

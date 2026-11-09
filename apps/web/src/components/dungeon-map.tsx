@@ -1,191 +1,143 @@
 "use client";
-
+// The attendee map (040 /c/[conf]/map): today's bosses on a themed, winding path in a window that
+// fills a phone and sits inside the page on a laptop. No controls: it shows today's day by itself
+// (the next conference day before the event, the last one after). Screen readers get every talk,
+// all days, with step-free notes, as a list (WEB-3, WEB-5).
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { xpForLevel } from "@conquest/contracts";
 import type { Attendee, Conference, Speaker, Talk } from "@conquest/contracts";
 import { CONFERENCE_TIME_ZONE, formatTalkTime } from "../lib/time";
-import { themeStyle } from "./ui";
 import { Avatar } from "./avatar";
-import { Icon } from "./icon";
-import { Brand } from "./brand";
-import { DungeonWorld, type MapStop } from "./dungeon-world";
-import styles from "./dungeon-map.module.css";
+import { themeStyle } from "./ui";
+import { bossName, DungeonWorld, type MapStop } from "./dungeon-world";
+import styles from "./quest-map.module.css";
 
-const motionQuery = "(prefers-reduced-motion: reduce)";
-const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: CONFERENCE_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
-function subscribeMotion(onChange: () => void) {
-  const media = window.matchMedia?.(motionQuery);
-  media?.addEventListener("change", onChange);
-  return () => media?.removeEventListener("change", onChange);
-}
-function prefersList() {
-  return window.matchMedia?.(motionQuery).matches ?? true;
-}
-function accessText(stop: MapStop) {
+const dayKey = new Intl.DateTimeFormat("en-CA", { timeZone: CONFERENCE_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
+const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: CONFERENCE_TIME_ZONE, weekday: "long", month: "short", day: "numeric" });
+
+export function accessText(stop: MapStop) {
   const text = stop.room?.step_free === true ? "Step-free access" : stop.room?.step_free === false ? "Not step-free" : "Step-free access unconfirmed";
-  return `${text}${stop.room?.step_free_note ? ` — ${stop.room.step_free_note}` : ""}`;
-}
-function TalkDetails({ stop, conf, selected = false }: { stop: MapStop; conf: string; selected?: boolean }) {
-  return (
-    <div className={styles.details}>
-      <div className={styles.chips}>
-        {selected && stop.speakerNames.length > 0 && <span><span className="sr-only">Speaker: </span>{stop.speakerNames.join(", ")}</span>}
-        <time dateTime={stop.talk.starts_at}>{formatTalkTime(stop.talk.starts_at)}</time>
-        <span>{stop.talk.room}</span>
-      </div>
-      <h3>{stop.talk.title}</h3>
-      {!selected && stop.speakerNames.length > 0 && <p className={styles.speaker}>Speaker: {stop.speakerNames.join(", ")}</p>}
-      <p>{stop.reason}</p>
-      <p className={styles.access}>{accessText(stop)}</p>
-      <Link className={selected ? "cq-btn" : "text-link"} href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(stop.talk.id)}`}>
-        {selected ? "View encounter" : stop.talk.title}
-        {selected && <span aria-hidden="true">→</span>}
-      </Link>
-    </div>
-  );
+  return `${text}${stop.room?.step_free_note ? `: ${stop.room.step_free_note}` : ""}`;
 }
 
-export function DungeonMap({ conference, attendee, talks, speakers = [], conf, fullPage = false }: {
+/** Today's conference day; before the event the first day, after it the last. */
+export function pickDay(days: string[], now: Date): string | undefined {
+  const today = dayKey.format(now);
+  return days.find((d) => d >= today) ?? days.at(-1);
+}
+
+export function DungeonMap({ conference, attendee, talks, speakers = [], conf, now = new Date() }: {
   conference: Conference;
   attendee: Attendee | null;
   talks: Talk[];
   speakers?: Speaker[];
   conf: string;
-  fullPage?: boolean;
+  now?: Date;
 }) {
-  const reducedMotion = useSyncExternalStore(subscribeMotion, prefersList, () => true);
-  const [listChoice, setListChoice] = useState<boolean | null>(null);
-  const [stepFreeOnly, setStepFreeOnly] = useState(false);
-  const [dayChoice, setDayChoice] = useState<string | null>(null);
-  const questsButtonRef = useRef<HTMLButtonElement>(null);
-  const questsPanelRef = useRef<HTMLElement>(null);
-  const [questsOpen, setQuestsOpen] = useState(false);
-  useEffect(() => {
-    if (questsOpen) questsPanelRef.current?.focus();
-  }, [questsOpen]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const showList = listChoice ?? reducedMotion;
-  const stops: MapStop[] = (attendee?.map ?? []).flatMap((boss) => {
-    const talk = talks.find((talk) => talk.id === boss.talk_id);
-    if (!talk) return [];
-    const room = conference.rooms.find((room) => room.name === talk.room);
-    const speakerNames = talk.speaker_ids.flatMap((id) => {
-      const speaker = speakers.find((speaker) => speaker.id === id);
-      return speaker ? [speaker.name] : [];
-    });
-    return [{ talk, reason: boss.reason, room, speakerNames }];
-  }).sort((a, b) => Date.parse(a.talk.starts_at) - Date.parse(b.talk.starts_at));
-  const days = [...new Set(stops.map((stop) => dayFormat.format(new Date(stop.talk.starts_at))))];
-  const day = dayChoice && days.includes(dayChoice) ? dayChoice : days[0];
-  const dayStops = stops.filter((stop) => dayFormat.format(new Date(stop.talk.starts_at)) === day);
-  const visibleStops = stepFreeOnly ? dayStops.filter((stop) => stop.room?.step_free === true) : dayStops;
-  const selected = visibleStops.find((stop) => stop.talk.id === selectedId) ?? visibleStops[0];
-  const missingTalks = (attendee?.map.length ?? 0) - stops.length;
-  // Level thresholds from spec 030; this displays progress without awarding XP.
-  const levelStart = attendee ? xpForLevel(attendee.level) : 0;
-  const levelEnd = attendee ? xpForLevel(attendee.level + 1) : 100;
-  const levelProgress = Math.max(0, Math.min(levelEnd - levelStart, (attendee?.xp ?? 0) - levelStart));
+  const { theme } = conference;
+  const confHref = encodeURIComponent(conf);
+  if (!attendee)
+    return (
+      <p>
+        <Link className="cq-btn" href={`/c/${confHref}/join`}>Create your adventurer</Link>
+      </p>
+    );
+
+  const stops: MapStop[] = attendee.map
+    .flatMap((boss) => {
+      const talk = talks.find((t) => t.id === boss.talk_id);
+      if (!talk) return [];
+      const room = conference.rooms.find((r) => r.name === talk.room);
+      const speakerNames = talk.speaker_ids.flatMap((id) => speakers.find((sp) => sp.id === id)?.name ?? []);
+      return [{ talk, reason: boss.reason, room, speakerNames }];
+    })
+    .sort((a, b) => Date.parse(a.talk.starts_at) - Date.parse(b.talk.starts_at));
+  const days = [...new Set(stops.map((st) => dayKey.format(new Date(st.talk.starts_at))))];
+  const day = pickDay(days, now);
+  const todays = stops.filter((st) => dayKey.format(new Date(st.talk.starts_at)) === day);
+  const selected = todays.find((st) => st.talk.id === selectedId) ?? todays[0];
+  const missing = attendee.map.length - stops.length;
+  const levelStart = xpForLevel(attendee.level);
+  const levelEnd = xpForLevel(attendee.level + 1);
+  const progress = Math.max(0, Math.min(levelEnd - levelStart, attendee.xp - levelStart));
 
   return (
-    <section className={`${styles.map} ${fullPage ? styles.screen : ""}`} style={themeStyle(conference.theme)}>
-      {fullPage ? (
-        <header className={styles.phoneHeader}>
-          <div className={styles.identity}>
-            <Link href="/" className={styles.wordmark} aria-label="Conquest home"><Brand compact onDark /></Link>
-            <p>{conference.name} · {conference.theme.name}</p>
-            <h1 className="sr-only">Your {conference.theme.boss_noun} trail</h1>
-          </div>
-          {attendee && (
-            <div className={styles.playerCard}>
-              <Link href={`/c/${encodeURIComponent(conf)}/profile`} aria-label="Edit your character"><Avatar name={attendee.name} photo={attendee.photo} characterClass={attendee.class} seed={attendee.avatar_seed} size={40} /></Link>
-              <div className={styles.playerInfo}>
-                <strong title={attendee.name}>{attendee.name}</strong>
-                <div className={styles.xp}>
-                  <span>LV {attendee.level}</span>
-                  <progress aria-label="Progress to next level" max={levelEnd - levelStart} value={levelProgress} />
-                  <span>{attendee.xp} XP</span>
-                </div>
-              </div>
-              <div className={styles.coins}><strong>{attendee.coins}</strong><span>speaker<br />coins</span></div>
-            </div>
-          )}
-        </header>
-      ) : <header className={styles.heading}>
-        <p className="cq-label">{conference.theme.name}</p>
-        <h2>Your {conference.theme.boss_noun} trail</h2>
-        <p>{conference.theme.intro}</p>
-      </header>}
-      {!attendee ? (
-        <p><Link href={`/c/${encodeURIComponent(conf)}/join`}>Create your adventurer</Link> to get your personal map.</p>
-      ) : (
-        <>
-          <div className={styles.controls}>
-            {!showList && days.length > 0 && (
-              <div className={styles.days} role="group" aria-label="Conference day">
-                {days.map((value, index) => (
-                  <button type="button" className={`cq-btn ${value === day ? "" : "cq-btn--secondary"}`} key={value} aria-pressed={value === day} onClick={() => { setDayChoice(value); setSelectedId(null); }}>
-                    Day {index + 1}<span className="sr-only"> · {value}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <label className="cq-btn cq-btn--secondary"><input type="checkbox" checked={showList} onChange={(event) => setListChoice(event.target.checked)} /> List view</label>
-            <label className="cq-btn cq-btn--secondary"><input type="checkbox" checked={stepFreeOnly} onChange={(event) => setStepFreeOnly(event.target.checked)} /> Step-free only</label>
-          </div>
-          <p className={fullPage ? "sr-only" : styles.hint}>Times are in Salt Lake City time. The list keeps all days and every room’s access notes.</p>
-          <p className={fullPage ? "sr-only" : styles.count} role="status">{showList ? `${stops.length} talks in your list.` : `${visibleStops.length} of ${dayStops.length} talks on your path.`}</p>
-          {missingTalks > 0 && <p role="alert">{missingTalks} {missingTalks === 1 ? "talk could" : "talks could"} not be loaded. Refresh to try again; your other talks are still available.</p>}
-          <div className={styles.mapFrame}>
-            {!stops.length ? <p className={styles.empty}>{missingTalks ? "Your map will appear when the talks can be loaded." : "No talks on your map yet."}</p> : showList ? <ol role="list" aria-label="Talk list" className={styles.list}>
-              {stops.map((stop) => <li className="cq-card" key={stop.talk.id}><TalkDetails stop={stop} conf={conf} /></li>)}
-            </ol> : <>
-              {!fullPage && <div className={styles.hud}>
-                <div className={styles.hudTop}>
-                  <Brand compact onDark />
-                  <div className={styles.xp}>
-                    <span>LV {attendee.level}</span>
-                    <progress aria-label="Progress to next level" max={levelEnd - levelStart} value={levelProgress} />
-                    <span>{attendee.xp} XP</span>
-                  </div>
-                </div>
-              </div>}
-              {visibleStops.length ? (
-                <>
-                  <DungeonWorld key={day} stops={visibleStops} selectedId={selected?.talk.id} onSelect={setSelectedId} attendee={attendee} />
-                  {selected && (
-                    <section className={styles.encounter} aria-label="Selected boss" aria-live="polite">
-                      <p className={styles.selectedLabel}>Selected encounter</p>
-                      <TalkDetails stop={selected} conf={conf} selected />
-                    </section>
-                  )}
-                </>
-              ) : (
-                <p className={styles.empty}>No confirmed step-free rooms on this path. Switch to List view for all talks and access notes.</p>
-              )}
-              </>}
-              {questsOpen && (
-                <section ref={questsPanelRef} tabIndex={-1} className={styles.questPanel} id={`map-quests-${conf}`} aria-label="Your quests">
-                  <div><h2>Your quests</h2><button className="cq-btn cq-btn--secondary" type="button" onClick={() => { setQuestsOpen(false); questsButtonRef.current?.focus(); }} aria-label="Close quests">×</button></div>
-                  <ul>{attendee.quests.map((quest) => <li key={quest.id}><strong>{quest.title}</strong><p>{quest.description}</p><span>{quest.xp} XP</span></li>)}</ul>
-                  {!attendee.quests.length && <p>No quests yet.</p>}
-                </section>
-              )}
-              <nav className={styles.actionBar} aria-label="Map actions">
-                <button className="cq-btn cq-btn--secondary" ref={questsButtonRef} type="button" aria-expanded={questsOpen} aria-controls={`map-quests-${conf}`} onClick={() => setQuestsOpen((open) => !open)}><Icon name="quests" />Quests</button>
-                {selected && <Link className="cq-btn cq-btn--secondary" href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(selected.talk.id)}`}><Icon name="talk" />Talk actions</Link>}
-                <Link className="cq-btn cq-btn--secondary" href={`/c/${encodeURIComponent(conf)}/connect`}><Icon name="people" />Connect</Link>
-              </nav>
-          </div>
-        </>
+    <section className={styles.map} style={themeStyle(theme)}>
+      <header className={styles.head}>
+        <p className="cq-label">{theme.name}</p>
+        <h1 className="cq-slab">Your {theme.boss_noun} trail</h1>
+        {day && <p className={styles.day}>{dayLabel.format(new Date(todays[0]?.talk.starts_at ?? now))} · {todays.length} {todays.length === 1 ? "talk" : "talks"} today</p>}
+      </header>
+
+      <div className={styles.player}>
+        <Link href={`/c/${confHref}/profile`} aria-label="Edit your character">
+          <Avatar name={attendee.name} photo={attendee.photo} characterClass={attendee.class} seed={attendee.avatar_seed} size={44} />
+        </Link>
+        <div className={styles.level}>
+          <strong>{attendee.name}</strong>
+          <span>Level {attendee.level}</span>
+          <progress aria-label="Progress to next level" max={levelEnd - levelStart} value={progress} />
+        </div>
+        <div className={styles.stat}><strong>{attendee.xp}</strong><span>XP</span></div>
+        <div className={styles.stat}><strong>{attendee.coins}</strong><span>coins</span></div>
+      </div>
+
+      {missing > 0 && <p role="alert">{missing} {missing === 1 ? "talk" : "talks"} couldn&apos;t load. Refresh to try again.</p>}
+
+      <div className={styles.window}>
+        {todays.length ? (
+          <DungeonWorld
+            stops={todays}
+            selectedId={selected?.talk.id}
+            onSelect={setSelectedId}
+            attendee={attendee}
+            theme={theme}
+            seed={`${conference.id}:${attendee.id}:${day}`}
+          />
+        ) : (
+          <p className={styles.empty}>No talks on your map yet.</p>
+        )}
+      </div>
+
+      {selected && (
+        <section className={`cq-card ${styles.encounter}`} aria-live="polite" aria-label="Selected boss">
+          <p className="cq-label">{bossName(selected.talk, theme)}</p>
+          <h2>{selected.talk.title}</h2>
+          <p className={styles.meta}>
+            {formatTalkTime(selected.talk.starts_at)} · {selected.talk.room}
+            {selected.speakerNames.length > 0 && <> · {selected.speakerNames.join(", ")}</>}
+          </p>
+          <p>{selected.reason}</p>
+          <Link className="cq-btn" href={`/c/${confHref}/boss/${encodeURIComponent(selected.talk.id)}`}>
+            Fight this boss <span aria-hidden="true">→</span>
+          </Link>
+        </section>
       )}
-      {fullPage && (
-        <nav className={`section-nav ${styles.bottomNav}`} aria-label="Attendee pages">
-          {[["join", "Join"], ["map", "Map"], ["connect", "Allies"], ["party", "Party"], ["recap", "Recap"]].map(([route, label]) => (
-            <Link key={route} href={`/c/${encodeURIComponent(conf)}/${route}`} aria-current={route === "map" ? "page" : undefined}>{label}</Link>
-          ))}
-        </nav>
+
+      {attendee.quests.length > 0 && (
+        <details className={`cq-card ${styles.quests}`}>
+          <summary>Quests ({attendee.quests.length})</summary>
+          <ul>
+            {attendee.quests.map((q) => (
+              <li key={q.id}>
+                <strong>{q.title}</strong> · {q.xp} XP
+                <br />
+                {q.description}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
+
+      <ol className="sr-only" aria-label="All your talks">
+        {stops.map((st) => (
+          <li key={st.talk.id}>
+            <Link href={`/c/${confHref}/boss/${encodeURIComponent(st.talk.id)}`}>{st.talk.title}</Link>. {formatTalkTime(st.talk.starts_at)}, {st.talk.room}. {st.reason}. {accessText(st)}.
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
