@@ -48,7 +48,7 @@ Judged on: features land through Gitar-reviewed PRs; project rules; CI failure d
   - #91: leaderboard reads no longer race check-ins (409s)
 
   The 15:35 load test (10 bots) had check-in p95 at 4.3 s and 11% failures from leaderboard races; #91 targets those failures. Next: re-run `npm run load -w scripts/load` after #91 deploys, record the numbers in `2026-11-09-1540-dash0-xp-checkin-10s.md`, and confirm the Dash0 check rule clears.
-- **RUM (P.W1, Jake, PR #92).** Code is in; it's off until a human sets repo variables `DASH0_RUM_ENDPOINT` and `DASH0_RUM_AUTH_TOKEN` (an **ingest-only** Dash0 token).
+- **RUM (P.W1, PR #92): dropped for the demo (decided 16:05).** The code is in and stays off (no `DASH0_RUM_*` variables set). Don't claim browser RUM on the Dash0 slide.
 - **Organizer dashboard link (Web, W.5).** `NEXT_PUBLIC_DASH0_DASHBOARD_URL` is already set in `deploy/web.yaml`.
 - **kubeconfig expires (~2 h).** Get a fresh one from Radar Cloud: Secret `kubeconfig` in namespace `default`, key `config`. Radar MCP doesn't need it.
 
