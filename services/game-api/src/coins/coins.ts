@@ -36,7 +36,7 @@ export async function giveCoin(deps: Deps, req: GiveCoinRequest): Promise<GiveCo
 }
 
 export async function speakerRecognition(deps: Deps, speakerId: string): Promise<SpeakerRecognition> {
-  await recoverPendingAwards(deps);
+  await recoverPendingAwards(deps, undefined, { readOnly: true });
   const gifts = await deps.repos.coins.find({ speaker_id: speakerId }, { sort: { field: "at", order: "desc" } });
   const names = new Map<string, string>();
   for (const id of new Set(gifts.map((g) => g.from_attendee_id))) {

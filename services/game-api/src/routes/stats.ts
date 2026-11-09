@@ -17,7 +17,7 @@ export function statsRoutes(deps: Deps) {
     const id = c.req.param("id");
     const { limit } = parse(LeaderboardQuery, c.req.query());
     await requireConference(id);
-    await recoverPendingAwards(deps, id);
+    await recoverPendingAwards(deps, id, { readOnly: true });
     const started = performance.now();
     const rows = await deps.stats.leaderboard(id, limit);
     leaderboardDuration().record(performance.now() - started, { "conquest.conference.id": id });
@@ -27,7 +27,7 @@ export function statsRoutes(deps: Deps) {
   r.get("/conferences/:id/report", async (c) => {
     const id = c.req.param("id");
     await requireConference(id);
-    await recoverPendingAwards(deps, id);
+    await recoverPendingAwards(deps, id, { readOnly: true });
     return c.json({ report: await deps.stats.report(id) } satisfies ReportResponse);
   });
 

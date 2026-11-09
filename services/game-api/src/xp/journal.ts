@@ -77,20 +77,7 @@ export async function publishPendingAwards(deps: Deps, attendeeId: string): Prom
   const pending = snapshot?.doc._xp_journal?.pending ?? [];
   const pendingGifts = snapshot?.doc._xp_journal?.pendingGifts ?? [];
   if (!pending.length && !pendingGifts.length) return;
-  for (const event of pending) {
-    try {
-      await deps.repos.xpEvents.create(event);
-    } catch (err) {
-      if (!(err instanceof AlreadyExistsError)) throw err;
-    }
-  }
-  for (const gift of pendingGifts) {
-    try {
-      await deps.repos.coins.create(gift);
-    } catch (err) {
-      if (!(err instanceof AlreadyExistsError)) throw err;
-    }
-  }
+  await publishJournal(deps, pending, pendingGifts);
   const published = new Set(pending.map((e) => e.id));
   const publishedGifts = new Set(pendingGifts.map((g) => g.id));
   // Never clear a newer award added while this snapshot was being published.
@@ -112,12 +99,43 @@ export async function publishPendingAwards(deps: Deps, attendeeId: string): Prom
   }
 }
 
-/** Repair pending projections before returning conference aggregates (also runs on startup). */
-export async function recoverPendingAwards(deps: Deps, conferenceId?: string): Promise<void> {
+/**
+ * Repair pending projections before returning conference aggregates (also runs on startup).
+ * `readOnly` (leaderboard, report, speaker page): publish pending events and gifts so aggregates
+ * count them, but never rewrite attendee documents. A pending attendee is usually a check-in still
+ * in flight; rewriting it from a read raced that request's own writes and caused 409 version
+ * conflicts, 500s and timeouts under load (P.W2, load test 2026-11-09 15:35 MT). Creates are
+ * idempotent, and the request that owns the award still clears its own pending flag.
+ */
+export async function recoverPendingAwards(deps: Deps, conferenceId?: string, opts: { readOnly?: boolean } = {}): Promise<void> {
   const filter = { _xp_pending: true, ...(conferenceId ? { conference_id: conferenceId } : {}) };
+  if (opts.readOnly) {
+    for (const attendee of await deps.store.find<StoredAttendee>(INDEX.attendees, filter)) {
+      await publishJournal(deps, attendee._xp_journal?.pending ?? [], attendee._xp_journal?.pendingGifts ?? []);
+    }
+    return;
+  }
   for (;;) {
     const pending = await deps.store.find<Attendee>(INDEX.attendees, filter);
     if (!pending.length) return;
     for (const attendee of pending) await publishPendingAwards(deps, attendee.id);
+  }
+}
+
+/** Create each pending event and gift; one that already exists was published before (idempotent). */
+async function publishJournal(deps: Deps, pending: XpEvent[], pendingGifts: CoinGift[]): Promise<void> {
+  for (const event of pending) {
+    try {
+      await deps.repos.xpEvents.create(event);
+    } catch (err) {
+      if (!(err instanceof AlreadyExistsError)) throw err;
+    }
+  }
+  for (const gift of pendingGifts) {
+    try {
+      await deps.repos.coins.create(gift);
+    } catch (err) {
+      if (!(err instanceof AlreadyExistsError)) throw err;
+    }
   }
 }
