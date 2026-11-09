@@ -1,15 +1,14 @@
 // Coins and speaker recognition (030 Behavior 15, 18; GM-13). Note text lives only in the
-// coins index: it is never logged and never put on spans or metrics (000 telemetry rule).
+// coins index and private recovery outbox; never on spans, metrics or logs (000 telemetry rule).
 import type { CoinGift, GiveCoinRequest, GiveCoinResponse, SpeakerRecognition } from "@conquest/contracts";
 import type { Deps } from "../deps";
 import { ApiError } from "../http";
-import { AlreadyExistsError } from "../store/store";
+import { commitGift, publishPendingAwards, recoverPendingAwards } from "../xp/journal";
 import { checkQuests } from "../xp/award";
-
-const noCoins = () => new ApiError(409, "no_coins", "No coins left to give");
 
 export async function giveCoin(deps: Deps, req: GiveCoinRequest): Promise<GiveCoinResponse> {
   const { repos } = deps;
+  await publishPendingAwards(deps, req.from_attendee_id);
   const attendee = await repos.attendees.get(req.from_attendee_id);
   if (!attendee) throw new ApiError(404, "not_found", "Attendee not found");
 
@@ -20,42 +19,24 @@ export async function giveCoin(deps: Deps, req: GiveCoinRequest): Promise<GiveCo
 
   const checkins = await repos.xpEvents.count({ attendee_id: attendee.id, kind: "checkin", talk_id: req.talk_id });
   if (checkins === 0) throw new ApiError(403, "not_checked_in", "Check in to this talk before giving a coin");
-  if (attendee.coins < 1) throw noCoins();
-
-  const already = await repos.coins.count({ from_attendee_id: attendee.id, talk_id: req.talk_id });
-  if (already > 0) throw new ApiError(409, "already_gifted", "You already gave a coin for this talk");
-
-  // The re-check inside the update keeps concurrent gifts from taking coins below zero.
-  const updated = await repos.attendees.update(attendee.id, (a) => {
-    if (a.coins < 1) throw noCoins();
-    return { ...a, coins: a.coins - 1 };
-  });
-  if (!updated) throw new ApiError(404, "not_found", "Attendee not found");
-
-  // The gift id is fixed per attendee and talk, so two racing gifts for the same talk can't both land;
-  // the loser gets its coin back.
-  let gift: CoinGift;
-  try {
-    gift = await repos.coins.create({
-      id: `${attendee.id}:${req.talk_id}`,
-      conference_id: attendee.conference_id,
-      from_attendee_id: attendee.id,
-      speaker_id: speakerId,
-      talk_id: req.talk_id,
-      note: req.note,
-      at: deps.now().toISOString(),
-    });
-  } catch (err) {
-    if (!(err instanceof AlreadyExistsError)) throw err;
-    await repos.attendees.update(attendee.id, (a) => ({ ...a, coins: a.coins + 1 }));
-    throw new ApiError(409, "already_gifted", "You already gave a coin for this talk");
-  }
+  const gift: CoinGift = {
+    id: `${attendee.id}:${req.talk_id}`,
+    conference_id: attendee.conference_id,
+    from_attendee_id: attendee.id,
+    speaker_id: speakerId,
+    talk_id: req.talk_id,
+    note: req.note,
+    at: deps.now().toISOString(),
+  };
+  const updated = await commitGift(deps, gift);
+  await publishPendingAwards(deps, attendee.id);
   // Coin gifts count toward "coin" quests (030 Behavior 10).
   const latest = await checkQuests(deps, attendee.id);
   return { gift, attendee: latest ?? updated };
 }
 
 export async function speakerRecognition(deps: Deps, speakerId: string): Promise<SpeakerRecognition> {
+  await recoverPendingAwards(deps);
   const gifts = await deps.repos.coins.find({ speaker_id: speakerId }, { sort: { field: "at", order: "desc" } });
   const names = new Map<string, string>();
   for (const id of new Set(gifts.map((g) => g.from_attendee_id))) {

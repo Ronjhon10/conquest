@@ -140,6 +140,7 @@ export function createElasticStore(es: Client): DocStore {
         index,
         query: toQuery(filter),
         size: opts.size ?? DEFAULT_FIND_SIZE,
+        ...(opts.afterId ? { search_after: [opts.afterId] } : {}),
         ...(opts.sort ? { sort: [{ [opts.sort.field]: { order: opts.sort.order } }] } : {}),
       });
       return r.hits.hits.flatMap((h) => (h._source === undefined ? [] : [h._source]));

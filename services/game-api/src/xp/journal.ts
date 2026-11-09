@@ -1,6 +1,6 @@
 // Commit XP and an event outbox in the same versioned attendee document. The public
 // Attendee schema strips this storage-only metadata; it never appears in API responses.
-import { Attendee, INDEX, type XpEvent } from "@conquest/contracts";
+import { Attendee, INDEX, type CoinGift, type XpEvent } from "@conquest/contracts";
 import { setTimeout as delay } from "node:timers/promises";
 import type { Deps } from "../deps";
 import { ApiError } from "../http";
@@ -8,7 +8,7 @@ import { UPDATE_RETRIES } from "../store/repos";
 import { AlreadyExistsError, VersionConflictError } from "../store/store";
 import { levelForXp, PHOTO_LIMIT } from "./rules";
 
-type Journal = { events: XpEvent[]; pending: XpEvent[] };
+type Journal = { events: XpEvent[]; pending: XpEvent[]; gifts?: CoinGift[]; pendingGifts?: CoinGift[] };
 type StoredAttendee = Attendee & { _xp_journal?: Journal; _xp_pending?: boolean };
 
 /** Retry conflicts before any event is published, so an exhausted retry leaves no phantom XP. */
@@ -32,7 +32,7 @@ export async function commitAward(deps: Deps, event: XpEvent, coins: number) {
     const xp = current.doc.xp + event.xp;
     const next: StoredAttendee = {
       ...current.doc, xp, level: levelForXp(xp), coins: current.doc.coins + coins,
-      _xp_journal: { events: [...journal.events, event], pending: [...journal.pending, event] },
+      _xp_journal: { ...journal, events: [...journal.events, event], pending: [...journal.pending, event] },
       _xp_pending: true,
     };
     try {
@@ -45,11 +45,38 @@ export async function commitAward(deps: Deps, event: XpEvent, coins: number) {
   }
 }
 
+/** Coin debit and its pending gift are one versioned write, just like XP and its events. */
+export async function commitGift(deps: Deps, gift: CoinGift): Promise<Attendee> {
+  const legacy = await deps.repos.coins.find({ from_attendee_id: gift.from_attendee_id });
+  for (let attempt = 0; ; attempt++) {
+    const current = await deps.store.get<StoredAttendee>(INDEX.attendees, gift.from_attendee_id);
+    if (!current) throw new ApiError(404, "not_found", "Attendee not found");
+    const journal = current.doc._xp_journal ?? { events: [], pending: [] };
+    if ([...legacy, ...(journal.gifts ?? [])].some((g) => g.talk_id === gift.talk_id)) {
+      throw new ApiError(409, "already_gifted", "You already gave a coin for this talk");
+    }
+    if (current.doc.coins < 1) throw new ApiError(409, "no_coins", "No coins left to give");
+    const next: StoredAttendee = {
+      ...current.doc, coins: current.doc.coins - 1,
+      _xp_journal: { ...journal, gifts: [...(journal.gifts ?? []), gift], pendingGifts: [...(journal.pendingGifts ?? []), gift] },
+      _xp_pending: true,
+    };
+    try {
+      await deps.store.put(INDEX.attendees, gift.from_attendee_id, next, current.version);
+      return Attendee.parse(next);
+    } catch (err) {
+      if (!(err instanceof VersionConflictError) || attempt >= UPDATE_RETRIES) throw err;
+      await delay(4 ** attempt);
+    }
+  }
+}
+
 /** Idempotent outbox replay works after a process restart or a lost Elasticsearch response. */
 export async function publishPendingAwards(deps: Deps, attendeeId: string): Promise<void> {
   const snapshot = await deps.store.get<StoredAttendee>(INDEX.attendees, attendeeId);
   const pending = snapshot?.doc._xp_journal?.pending ?? [];
-  if (!pending.length) return;
+  const pendingGifts = snapshot?.doc._xp_journal?.pendingGifts ?? [];
+  if (!pending.length && !pendingGifts.length) return;
   for (const event of pending) {
     try {
       await deps.repos.xpEvents.create(event);
@@ -57,16 +84,25 @@ export async function publishPendingAwards(deps: Deps, attendeeId: string): Prom
       if (!(err instanceof AlreadyExistsError)) throw err;
     }
   }
+  for (const gift of pendingGifts) {
+    try {
+      await deps.repos.coins.create(gift);
+    } catch (err) {
+      if (!(err instanceof AlreadyExistsError)) throw err;
+    }
+  }
   const published = new Set(pending.map((e) => e.id));
+  const publishedGifts = new Set(pendingGifts.map((g) => g.id));
   // Never clear a newer award added while this snapshot was being published.
   for (let attempt = 0; ; attempt++) {
     const current = await deps.store.get<StoredAttendee>(INDEX.attendees, attendeeId);
     const journal = current?.doc._xp_journal;
     if (!current || !journal) return;
     const remaining = journal.pending.filter((e) => !published.has(e.id));
+    const remainingGifts = (journal.pendingGifts ?? []).filter((g) => !publishedGifts.has(g.id));
     try {
       await deps.store.put(INDEX.attendees, attendeeId, {
-        ...current.doc, _xp_journal: { ...journal, pending: remaining }, _xp_pending: remaining.length > 0,
+        ...current.doc, _xp_journal: { ...journal, pending: remaining, pendingGifts: remainingGifts }, _xp_pending: remaining.length + remainingGifts.length > 0,
       }, current.version);
       return;
     } catch (err) {

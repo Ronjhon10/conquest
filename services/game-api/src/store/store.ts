@@ -7,7 +7,7 @@ export type Versioned<T> = { doc: T; version: Version };
 
 /** Exact-match filters, ANDed. A value matches an array field if any element equals it; null matches a missing/null field. */
 export type Filter = Record<string, string | number | boolean | null>;
-export type FindOptions = { size?: number; sort?: { field: string; order: "asc" | "desc" } };
+export type FindOptions = { size?: number; sort?: { field: string; order: "asc" | "desc" }; afterId?: string };
 
 export interface DocStore {
   /** True when the backing store answers (used by /readyz). */
