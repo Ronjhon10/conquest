@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
+import { xpForLevel } from "@conquest/contracts";
 import type { Attendee, Conference, Speaker, Talk } from "@conquest/contracts";
 import { CONFERENCE_TIME_ZONE, formatTalkTime } from "../lib/time";
 import { themeStyle } from "./ui";
@@ -71,8 +72,8 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf }:
   const selected = visibleStops.find((stop) => stop.talk.id === selectedId) ?? visibleStops[0];
   const missingTalks = (attendee?.map.length ?? 0) - stops.length;
   // Level thresholds from spec 030; this displays progress without awarding XP.
-  const levelStart = attendee ? (attendee.level - 1) ** 2 * 100 : 0;
-  const levelEnd = attendee ? attendee.level ** 2 * 100 : 100;
+  const levelStart = attendee ? xpForLevel(attendee.level) : 0;
+  const levelEnd = attendee ? xpForLevel(attendee.level + 1) : 100;
   const levelProgress = Math.max(0, Math.min(levelEnd - levelStart, (attendee?.xp ?? 0) - levelStart));
 
   return (
