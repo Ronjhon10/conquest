@@ -10,10 +10,17 @@ const gameApi = process.env.GAME_API_URL ?? "http://localhost:4002";
 const config: NextConfig = {
   transpilePackages: ["@conquest/contracts"],
   output: "standalone",
+  images: {
+    qualities: [75, 100],
+    imageSizes: [32, 48, 64, 96, 128, 224, 256, 384, 448, 576],
+  },
   outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
   async rewrites() {
     return [
-      { source: "/api/search/:path*", destination: `${searchApi}/api/search/:path*` },
+      {
+        source: "/api/search/:path*",
+        destination: `${searchApi}/api/search/:path*`,
+      },
       { source: "/api/game/:path*", destination: `${gameApi}/api/game/:path*` },
     ];
   },

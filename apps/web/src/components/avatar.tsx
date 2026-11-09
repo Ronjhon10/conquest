@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { CharacterClass } from "@conquest/contracts";
 
 const characterArt: Record<CharacterClass, string> = {
@@ -46,13 +47,14 @@ export function Avatar({
       className={`avatar avatar-sprite avatar-${variant}`}
       style={{ width: size, height: size }}
     >
-      <img
+      <Image
         className="avatar-art"
         src={classSpriteSource(characterClass, seed)}
         width={size}
         height={size}
         alt={`${name}'s ${characterClass ?? "adventurer"} character`}
-        decoding="async"
+        sizes={`${Math.ceil(size * (variant === "portrait" ? 2.4 : 1))}px`}
+        quality={100}
       />
     </span>
   );
