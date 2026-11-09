@@ -7,6 +7,7 @@ import {
   jwtDecrypt,
   SignJWT,
 } from "jose";
+import { ErrorBody } from "@conquest/contracts";
 import { NextRequest } from "next/server";
 import sharp from "sharp";
 import {
@@ -96,6 +97,45 @@ it("WEB-21 keeps LinkedIn disabled until all server-only settings are valid", as
     }),
   ).not.toBeNull();
   expect((await startLinkedin(startRequest(), null)).status).toBe(503);
+});
+it("OV-4 LinkedIn route errors use the shared error body", async () => {
+  const responses = [
+    {
+      response: await startLinkedin(startRequest(), null),
+      status: 503,
+      code: "not_configured",
+      message:
+        "LinkedIn sign-in is not configured. You can still enter your profile manually.",
+    },
+    {
+      response: await startLinkedin(
+        new NextRequest("http://localhost:3000/api/auth/linkedin/start"),
+        config,
+      ),
+      status: 400,
+      code: "invalid_request",
+      message: "Choose a conference before signing in.",
+    },
+    {
+      response: await profileLinkedin(
+        new NextRequest(
+          "http://localhost:3000/api/auth/linkedin/profile?conference=conf-demo",
+        ),
+        config,
+      ),
+      status: 401,
+      code: "invalid_import",
+      message:
+        "Your LinkedIn import expired. Sign in again or enter your details below.",
+    },
+  ];
+
+  for (const { response, status, code, message } of responses) {
+    expect(response.status).toBe(status);
+    expect(ErrorBody.parse(await response.json())).toEqual({
+      error: { code, message },
+    });
+  }
 });
 it("WEB-21 starts OIDC with only openid/profile, unpredictable state, encrypted HttpOnly cookies, and a fixed callback", async () => {
   const first = await startLinkedin(startRequest(), config);

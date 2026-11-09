@@ -6,6 +6,7 @@ import {
   createRemoteJWKSet,
   type JWTVerifyGetKey,
 } from "jose";
+import { errorBody } from "@conquest/contracts";
 import sharp from "sharp";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -146,10 +147,10 @@ function equalState(actual: string | null, expected: string) {
 function unavailable() {
   return noCache(
     NextResponse.json(
-      {
-        error:
-          "LinkedIn sign-in is not configured. You can still enter your profile manually.",
-      },
+      errorBody(
+        "not_configured",
+        "LinkedIn sign-in is not configured. You can still enter your profile manually.",
+      ),
       { status: 503 },
     ),
   );
@@ -164,7 +165,7 @@ export async function startLinkedin(
   if (!validConference(conference))
     return noCache(
       NextResponse.json(
-        { error: "Choose a conference before signing in." },
+        errorBody("invalid_request", "Choose a conference before signing in."),
         { status: 400 },
       ),
     );
@@ -386,10 +387,10 @@ export async function profileLinkedin(
   ) {
     return noCache(
       NextResponse.json(
-        {
-          error:
-            "Your LinkedIn import expired. Sign in again or enter your details below.",
-        },
+        errorBody(
+          "invalid_import",
+          "Your LinkedIn import expired. Sign in again or enter your details below.",
+        ),
         { status: 401 },
       ),
     );
