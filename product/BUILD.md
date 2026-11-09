@@ -30,7 +30,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Lane: Platform (010)
 
 - [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`; deploys go to branch `deploy`). (PL-4) owner: Max
-- [ ] **P.2** Gitar: config committed (`.gitar/`); **human** starts the trial and installs the app; turn on auto-apply. (PL-9) owner: Jake Nef
+- [x] **P.2** Gitar: config committed (`.gitar/`); trial started and app installed on Ronjhon10/conquest (2026-11-09); turn on auto-apply per PR with `gitar auto-apply:on`. (PL-9) owner: Jake Nef
 - [ ] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner: Jake Nef
 - [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner: Jake Nef
 - [ ] **P.5** **Human:** Radar cluster (join.cnh.radarhq.io), `./deploy/setup-team.sh <team>` PR, everyone connects Radar MCP, Checks "before" screenshot. (PL-8) owner: Jake Nef
@@ -83,3 +83,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
+- 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.
