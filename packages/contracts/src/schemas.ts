@@ -104,7 +104,7 @@ export const Attendee = z.object({
   conference_id: Id,
   name: z.string(),
   headline: z.string(),
-  linkedin_url: LinkedInUrl,
+  linkedin_url: LinkedInUrl.nullable(),
   photo: PhotoDataUrl.nullable(),
   class: CharacterClass,
   avatar_seed: z.string(),
@@ -173,7 +173,7 @@ export const Ally = z.object({
   attendee_id: Id,
   name: z.string(),
   headline: z.string(),
-  linkedin_url: LinkedInUrl,
+  linkedin_url: LinkedInUrl.nullable(),
   photo: PhotoDataUrl.nullable(),
 });
 export type Ally = z.infer<typeof Ally>;

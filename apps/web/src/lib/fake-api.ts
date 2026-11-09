@@ -192,8 +192,9 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
           ...input,
           id: nextId("att"),
           photo: input.photo ?? null,
-          linkedin_url:
-            normalizeLinkedIn(input.linkedin_url) ?? input.linkedin_url,
+          linkedin_url: input.linkedin_url
+            ? (normalizeLinkedIn(input.linkedin_url) ?? input.linkedin_url)
+            : null,
           map: [...talks.slice(0, 5), ...talks.slice(6, 7)].map((talk, i) => ({
             talk_id: talk.id,
             score: 1 / (i + 1),

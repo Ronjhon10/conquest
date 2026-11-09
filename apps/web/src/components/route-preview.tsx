@@ -191,14 +191,16 @@ export function RouteContent({
                   <div>
                     <strong>{ally.name}</strong>
                     <p>{ally.headline}</p>
-                    <a
-                      href={ally.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on LinkedIn
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    {ally.linkedin_url && (
+                      <a
+                        href={ally.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View on LinkedIn
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    )}
                   </div>
                 </li>
               ))}

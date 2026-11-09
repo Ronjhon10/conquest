@@ -7,12 +7,13 @@ import {
   DraftAttendeeRequest,
   type DraftAttendeeResponse,
   type GetAttendeeResponse,
-  type Quest,
+  UpdateAttendeeRequest,
 } from "@conquest/contracts";
 import { Hono } from "hono";
 import { z } from "zod";
 import { classFromKeywords } from "../attendees/classes";
 import { randomAvatarSeed, uniqueCode } from "../attendees/code";
+import { buildMap, goalQuests } from "../attendees/map";
 import { normalizeLinkedInUrl } from "../attendees/linkedin";
 import type { Deps } from "../deps";
 import { ApiError, body } from "../http";
@@ -20,6 +21,13 @@ import { publishPendingAwards } from "../xp/journal";
 
 const MAX_PHOTO = 40 * 1024;
 const PHOTO_PREFIX = "data:image/jpeg;base64,";
+
+function checkPhoto(photo: string | null | undefined) {
+  if (photo && (!photo.startsWith(PHOTO_PREFIX) || photo.length > MAX_PHOTO)) {
+    throw new ApiError(400, "bad_photo", "Photo must be a JPEG data URL of at most 40 KB");
+  }
+  if (photo === "") throw new ApiError(400, "bad_photo", "Photo must be a JPEG data URL of at most 40 KB");
+}
 
 export function attendeesRoutes(deps: Deps) {
   const r = new Hono();
@@ -53,31 +61,22 @@ export function attendeesRoutes(deps: Deps) {
     const conference = await deps.repos.conferences.get(req.conference_id);
     if (!conference) throw new ApiError(404, "not_found", "No such conference");
 
-    const linkedin_url = normalizeLinkedInUrl(req.linkedin_url);
-    if (!linkedin_url) throw new ApiError(400, "bad_linkedin_url", "Use a LinkedIn profile link like linkedin.com/in/your-name");
+    // LinkedIn is optional; when given it must be a profile link (GM-19).
+    const pasted = req.linkedin_url?.trim() ?? "";
+    const linkedin_url = pasted ? normalizeLinkedInUrl(pasted) : null;
+    if (pasted && !linkedin_url) {
+      throw new ApiError(400, "bad_linkedin_url", "Use a LinkedIn profile link like linkedin.com/in/your-name");
+    }
+    checkPhoto(req.photo);
 
-    if (req.photo !== undefined && (!req.photo.startsWith(PHOTO_PREFIX) || req.photo.length > MAX_PHOTO)) {
-      throw new ApiError(400, "bad_photo", "Photo must be a JPEG data URL of at most 40 KB");
+    // Signing up again with the same link (a new phone, a cleared browser) returns the same character.
+    if (linkedin_url) {
+      const [existing] = await deps.repos.attendees.find({ conference_id: conference.id, linkedin_url }, { size: 1 });
+      if (existing) return c.json({ attendee: existing });
     }
 
-    const map = await deps.search.rank({ goals: req.goals, about: req.about, limit: 6 });
-    const noun = conference.theme.boss_noun;
-    const goalQuests: Quest[] = [];
-    for (const goal of req.goals) {
-      const needle = goal.trim().toLowerCase();
-      if (!needle) continue;
-      const talk_ids = map.filter((b) => b.reason.toLowerCase().includes(needle)).map((b) => b.talk_id);
-      if (talk_ids.length === 0) continue;
-      goalQuests.push({
-        id: deps.newId(),
-        title: `Defeat the ${noun} of ${goal}`,
-        description: `Check in to a talk that matches your goal: ${goal}.`,
-        xp: 100,
-        kind: "goal",
-        sponsor: null,
-        target: { type: "checkin", count: 1, talk_ids },
-      });
-    }
+    const { map, talks } = await buildMap(deps, req.goals, req.about);
+    const quests = goalQuests(deps, req.goals, map, talks, conference.theme.boss_noun);
 
     const code = await uniqueCode(
       async (code) => (await deps.repos.attendees.find({ conference_id: conference.id, code }, { size: 1 })).length > 0,
@@ -98,10 +97,24 @@ export function attendeesRoutes(deps: Deps) {
       level: 1,
       coins: 3,
       map,
-      quests: [...goalQuests, ...conference.quests],
+      quests: [...quests, ...conference.quests],
       created_at: deps.now().toISOString(),
     };
     await deps.repos.attendees.create(attendee);
+    return c.json({ attendee });
+  });
+
+  // Profile edits after signup: headline, photo and class. Goals are fixed, so the map and quests stay put.
+  r.patch("/attendees/:id", async (c) => {
+    const req = await body(c, UpdateAttendeeRequest);
+    checkPhoto(req.photo);
+    const attendee = await deps.repos.attendees.update(c.req.param("id"), (a) => ({
+      ...a,
+      ...(req.headline !== undefined ? { headline: req.headline } : {}),
+      ...(req.photo !== undefined ? { photo: req.photo } : {}),
+      ...(req.class !== undefined ? { class: req.class } : {}),
+    }));
+    if (!attendee) throw new ApiError(404, "not_found", "No such attendee");
     return c.json({ attendee });
   });
 
