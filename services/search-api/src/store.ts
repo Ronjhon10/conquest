@@ -17,7 +17,7 @@ export interface TalkStore {
   talksBySpeaker(id: string): Promise<Talk[]>;
   /** Tag and track counts over the top 50 BM25 matches for `about`, plus index-wide tag counts. */
   facets(about: string): Promise<Facets>;
-  /** Readiness: the backing indexes answer. */
+  /** Readiness: the backing indexes answer and hold the seeded schedule. */
   ready(): Promise<boolean>;
 }
 
@@ -67,7 +67,9 @@ export class EsTalkStore implements TalkStore {
   }
   async ready() {
     try {
-      return (await this.es.indexExists(INDEX.talks)) && (await this.es.indexExists(INDEX.speakers));
+      // Exists is not enough: a fresh deploy before the Seed Job runs would serve zero talks.
+      for (const index of [INDEX.talks, INDEX.speakers]) if (!(await this.es.indexExists(index)) || (await this.es.count(index)) === 0) return false;
+      return true;
     } catch {
       return false;
     }
