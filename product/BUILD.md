@@ -51,15 +51,15 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Lane: Game (030)
 
 - [x] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
-- [ ] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
-- [ ] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
-- [ ] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
-- [ ] **G.5** Parties and the 1.25x bonus. (GM-7, GM-12) owner: Jacob Bingham
-- [ ] **G.6** Quest completion. (GM-10) owner: Jacob Bingham
-- [ ] **G.7** Coins and speaker recognition. (GM-13) owner: Jacob Bingham
-- [ ] **G.8** Leaderboard and report aggregations. (GM-14, GM-15) owner: Jacob Bingham
-- [ ] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
-- [ ] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
+- [x] **G.2** Conferences: create with theme (OpenAI + fallback + contrast check), default quests, rooms, quests/rooms PUT. (GM-1..GM-3) owner: Jacob Bingham
+- [x] **G.3** Attendees: draft (class + goals) and create (LinkedIn URL normalize, profile photo, code, map via rank, goal quests), allies. (GM-4, GM-5, GM-19..GM-21) owner: Jacob Bingham
+- [x] **G.4** XP rules module and `POST /xp` for checkin, photo, network; coins on boss check-in; levels; optimistic concurrency. (GM-6..GM-9, GM-11, GM-17) owner: Jacob Bingham
+- [x] **G.5** Parties and the 1.25x bonus. (GM-7, GM-12) owner: Jacob Bingham
+- [x] **G.6** Quest completion. (GM-10) owner: Jacob Bingham
+- [x] **G.7** Coins and speaker recognition. (GM-13) owner: Jacob Bingham
+- [x] **G.8** Leaderboard and report aggregations. (GM-14, GM-15) owner: Jacob Bingham
+- [x] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
+- [x] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
 
 - [x] **G.R1** Review fixes: atomic XP totals/outbox, concurrent action limits, quest deduplication and exclusive party membership. (GM-6, GM-8..GM-10, GM-12, GM-14, GM-17) owner: Jake Nef
 
@@ -89,6 +89,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.
 - 2026-11-09 12:40  G.1  Jacob (Claude)  game-api storage: strict mappings for the 5 Game indexes + idempotent ensureIndexes on start; DocStore seam (Elasticsearch with refresh wait_for and if_seq_no/if_primary_term; in-memory for tests); typed repos validated with contracts schemas, update() retries version conflicts up to 3 times; SearchClient (HTTP + fixture fake); /readyz checks Elasticsearch.
 - 2026-11-09 12:50  S.1  Max (Claude)  scripts/seed scraper (one GET of the LF schedule page, embedded Sessionize JSON) -> data/kubecon-na-2026.ndjson: 480 real talks, 703 speakers. SR-1 tests on the transform and the committed file.
+- 2026-11-09 13:20  G.2-G.10  Jacob (Claude + Sonnet agents in parallel)  All game-api routes built against fakes: conferences + theme fallback/contrast, attendees (LinkedIn normalize, photo, code, map, goal quests, allies), POST /xp with rules module, parties + 1.25x, quest completion (incl. coin quests), coins + recognition, leaderboard/report as ES aggregations (memory twin for tests), recap with template fallback, xp.award span + metrics. 116 tests green; demo path smoke-tested in memory. Not yet run against real Elasticsearch.
 - 2026-11-09 12:55  S.2  Max (Claude)  search-api EsPort (client adapter + in-memory fake), conquest-talks/conquest-speakers mappings (semantic field only when embeddings are on), idempotent `npm run seed -w services/search-api` by id. SR-2 unit tests; ES_INTEGRATION=1 test written, not run locally (no Docker on this Mac).
 - 2026-11-09 13:00  W.1  Danny (Codex)  Brand-system frame, local fonts, all route previews, shared typed/validated API client, 12-talk/3-attendee memory fixtures, loading/error recovery, scoped dungeon theme variables. WEB-1/WEB-12/WEB-14 tests; full tests, lint, typecheck and production build pass. Browser host unavailable; visual QA remains for the next browser session. Theme studio recorded as W.5a, not implemented here.
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
