@@ -7,6 +7,8 @@ export class MemoryEs implements EsPort {
   readonly indexes = new Map<string, { body: { mappings: object }; docs: Map<string, object> }>();
   readonly requests: { method: string; path: string; body?: object }[] = [];
   bulkCalls = 0;
+  /** Scripted answers for raw requests (inference, license, mapping); default 200 {}. */
+  respond: (method: string, path: string, body?: object) => { status: number; body: unknown } = () => ({ status: 200, body: {} });
 
   private idx(index: string) {
     const i = this.indexes.get(index);
@@ -41,8 +43,9 @@ export class MemoryEs implements EsPort {
   async search<T>(_index: string, _body: Record<string, unknown>): Promise<SearchResult<T>> {
     throw new Error("MemoryEs does not run queries; use a TalkStore fake");
   }
-  async request(method: "GET" | "PUT" | "POST", path: string, body?: object) {
+  async request(method: "GET" | "PUT" | "POST" | "DELETE", path: string, body?: object) {
     this.requests.push({ method, path, ...(body ? { body } : {}) });
-    return { status: 200, body: {} };
+    if (method === "DELETE" && this.indexes.delete(path.replace(/^\//, ""))) return { status: 200, body: {} };
+    return this.respond(method, path, body);
   }
 }

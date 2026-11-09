@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { loadSchedule } from "./data";
+import { ensureInferenceEndpoint, searchOptions } from "./embeddings";
 import { clientFromEnv, esPort } from "./es";
 import { ensureIndexes } from "./indexes";
 import { EsTalkStore, type TalkStore } from "./store";
@@ -15,10 +16,13 @@ async function makeStore(): Promise<TalkStore> {
     return new MemoryTalkStore(await loadSchedule());
   }
   const es = esPort(clientFromEnv());
-  const opts = { semantic: false, rrf: false };
+  let opts = { semantic: false, rrf: false };
   try {
-    const { created } = await ensureIndexes(es, opts);
+    const embeddings = await ensureInferenceEndpoint(es, process.env, log);
+    const { created } = await ensureIndexes(es, { semantic: embeddings });
     if (created.length) log("info", "created indexes", { created });
+    opts = await searchOptions(es, embeddings, log);
+    log("info", "search mode", opts);
   } catch (err) {
     // Keep serving; /readyz reports not ready until Elasticsearch answers.
     log("error", "could not ensure indexes", { error: err instanceof Error ? err.message : String(err) });
