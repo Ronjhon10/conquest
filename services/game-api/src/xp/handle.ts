@@ -48,11 +48,12 @@ async function network(deps: Deps, attendee: Attendee, req: XpRequest): Promise<
   const [other] = await deps.repos.attendees.find({ conference_id: attendee.conference_id, code }, { size: 1 });
   if (!other) throw new ApiError(404, "not_found", "No adventurer with that code");
   if (other.id === attendee.id) throw new ApiError(400, "self", "You can't network with yourself");
-  const connected =
-    (await deps.repos.xpEvents.count({ attendee_id: attendee.id, kind: "network", other_attendee_id: other.id })) +
-    (await deps.repos.xpEvents.count({ attendee_id: other.id, kind: "network", other_attendee_id: attendee.id }));
-  if (connected > 0) throw new ApiError(409, "already_connected", "Already connected");
-  const mine = await awardXp(deps, attendee, { kind: "network", baseXp: XP.network, otherAttendeeId: other.id });
-  await awardXp(deps, other, { kind: "network", baseXp: XP.network, otherAttendeeId: attendee.id });
-  return mine;
+  // Both directions commit the same attendee first. Exactly one racing request owns
+  // that award; replay still finishes the partner if a prior request failed halfway.
+  const [first, second] = [attendee, other].sort((a, b) => a.id.localeCompare(b.id));
+  const one = await awardXp(deps, first!, { kind: "network", baseXp: XP.network, otherAttendeeId: second!.id });
+  const two = await awardXp(deps, second!, { kind: "network", baseXp: XP.network, otherAttendeeId: first!.id });
+  if (!one.created) throw new ApiError(409, "already_connected", "Already connected");
+  const mine = first!.id === attendee.id ? one : two;
+  return { event: mine.event, attendee: mine.attendee };
 }

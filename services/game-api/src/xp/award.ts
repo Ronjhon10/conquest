@@ -2,7 +2,9 @@
 import type { Attendee, XpEvent, XpKind } from "@conquest/contracts";
 import type { Deps } from "../deps";
 import { completeQuests } from "./quests";
-import { applyMultiplier, levelForXp, PARTY_MULTIPLIER } from "./rules";
+import { applyMultiplier, PARTY_MULTIPLIER } from "./rules";
+import { commitAward, publishPendingAwards } from "./journal";
+import { ApiError } from "../http";
 
 export type AwardSpec = {
   kind: XpKind;
@@ -34,15 +36,16 @@ export async function checkQuests(deps: Deps, attendeeId: string): Promise<Atten
   return completeQuests(deps, attendeeId);
 }
 
-/** Writes the event, then bumps the attendee's xp/level/coins with a versioned update. */
+/** Atomically commit totals and the pending event, then publish and complete quests. */
 export async function awardXp(
   deps: Deps,
   attendee: Attendee,
   spec: AwardSpec,
-): Promise<{ event: XpEvent; attendee: Attendee }> {
+): Promise<{ event: XpEvent; attendee: Attendee; created: boolean }> {
   // G.10: xp.award span + metrics here (GM-18)
   const multiplier = spec.multiplier ?? 1;
-  const event = await deps.repos.xpEvents.create({
+  await publishPendingAwards(deps, attendee.id);
+  const committed = await commitAward(deps, {
     id: deps.newId(),
     conference_id: attendee.conference_id,
     attendee_id: attendee.id,
@@ -55,12 +58,11 @@ export async function awardXp(
     multiplier,
     xp: applyMultiplier(spec.baseXp, multiplier),
     at: deps.now().toISOString(),
-  });
-  const updated = await deps.repos.attendees.update(attendee.id, (a) => {
-    const xp = a.xp + event.xp;
-    return { ...a, xp, level: levelForXp(xp), coins: a.coins + (spec.coins ?? 0) };
-  });
-  if (!updated) throw new Error(`attendee ${attendee.id} vanished during award`);
-  const latest = await checkQuests(deps, attendee.id);
-  return { event, attendee: latest ?? updated };
+  }, spec.coins ?? 0);
+  await publishPendingAwards(deps, attendee.id);
+  if (!committed.created && spec.kind === "checkin") {
+    throw new ApiError(409, "already_checked_in", "Already checked into this talk");
+  }
+  const latest = committed.created ? await checkQuests(deps, attendee.id) : null;
+  return { ...committed, attendee: latest ?? committed.attendee };
 }
