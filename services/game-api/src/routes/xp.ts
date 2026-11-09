@@ -1,10 +1,12 @@
-// Routes built in BUILD G.4 (030 Behavior 6-13); G.5/G.6/G.10 extend the award path. Mounted under /api/game by app.ts.
+// POST /xp (BUILD G.4, 030 Behavior 6-13). Thin: rules and awards live in src/xp/. Mounted under /api/game by app.ts.
+import { XpRequest } from "@conquest/contracts";
 import { Hono } from "hono";
 import type { Deps } from "../deps";
-import { notImplemented } from "../http";
+import { body } from "../http";
+import { handleXp } from "../xp/handle";
 
-export function xpRoutes(_deps: Deps) {
+export function xpRoutes(deps: Deps) {
   const r = new Hono();
-  r.post("/xp", notImplemented("G.4"));
+  r.post("/xp", async (c) => c.json(await handleXp(deps, await body(c, XpRequest))));
   return r;
 }
