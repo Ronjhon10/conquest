@@ -17,3 +17,12 @@ export function currentAttendee(conf: string): string | null {
     return memory.get(conf) ?? null;
   }
 }
+
+export function forgetAttendee(conf: string): void {
+  memory.delete(conf);
+  try {
+    localStorage.removeItem(attendeeKey(conf));
+  } catch {
+    /* Memory identity is already cleared. */
+  }
+}

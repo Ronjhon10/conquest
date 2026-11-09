@@ -1,3 +1,4 @@
+import { ApiError } from "./errors";
 import * as C from "@conquest/contracts";
 import { normalizeLinkedIn } from "./signup";
 import type { Transport } from "./api";
@@ -63,7 +64,12 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
   const nextId = (prefix: string) => `${prefix}-demo-${++sequence}`;
   function find<T extends { id: string }>(items: T[], id: string): T {
     const item = items.find((item) => item.id === id);
-    if (!item) throw new Error("That demo item could not be found.");
+    if (!item)
+      throw new ApiError(
+        "not_found",
+        "That demo item could not be found.",
+        404,
+      );
     return item;
   }
   return async (path, init) => {

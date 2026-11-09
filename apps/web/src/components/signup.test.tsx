@@ -241,3 +241,13 @@ it("WEB-2 loads the signed-up character on the map instead of the seeded sample 
     screen.getAllByText('Matches your goal "Accessibility"').length,
   ).toBeGreaterThan(0);
 });
+
+it("WEB-2 recovers a stale demo identity from a closed tab instead of trapping the map in an error", async () => {
+  vi.stubEnv("NEXT_PUBLIC_FAKE_API", "1");
+  rememberAttendee("conf-demo", "att-from-a-closed-tab");
+  render(<RoutePreview view="map" conf="conf-demo" />);
+  expect(await screen.findByText("Jane Example")).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(currentAttendee("conf-demo")).toBeNull();
+  expect(localStorage.getItem("conquest:conf-demo:attendee")).toBeNull();
+});

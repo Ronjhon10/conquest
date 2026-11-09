@@ -1,16 +1,8 @@
 import * as C from "@conquest/contracts";
 import { createFakeTransport } from "./fake-api";
 
-export class ApiError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public status = 0,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
+import { ApiError } from "./errors";
+export { ApiError } from "./errors";
 
 export type Transport = (path: string, init?: RequestInit) => Promise<unknown>;
 export function createHttpTransport(fetcher: typeof fetch = fetch): Transport {

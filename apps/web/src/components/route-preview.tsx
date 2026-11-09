@@ -9,8 +9,8 @@ import type {
   Talk,
 } from "@conquest/contracts";
 import { Avatar } from "./avatar";
-import { currentAttendee } from "../lib/identity";
-import { getApi, readableError } from "../lib/api";
+import { currentAttendee, forgetAttendee } from "../lib/identity";
+import { ApiError, getApi, readableError } from "../lib/api";
 import {
   ErrorNotice,
   LoadingNotice,
@@ -338,10 +338,24 @@ export function RoutePreview({
       return () => {
         active = false;
       };
+    const attendeeRequest = attendeeId
+      ? api.attendee(attendeeId).catch((error: unknown) => {
+          if (
+            process.env.NEXT_PUBLIC_FAKE_API === "1" &&
+            attendeeId !== "att-jane" &&
+            error instanceof ApiError &&
+            error.status === 404
+          ) {
+            forgetAttendee(conf);
+            return api.attendee("att-jane");
+          }
+          throw error;
+        })
+      : Promise.resolve(null);
     Promise.all([
       api.conference(conf),
       api.talks(),
-      attendeeId ? api.attendee(attendeeId) : Promise.resolve(null),
+      attendeeRequest,
       view === "live" ? api.leaderboard(conf) : Promise.resolve({ rows: [] }),
     ])
       .then(([conference, talks, attendee, leaderboard]) => {
