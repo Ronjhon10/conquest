@@ -143,3 +143,15 @@ it("WEB-24 recovers from provider failures without exposing provider text or cre
     expect(data).toEqual({ photo: null, reason: "unavailable" });
   }
 });
+
+it("WEB-24 accepts the public origin behind the cluster proxy and still rejects other sites", async () => {
+  const { sameOrigin } = await import("./character-server");
+  const behindProxy = (origin: string) =>
+    new Request("http://0.0.0.0:8080/api/characters", {
+      method: "POST",
+      headers: { Origin: origin, Host: "conquest.cnh.radarhq.io", "X-Forwarded-Host": "conquest.cnh.radarhq.io" },
+    });
+  expect(sameOrigin(behindProxy("https://conquest.cnh.radarhq.io"))).toBe(true);
+  expect(sameOrigin(behindProxy("https://evil.example"))).toBe(false);
+  expect(sameOrigin(new Request("http://0.0.0.0:8080/api/characters", { method: "POST" }))).toBe(false);
+});

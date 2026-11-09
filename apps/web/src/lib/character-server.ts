@@ -14,6 +14,26 @@ const privateHeaders = { "Cache-Control": "no-store" };
 function fallback(reason: string) {
   return Response.json({ photo: null, reason }, { headers: privateHeaders });
 }
+/**
+ * Same-site check. Behind the cluster's proxy the pod sees its internal URL, so the public host
+ * comes from X-Forwarded-Host (or Host); comparing only request.url rejected every live request.
+ */
+export function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return false;
+  }
+  const hosts = [
+    new URL(request.url).host,
+    request.headers.get("x-forwarded-host")?.split(",")[0]?.trim(),
+    request.headers.get("host"),
+  ];
+  return hosts.some((h) => h && h === originHost);
+}
 export async function generateCharacter(
   request: Request,
   options: {
@@ -23,8 +43,7 @@ export async function generateCharacter(
     reference?: () => Promise<Uint8Array>;
   } = {},
 ) {
-  const origin = request.headers.get("origin");
-  if (!origin || origin !== new URL(request.url).origin)
+  if (!sameOrigin(request))
     return Response.json(
       errorBody("invalid_origin", "Start character creation from Conquest."),
       { status: 403, headers: privateHeaders },
