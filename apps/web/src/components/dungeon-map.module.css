@@ -1,0 +1,50 @@
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.controls input {
+  width: 20px;
+  height: 20px;
+  accent-color: currentColor;
+}
+
+.hint {
+  font-size: 13px;
+}
+
+.path {
+  border-inline-start: 3px solid currentColor;
+  padding-inline-start: 20px;
+}
+
+.path li {
+  position: relative;
+  padding: 16px;
+}
+
+.marker {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 640px) {
+  .path li:nth-child(even) {
+    margin-inline-start: 32px;
+  }
+}

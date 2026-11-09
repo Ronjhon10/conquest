@@ -71,7 +71,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
 - [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
-- [ ] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
+- [x] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
 - [ ] **W.5a** Organizer theme studio: description → preview → revise/apply, themed map scenery and optional background within Conquest's consistent style. Coordinate theme preview/update and presentation contracts with Game before integration. (WEB-18..WEB-20) owner: Danny
@@ -111,3 +111,5 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 14:40  S.7  Max (Claude)  search.rank span with a search.rank.query child per search, conquest.search.rank.duration histogram (ms, outcome), goals_count/limit/bosses_count attributes, errors by class only; main.ts logs via @conquest/telemetry. Tests check no goal/about/talk text reaches telemetry.
 - 2026-11-09 14:50  S follow-up  Max (Claude)  search-api /readyz is 503 until conquest-talks and conquest-speakers hold documents, not just exist.
 - 2026-11-09 15:00  S follow-up  Max (Claude)  `npm run verify` (read-only 020 checks against the .env cluster), `npm run demo` + DEMO-SNAPSHOT.md (in-memory for now), search-api README with slide text; tags get a lowercase normalizer so title-cased goals match their tags.
+
+- 2026-11-09 W.3 Danny/Codex: separate DungeonMap component with chronological path/list, reduced-motion list default, keyboard toggles, step-free path filter and persistent list access notes. Fetch selected boss details directly so the search page limit cannot hide mapped talks. WEB-3..WEB-5 regression tests; 234 tests pass (3 integration skips), lint, typecheck and production build pass. Browser host unavailable; visual QA pending.
