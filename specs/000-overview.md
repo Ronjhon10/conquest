@@ -108,7 +108,7 @@ type CharacterClass = "knight" | "wizard" | "rogue" | "bard";
 type Attendee = {
   id: string; conference_id: string;
   name: string; headline: string;
-  linkedin_url: string;          // pasted by the attendee, normalized to https://www.linkedin.com/in/<slug>/
+  linkedin_url: string | null;   // optional; pasted by the attendee, normalized to https://www.linkedin.com/in/<slug>/
   photo: string | null;          // profile photo the attendee picked: JPEG data URL, 256x256, <= 40 KB; null = class sprite
   class: CharacterClass; avatar_seed: string;
   goals: string[];
@@ -130,7 +130,7 @@ type XpEvent = {
 type Party = { id: string; conference_id: string; name: string; member_ids: string[] };   // max 4
 type CoinGift = { id: string; conference_id: string; from_attendee_id: string; speaker_id: string; talk_id: string; note: string; at: string };
 type LeaderboardRow = { attendee_id: string; name: string; class: CharacterClass; xp: number; level: number; photo: string | null; avatar_seed: string };
-type Ally = { attendee_id: string; name: string; headline: string; linkedin_url: string; photo: string | null };   // someone you networked with
+type Ally = { attendee_id: string; name: string; headline: string; linkedin_url: string | null; photo: string | null };   // someone you networked with
 type Recap = { post_text: string; stats: { bosses: number; allies: number; xp: number; level: number; coins_given: number } };
 type Report = {
   attendees: number; checkins: number; photos: number; connections: number; parties: number;
@@ -164,8 +164,9 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | `GET /api/game/conferences/:id` | | `{ conference: Conference }` |
 | `PUT /api/game/conferences/:id/quests` | `{ quests: (Omit<Quest,"id"> & { id?: string })[] }` (keep a quest's `id` to edit it in place) | `{ conference: Conference }` (also updates every attendee's quests) |
 | `PUT /api/game/conferences/:id/rooms` | `{ rooms: Room[] }` | `{ conference: Conference }` |
-| `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
-| `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`) |
+| `POST /api/game/attendees/draft` | `{ conference_id; name; headline; about; linkedin_url? }` | `{ class; avatar_seed; suggested_goals: string[] }` (nothing saved) |
+| `POST /api/game/attendees` | `{ conference_id; name; headline; about; linkedin_url?; photo?; class; avatar_seed; goals }` | `{ attendee: Attendee }` (map built via search-api `rank`; a known `linkedin_url` in this conference returns that existing attendee) |
+| `PATCH /api/game/attendees/:id` | `{ headline?; photo?: string \| null; class? }` | `{ attendee: Attendee }` (goals, map and quests can't change) |
 | `GET /api/game/attendees/:id` | | `{ attendee: Attendee; party: Party \| null; allies: Ally[] }` |
 | `POST /api/game/xp` | `{ attendee_id; kind; talk_id?; other_code?; quest_id? }` | `{ event: XpEvent; attendee: Attendee }` |
 | `POST /api/game/parties` | `{ attendee_id; name }` | `{ party: Party }` |

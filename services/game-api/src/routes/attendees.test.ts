@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
 import { classFromKeywords } from "../attendees/classes";
 import { CODE_ALPHABET, uniqueCode } from "../attendees/code";
+import { MAP_MIN } from "../attendees/map";
 import { normalizeLinkedInUrl } from "../attendees/linkedin";
 import { type Deps, memoryDeps } from "../deps";
 import { createFakeLlm } from "../llm";
@@ -104,15 +105,17 @@ describe("GM-5 create", () => {
       about: "I run platform teams and care about observability",
       limit: 6,
     });
-    expect(attendee.map).toEqual(expectedMap);
-    expect(attendee.map.length).toBeGreaterThan(0);
+    // Every boss search ranked is on the map, topped up to MAP_MIN with filler talks.
+    for (const boss of expectedMap) expect(attendee.map).toContainEqual(boss);
+    expect(attendee.map.length).toBeGreaterThanOrEqual(Math.min(MAP_MIN, fixtures.talks.length - 1));
 
     const goalQuests = attendee.quests.filter((q: { kind: string }) => q.kind === "goal");
     expect(goalQuests.map((q: { title: string }) => q.title)).toEqual([
       "Defeat the boss of Platform Engineering",
       "Defeat the boss of Observability",
     ]);
-    expect(goalQuests[0]).toMatchObject({ xp: 100, sponsor: null, target: { type: "checkin", count: 1, talk_ids: ["talk-1"] } });
+    expect(goalQuests[0]).toMatchObject({ xp: 100, sponsor: null, target: { type: "checkin", count: 1 } });
+    expect(goalQuests[0].target.talk_ids).toEqual(expect.arrayContaining(["talk-1"]));
     expect(goalQuests[1].target.talk_ids).toEqual(expect.arrayContaining(["talk-2"]));
     // goal quests first, then the conference's quests
     expect(attendee.quests.slice(goalQuests.length)).toEqual(fixtures.conference.quests);
@@ -126,7 +129,9 @@ describe("GM-5 create", () => {
 
     const { post } = await setup();
     const seen = new Set<string>();
-    for (let i = 0; i < 20; i++) seen.add((await (await post("/attendees", createBody())).json()).attendee.code);
+    for (let i = 0; i < 20; i++) {
+      seen.add((await (await post("/attendees", createBody({ linkedin_url: `linkedin.com/in/person-${i}` }))).json()).attendee.code);
+    }
     expect(seen.size).toBe(20);
   });
 
@@ -209,7 +214,7 @@ describe("GM-20 photo", () => {
     const { attendee } = await (await post("/attendees", createBody({ photo }))).json();
     expect(attendee.photo).toBe(photo);
     expect((await (await get(`/attendees/${attendee.id}`)).json()).attendee.photo).toBe(photo);
-    expect((await (await post("/attendees", createBody())).json()).attendee.photo).toBeNull();
+    expect((await (await post("/attendees", createBody({ linkedin_url: "linkedin.com/in/no-photo" }))).json()).attendee.photo).toBeNull();
   });
 });
 
