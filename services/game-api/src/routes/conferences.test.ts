@@ -2,6 +2,7 @@ import { Conference, ErrorBody, fixtures } from "@conquest/contracts";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../app";
 import { memoryDeps } from "../deps";
+import { contrastRatio } from "../conferences/contrast";
 import { createFakeLlm } from "../llm";
 
 const fixedNow = new Date("2026-05-01T10:00:00.000Z");
@@ -58,12 +59,18 @@ describe("conferences", () => {
     }
   });
 
-  it("GM-1 a generated theme with fg-on-bg contrast under 4.5 is replaced by the fallback", async () => {
+  it("GM-2 a generated theme with fg-on-bg contrast under 4.5 keeps the theme and gets a readable fg", async () => {
     const low = { ...goodTheme, palette: { bg: "#777777", fg: "#888888", accent: "#ff0000" } };
     const { send } = setup(() => low);
     const { conference } = await create(send);
-    expect(conference.theme.palette).toEqual(FALLBACK_PALETTE);
+    const { palette } = conference.theme;
+    expect(conference.theme.name).toBe(goodTheme.name);
+    expect(conference.theme.boss_noun).toBe(goodTheme.boss_noun);
     expect(conference.theme.prompt).toBe("space dungeon");
+    expect(palette.bg).toBe("#777777");
+    expect(palette.accent).toBe("#ff0000");
+    expect(palette.fg).not.toBe("#888888");
+    expect(contrastRatio(palette.fg, palette.bg)).toBeGreaterThanOrEqual(4.5);
   });
 
   it("GM-1 a valid generated theme is used, with prompt set to the organizer's text", async () => {
@@ -74,19 +81,19 @@ describe("conferences", () => {
     expect(fake?.requests[0]?.user).toBe("space dungeon");
   });
 
-  it("GM-2 every new conference gets the three default organizer quests", async () => {
+  it("GM-3 every new conference gets the three default organizer quests", async () => {
     const { send } = setup();
     const { conference } = await create(send);
     expect(conference.quests.map((q) => [q.title, q.target.type, q.target.count, q.xp, q.kind])).toEqual([
       ["Meet five adventurers", "network", 5, 150, "organizer"],
-      ["Defeat three bosses", "checkin", 3, 200, "organizer"],
+      ["Defeat three bosses", "boss", 3, 200, "organizer"],
       ["Capture the moment", "photo", 3, 75, "organizer"],
     ]);
     expect(new Set(conference.quests.map((q) => q.id)).size).toBe(3);
     expect(conference.created_at).toBe(fixedNow.toISOString());
   });
 
-  it("GM-2 PUT quests replaces the quests with fresh ids, including sponsor quests", async () => {
+  it("PUT quests without ids replaces the quests with fresh ids, including sponsor quests", async () => {
     const { send } = setup();
     const { conference } = await create(send);
     const quest = {
@@ -107,7 +114,7 @@ describe("conferences", () => {
     expect(((await got.json()) as { conference: Conference }).conference.quests).toEqual(updated.quests);
   });
 
-  it("GM-3 rooms default to every distinct room in the talks index, all step-free", async () => {
+  it("rooms default to every distinct room in the talks index, all step-free", async () => {
     const { send } = setup();
     const { conference } = await create(send);
     const expected = [...new Set(fixtures.talks.map((t) => t.room))].sort();
@@ -116,14 +123,14 @@ describe("conferences", () => {
     for (const room of conference.rooms) expect(room).toMatchObject({ step_free: true, step_free_note: null });
   });
 
-  it("GM-3 rooms given in the body are used as-is", async () => {
+  it("rooms given in the body are used as-is", async () => {
     const { send } = setup();
     const rooms = [{ name: "Hall A", step_free: false, step_free_note: "Two stairs" }];
     const { conference } = await create(send, { rooms });
     expect(conference.rooms).toEqual(rooms);
   });
 
-  it("GM-3 PUT rooms replaces the rooms so organizers can mark a room not step-free", async () => {
+  it("PUT rooms replaces the rooms so organizers can mark a room not step-free", async () => {
     const { send } = setup();
     const { conference } = await create(send);
     const rooms = [

@@ -58,7 +58,7 @@ export const MAPPINGS: Record<GameIndex, Mapping> = {
       conference_id: keyword,
       name: { type: "text", fields: { raw: keyword } },
       headline: storedText,
-      linkedin_url: stored,
+      linkedin_url: keyword, // indexed: a second signup with the same link returns the existing attendee
       photo: stored, // 030 Behavior 5: stored with index: false
       class: keyword,
       avatar_seed: stored,

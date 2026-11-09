@@ -1,7 +1,7 @@
-// Theme generation (030 Behavior 1): OpenAI JSON, validated; fallback on any failure or low contrast.
+// Theme generation (030 Behavior 1): OpenAI JSON, validated; fallback on any failure; unreadable fg is fixed.
 import { Theme } from "@conquest/contracts";
 import type { Llm } from "../llm";
-import { MIN_CONTRAST, contrastRatio } from "./contrast";
+import { readableFg } from "./contrast";
 
 export function fallbackTheme(prompt: string): Theme {
   return {
@@ -36,7 +36,7 @@ export async function generateTheme(llm: Llm | null, themePrompt: string): Promi
     generated = null;
   }
   if (!generated) return fallbackTheme(themePrompt);
-  const theme: Theme = { ...generated, prompt: themePrompt };
-  if (contrastRatio(theme.palette.fg, theme.palette.bg) < MIN_CONTRAST) return fallbackTheme(themePrompt);
-  return theme;
+  // Unreadable text is fixed rather than thrown away, so the organizer keeps their theme.
+  const fg = readableFg(generated.palette.fg, generated.palette.bg);
+  return { ...generated, palette: { ...generated.palette, fg }, prompt: themePrompt };
 }

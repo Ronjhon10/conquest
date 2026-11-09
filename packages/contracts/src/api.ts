@@ -79,19 +79,22 @@ export type CreateConferenceRequest = z.infer<typeof CreateConferenceRequest>;
 export const ConferenceResponse = z.object({ conference: Conference });
 export type ConferenceResponse = z.infer<typeof ConferenceResponse>;
 
-export const PutQuestsRequest = z.object({ quests: z.array(Quest.omit({ id: true })) });
+/** Send a quest's existing id to edit it in place (finished stays finished); omit it for a new quest. */
+export const PutQuestsRequest = z.object({
+  quests: z.array(Quest.omit({ id: true }).extend({ id: z.string().min(1).optional() })),
+});
 export type PutQuestsRequest = z.infer<typeof PutQuestsRequest>;
 
 export const PutRoomsRequest = z.object({ rooms: z.array(Room) });
 export type PutRoomsRequest = z.infer<typeof PutRoomsRequest>;
 
-/** linkedin_url here is what the attendee pasted; game-api normalizes it (GM-19). */
+/** linkedin_url here is what the attendee pasted (optional); game-api normalizes it (GM-19). */
 export const DraftAttendeeRequest = z.object({
   conference_id: z.string().min(1),
   name: z.string().min(1),
   headline: z.string(),
   about: z.string(),
-  linkedin_url: z.string().min(1),
+  linkedin_url: z.string().optional(),
 });
 export type DraftAttendeeRequest = z.infer<typeof DraftAttendeeRequest>;
 export const DraftAttendeeResponse = z.object({
@@ -111,6 +114,12 @@ export const CreateAttendeeRequest = DraftAttendeeRequest.extend({
 export type CreateAttendeeRequest = z.infer<typeof CreateAttendeeRequest>;
 export const AttendeeResponse = z.object({ attendee: Attendee });
 export type AttendeeResponse = z.infer<typeof AttendeeResponse>;
+
+/** Profile edits after signup. Goals can't change, so the map and quests stay put. photo null removes it. */
+export const UpdateAttendeeRequest = z
+  .object({ headline: z.string(), photo: z.string().nullable(), class: CharacterClass })
+  .partial();
+export type UpdateAttendeeRequest = z.infer<typeof UpdateAttendeeRequest>;
 
 export const GetAttendeeResponse = z.object({
   attendee: Attendee,

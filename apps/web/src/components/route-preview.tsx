@@ -6,10 +6,12 @@ import type {
   Attendee,
   Conference,
   LeaderboardRow,
+  Speaker,
   Talk,
 } from "@conquest/contracts";
 import { Avatar } from "./avatar";
 import { DungeonMap } from "./dungeon-map";
+import mapStyles from "./dungeon-map.module.css";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
 import { formatTalkTime } from "../lib/time";
@@ -41,6 +43,7 @@ export type PreviewData = {
   attendee: Attendee | null;
   rows: LeaderboardRow[];
   allies?: Ally[];
+  speakers?: Speaker[];
 };
 export function RouteContent({
   data,
@@ -130,8 +133,8 @@ export function RouteContent({
         </div>
       )}
       {view === "map" ? (
-        <div className="preview-grid">
-          <DungeonMap conference={conference} attendee={attendee} talks={talks} conf={conf} />
+        <div className={`preview-grid ${mapStyles.layout}`}>
+          <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} />
           <Panel title="Your quests">
             {(attendee?.quests ?? conference.quests).map((q) => (
               <p key={q.id}>
@@ -191,14 +194,16 @@ export function RouteContent({
                   <div>
                     <strong>{ally.name}</strong>
                     <p>{ally.headline}</p>
-                    <a
-                      href={ally.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      View on LinkedIn
-                      <span className="sr-only"> (opens in a new tab)</span>
-                    </a>
+                    {ally.linkedin_url && (
+                      <a
+                        href={ally.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View on LinkedIn
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    )}
                   </div>
                 </li>
               ))}
@@ -326,9 +331,11 @@ export function RoutePreview({
       api.conference(conf),
       view === "map"
         ? attendeeRequest.then(async (result) => ({
-            results: await Promise.all((result?.attendee.map ?? []).map(async (boss) => ({
-              talk: (await api.talk(boss.talk_id)).talk,
-            }))),
+            results: (
+              await Promise.allSettled(
+                (result?.attendee.map ?? []).map((boss) => api.talk(boss.talk_id)),
+              )
+            ).flatMap((result) => result.status === "fulfilled" ? [result.value] : []),
           }))
         : api.talks(),
       attendeeRequest,
@@ -339,6 +346,11 @@ export function RoutePreview({
           setData({
             conference: conference.conference,
             talks: talks.results.map((r) => r.talk),
+            speakers: [...new Map(
+              talks.results
+                .flatMap((r) => "speakers" in r ? r.speakers : [])
+                .map((speaker) => [speaker.id, speaker]),
+            ).values()],
             attendee: attendee?.attendee ?? null,
             rows: leaderboard.rows,
             allies: attendee?.allies ?? [],
