@@ -69,30 +69,38 @@ export function pickGoals(f: Facets): string[] {
   return out.map((k) => display.get(k) ?? titleCase(k));
 }
 
-/** One request: sampler (top 50 BM25 hits) with tag/track terms, plus a global tag count. */
+/**
+ * One request: exactly the top 50 BM25 hits (tags and track only) plus a global tag count. Not a
+ * `sampler` aggregation: its shard_size is per shard, and on Elastic Serverless (several shards)
+ * "50" sampled ~300 of 480 talks, so every attendee got the conference's biggest tracks.
+ */
 export function suggestBody(about: string) {
   const text = about.trim();
   return {
-    size: 0,
-    track_total_hits: true,
+    size: text ? SAMPLE_SIZE : 0,
+    _source: ["tags", "track"],
     query: text ? keywordQuery(text) : { match_none: {} },
-    aggs: {
-      sample: {
-        sampler: { shard_size: SAMPLE_SIZE },
-        aggs: { tags: { terms: { field: "tags", size: 30 } }, tracks: { terms: { field: "track", size: 15 } } },
-      },
-      all: { global: {}, aggs: { tags: { terms: { field: "tags", size: 500 } } } },
-    },
+    aggs: { all: { global: {}, aggs: { tags: { terms: { field: "tags", size: 500 } } } } },
   };
 }
 
 type TermsAgg = { buckets?: { key: string; doc_count: number }[] };
 const buckets = (a: TermsAgg | undefined): Bucket[] => (a?.buckets ?? []).map((b) => ({ term: String(b.key), count: b.doc_count }));
 
-export function facetsFromAggs(aggs: Record<string, unknown> | null): Facets {
-  const a = (aggs ?? {}) as { sample?: { tags?: TermsAgg; tracks?: TermsAgg }; all?: { doc_count?: number; tags?: TermsAgg } };
+export function countTerms(terms: string[]): Bucket[] {
+  const m = new Map<string, number>();
+  for (const t of terms) m.set(t, (m.get(t) ?? 0) + 1);
+  return [...m.entries()].map(([term, count]) => ({ term, count })).sort((a, b) => b.count - a.count || a.term.localeCompare(b.term));
+}
+
+/** Sample counts from the hits themselves (one count per talk), background from the global agg. */
+export function facetsFromResult(hits: { tags?: string[]; track?: string | null }[], aggs: Record<string, unknown> | null): Facets {
+  const a = (aggs ?? {}) as { all?: { doc_count?: number; tags?: TermsAgg } };
   return {
-    sample: { tags: buckets(a.sample?.tags), tracks: buckets(a.sample?.tracks) },
+    sample: {
+      tags: countTerms(hits.flatMap((h) => [...new Set(h.tags ?? [])])),
+      tracks: countTerms(hits.flatMap((h) => (h.track ? [h.track] : []))),
+    },
     all: { docs: a.all?.doc_count ?? 0, tags: buckets(a.all?.tags) },
   };
 }
