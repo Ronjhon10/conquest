@@ -15,8 +15,8 @@ images:
     newName: ghcr.io/ronjhon10/conquest-web
     newTag: f9387ce
   - name: search-api
-    newName: ghcr.io/ronjhon10/conquest-search-api
+    newName: ghcr.io/ronjhon10/conquest-web
     newTag: f9387ce
   - name: game-api
-    newName: ghcr.io/ronjhon10/conquest-game-api
+    newName: ghcr.io/ronjhon10/conquest-web
     newTag: f9387ce
