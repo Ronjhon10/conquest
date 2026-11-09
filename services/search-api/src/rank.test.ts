@@ -119,4 +119,36 @@ describe("POST /rank (S.5)", () => {
     expect(overlaps(a, b)).toBe(false);
     expect(overlaps(a, { ...b, starts_at: "2026-11-10T18:29:00.000Z" })).toBe(true);
   });
+
+  it("SR-13 every goal gets a boss, even when the about text shares words with one goal", async () => {
+    const goals = ["platform engineering", "ebpf observability", "kubernetes security"];
+    const result = await bosses({ goals, about: "SRE at a bank moving to an internal developer platform" });
+    expect(result).toHaveLength(6);
+    for (const g of goals) expect(result.some((b) => b.reason === goalReason(g)), g).toBe(true);
+    for (const limit of [1, 2, 3]) {
+      const r = await bosses({ goals, about: persona.about, limit });
+      expect(r).toHaveLength(limit);
+      expect(new Set(r.map((b) => b.reason)).size).toBe(limit);
+    }
+  });
+
+  it("SR-13 each goal's first pick is its own best non-clashing talk; the rest follow fused order", () => {
+    const talks = new Map(fixtures.talks.map((t) => [t.id, t]));
+    const lists = [
+      { goal: "a", weight: 1, talkIds: ["talk-1", "talk-4"] },
+      { goal: "b", weight: 1, talkIds: ["talk-2"] },
+      { goal: null, weight: 0.5, talkIds: ["talk-1", "talk-4", "talk-6"] },
+    ];
+    // fused: talk-1 > talk-4 > talk-2 > talk-6; talk-6 clashes with talk-2
+    const picked = pickBosses(fuse(lists), talks, 3, lists);
+    expect(picked.map((b) => [b.talk_id, b.reason])).toEqual([
+      ["talk-1", goalReason("a")],
+      ["talk-2", goalReason("b")],
+      ["talk-4", goalReason("a")],
+    ]);
+    // a goal whose only talk clashes with an earlier goal's pick gets nothing in round one
+    const clash = [{ goal: "a", weight: 1, talkIds: ["talk-2"] }, { goal: "b", weight: 1, talkIds: ["talk-6"] }];
+    expect(pickBosses(fuse(clash), talks, 2, clash).map((b) => b.talk_id)).toEqual(["talk-2"]);
+  });
 });
+
