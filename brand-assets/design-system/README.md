@@ -71,7 +71,7 @@ Contrast: ink on surface 21:1, ink on ground 17:1, on-blue on blue 8.6:1, blue o
 
 Two faces in the frame, one in the dungeon:
 
-- **Bricolage Grotesque** (`display`, 700–800) for names, titles, buttons and the wordmark. Buttons and the wordmark are uppercase. It stands in for Cantina's Maricle.
+- **Bricolage Grotesque** (`display`, 700–800) for names, titles, buttons and the wordmark. Buttons are uppercase; the portal wordmark is ConQuest at weight 800. It stands in for Cantina's Maricle.
 - **Roboto Mono** (`mono`, 400 and 700) for running text, labels and chips. Labels are 12px bold uppercase with 0.08em tracking, between two ink rules (`cq-label`).
 - **VT323** (`pixel`) only for in-dungeon numbers.
 
@@ -80,7 +80,7 @@ Two faces in the frame, one in the dungeon:
 | reward | display 800 | 72 / 0.95 | `+50 XP` on a reward screen |
 | title | display 700 | 28 / 1.05 | Talk titles on cards |
 | slab | display 700 | 24 / 1.1 | Screen title on the blue slab |
-| wordmark | display 700, 0.04em, caps | 26 / 1 | CONQUEST |
+| wordmark | display 800, -0.04em | 28 / 1 (20 compact) | ConQuest beside the portal |
 | heading | display 700 | 22 / 1.1 | Quest names, screen headers |
 | button | display 700, caps | 18 / 1 (20 on the CTA) | Button labels |
 | body | mono 400 | 16 / 24 | Running text |
@@ -105,7 +105,7 @@ Two faces in the frame, one in the dungeon:
 
 ## Logo
 
-There is no logo mark yet. Use the wordmark: CONQUEST in `wordmark` style (Bricolage Grotesque 700, uppercase, 0.04em tracking) in ink, or on-blue on blue.
+Use the approved [portal logo](../logo/README.md): a black stepped doorway and blue path beside the ConQuest wordmark. The shared `Brand` component provides standard and compact sizes. On dark or blue backgrounds, use `onDark`: a white wordmark with a white tile behind the portal. The logo's blue path is a fixed brand accent, independent of conference themes.
 
 ## Components
 
