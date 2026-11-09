@@ -4,12 +4,17 @@ import type { Deps } from "../deps";
 import { AlreadyExistsError } from "../store/store";
 import { awardXp } from "./award";
 
-async function progress(deps: Deps, attendeeId: string, quest: Quest): Promise<number> {
+async function progress(deps: Deps, attendee: Attendee, quest: Quest): Promise<number> {
   const { type, talk_ids } = quest.target;
-  const rows =
+  let rows: { talk_id: string | null }[] =
     type === "coin"
-      ? await deps.repos.coins.find({ from_attendee_id: attendeeId })
-      : await deps.repos.xpEvents.find({ attendee_id: attendeeId, kind: type });
+      ? await deps.repos.coins.find({ from_attendee_id: attendee.id })
+      : await deps.repos.xpEvents.find({ attendee_id: attendee.id, kind: type === "boss" ? "checkin" : type });
+  // "boss" only counts check-ins to talks on the attendee's own map.
+  if (type === "boss") {
+    const map = new Set(attendee.map.map((b) => b.talk_id));
+    rows = rows.filter((r) => r.talk_id !== null && map.has(r.talk_id));
+  }
   // Quest events are never counted: only the target kinds above are read.
   return talk_ids === null ? rows.length : rows.filter((r) => r.talk_id !== null && talk_ids.includes(r.talk_id)).length;
 }
@@ -29,7 +34,7 @@ export async function completeQuests(deps: Deps, attendeeId: string): Promise<At
   if (!attendee) return null;
   for (const quest of attendee.quests) {
     if (await isCompleted(deps, attendeeId, quest.id)) continue;
-    if ((await progress(deps, attendeeId, quest)) < quest.target.count) continue;
+    if ((await progress(deps, attendee, quest)) < quest.target.count) continue;
     // Re-check immediately before awarding: a nested pass may have just completed it.
     if (await isCompleted(deps, attendeeId, quest.id)) continue;
     const current = (await deps.repos.attendees.get(attendeeId)) ?? attendee;
