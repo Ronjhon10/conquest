@@ -42,8 +42,8 @@ Judged on: features land through Gitar-reviewed PRs; project rules; CI failure d
 
 ## Open items (as of 15:55)
 
-- **10 s XP check-ins (Game lane, Jacob).** Stop waiting for refresh on writes the response doesn't need. Then re-run `npm run load -w scripts/load`, add the before/after p95 to `2026-11-09-1540-dash0-xp-checkin-10s.md`, and confirm the Dash0 check rule clears. That completes the found-and-fixed story for the demo.
-- **Stale `conquest-attendees` mapping on the cluster (Game lane).** The live index has `linkedin_url` with `index: false` (old mapping), so signup *with* a LinkedIn link returns 500. The code is correct, but game-api never changes an existing index. Recreate the index once before the demo (this deletes the test attendees on it).
+- **10 s XP check-ins (Game lane, Jacob).** The refresh fix (`WRITE_REFRESH = true`, issue #62) is in. Re-run `npm run load -w scripts/load`, add the before/after p95 to `2026-11-09-1540-dash0-xp-checkin-10s.md`, and confirm the Dash0 check rule clears.
+- **Stale `conquest-attendees` mapping on the cluster (Game lane).** The live index has `linkedin_url` with `index: false`. game-api now rebuilds drifted indexes on startup and keeps the documents (`ensureIndexes`), so roll out the current build and check the "rebuilding index" log line. Don't delete the index by hand.
 - **`conf-demo` links (Web lane).** Hardcoded until the organizer and signup screens land.
 - **RUM (Web, W.7)** and the **organizer dashboard link (Web, W.5).** `NEXT_PUBLIC_DASH0_DASHBOARD_URL` is already set in `deploy/web.yaml`.
 - **kubeconfig expires (~2 h).** Get a fresh one from Radar Cloud: Secret `kubeconfig` in namespace `default`, key `config`. Save it to `~/.kube/conquest.yaml`. Radar MCP doesn't need it.
