@@ -63,8 +63,4 @@ Gets Conquest running on Kubernetes and makes three sponsor tracks real: **Radar
 
 ## Open questions
 
-None open.
-
-### Resolved
-
-- Does Gitar's trial count toward required PR reviews? **Resolved 2026-11-09:** it doesn't need to. The `main` ruleset requires 0 approvals and only the `test` check (ci), and PRs merge on green `test` even while Gitar's review is still pending (e.g. #17, #20). Gitar reviews are advisory; fix what it flags in follow-up PRs (AGENTS.md rule 9).
+- Does Gitar's trial count toward required PR reviews? **Default:** no; `main` requires a PR and green `ci`, not an approval.
