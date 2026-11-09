@@ -1,0 +1,34 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.mark {
+  display: block;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+.mark svg { display: block; width: 100%; height: 100%; }
+.name {
+  font: 800 28px/1 var(--font-display);
+  letter-spacing: -0.04em;
+}
+.compact { gap: 7px; }
+.compact .mark { flex-basis: 28px; width: 28px; height: 28px; }
+.compact .name { font-size: 20px; }
+.onDark { color: #fff; }
+.onDark .mark { background: #fff; border-radius: 4px; padding: 2px; }
+@media (max-width: 640px) {
+  .brand { gap: 7px; }
+  .mark { flex-basis: 32px; width: 32px; height: 32px; }
+  .name { font-size: 23px; }
+  .compact .name { font-size: 18px; }
+}
+@media (max-width: 380px) {
+  .mark { flex-basis: 28px; width: 28px; height: 28px; }
+  .name { font-size: 20px; }
+}

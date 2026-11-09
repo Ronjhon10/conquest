@@ -74,7 +74,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **G.R2** Live QA: rebuild a game index whose live mapping can't search a field we filter on, keeping its documents (issue #61). (GM-23) owner: Jake Nef
 - [x] **G.R3** Live QA: game-api writes refresh explicitly instead of wait_for so check-in and network finish under the proxy timeout on Serverless (issue #62). (GM-6, GM-14, GM-17) owner: Jake Nef
 - [x] **G.R4** Review repairs: legacy-safe and atomic character recovery, durable coin gifts, and latest conference quest synchronization, indexed recovery fast paths and organizer quest validation. (GM-13, GM-22, GM-23) owner: Jake Nef
-- [ ] **G.W1** Web help (split 2026-11-09, see Lane: Web "Helping on Web"): connect page (show my code as QR + text, type a friend's code, allies list), party page (create, join, members), and a coin button for the boss page (WEB-6, WEB-11, from W.4). Allowed files: new `apps/web/src/components/connect.tsx`, `apps/web/src/components/party.tsx`, `apps/web/src/components/coin.tsx`. Calls: `api.awardXp` (kind `network`), `api.createParty`, `api.joinParty`, `api.giveCoin`, `api.attendee`. owner: Jacob Bingham
+- [x] **G.W1** Web help (split 2026-11-09, see Lane: Web "Helping on Web"): connect page (show my code as QR + text, type a friend's code, allies list), party page (create, join, members), and a coin button for the boss page (WEB-6, WEB-11, from W.4). Allowed files: new `apps/web/src/components/connect.tsx`, `apps/web/src/components/party.tsx`, `apps/web/src/components/coin.tsx`. Calls: `api.awardXp` (kind `network`), `api.createParty`, `api.joinParty`, `api.giveCoin`, `api.attendee`. owner: Jacob Bingham
 
 ## Lane: Web (040)
 
@@ -103,6 +103,8 @@ Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 t
 - [ ] **W.6** Recap page and speaker page: moved to P.W1 (Jake). owner: Jake Nef
 - [ ] **W.7** RUM + traceparent: moved to P.W1 (Jake). owner: Jake Nef
 - [ ] **W.8** Accessibility: one axe test over the finished pages (WEB-9); keyboard-only Playwright flows (WEB-10) cut unless time. owner: whoever finishes first
+
+- [x] **W.logo** User-requested portal branding: shared website/footer/map logo, browser and Apple home-screen icons, brand usage guide. Existing WEB-1 and WEB-10 regressions cover shell/accessibility; merge remains gated by CI. owner: Jacob Bingham (Codex)
 
 ## Integration and demo (everyone, from 3:00)
 
@@ -166,3 +168,6 @@ Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 t
 - 2026-11-09 15:10  Web split  Max (Claude)  Remaining Web work split across lanes so it lands by the freeze: S.W1 Max, G.W1 Jacob, P.W1 + P.W2 Jake, W.4/W.5 Danny; helper rules under Lane: Web. Live demo conference d2927cdd-f3e6-404f-b34f-4c4b766b8520 created and seeded with 8 made-up players.
 
 - 2026-11-09 W.3 button consistency Danny/Codex: map day/filter controls, action buttons, quest close and bottom navigation now reuse cq-btn/cq-btn--secondary from the other pages. Removed map-specific font weights, borders, corners and shadows; retained responsive sizing and title-case labels from the phone reference. Existing map/shell tests, lint and production build pass.
+- 2026-11-09 16:20  G.W1  Jacob (Claude + Sonnet agents)  Connect (#83: QR + text code, typed code awards network XP, allies; adds qrcode dep), party (#82: create/join/members, x1.25 note) and coin button (#81: CoinButton for the boss page) as new components; Danny wires them into route-preview. Fake API has no /xp route, so connect submit errors under NEXT_PUBLIC_FAKE_API=1.
+
+- 2026-11-09 W.logo Jacob Bingham (Codex): implemented the user-approved portal concept as compact vector artwork, integrated shared branding across the site and map, added automatic favicon/Apple icon metadata and brand guidance. Initial PNG-based shell/map/foundation suite passed 17 tests locally; workspace disconnected before production build. Final vector implementation is validated by the required PR CI (lint, typecheck, tests and production image smoke) before auto-merge.

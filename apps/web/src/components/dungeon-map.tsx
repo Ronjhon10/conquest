@@ -8,6 +8,7 @@ import { CONFERENCE_TIME_ZONE, formatTalkTime } from "../lib/time";
 import { themeStyle } from "./ui";
 import { Avatar } from "./avatar";
 import { Icon } from "./icon";
+import { Brand } from "./brand";
 import { DungeonWorld, type MapStop } from "./dungeon-world";
 import styles from "./dungeon-map.module.css";
 
@@ -91,7 +92,7 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
       {fullPage ? (
         <header className={styles.phoneHeader}>
           <div className={styles.identity}>
-            <Link href="/" className={styles.wordmark}><Icon name="sword" /><span>CONQUEST</span></Link>
+            <Link href="/" className={styles.wordmark} aria-label="Conquest home"><Brand compact onDark /></Link>
             <p>{conference.name} · {conference.theme.name}</p>
             <h1 className="sr-only">Your {conference.theme.boss_noun} trail</h1>
           </div>
@@ -141,7 +142,7 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
             </ol> : <>
               {!fullPage && <div className={styles.hud}>
                 <div className={styles.hudTop}>
-                  <strong>CONQUEST</strong>
+                  <Brand compact onDark />
                   <div className={styles.xp}>
                     <span>LV {attendee.level}</span>
                     <progress aria-label="Progress to next level" max={levelEnd - levelStart} value={levelProgress} />

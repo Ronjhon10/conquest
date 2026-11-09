@@ -32,7 +32,7 @@ export function Avatar({
   seed?: string;
   size?: number;
   variant?: "portrait" | "full";
-  /** Load immediately; compatible with the home-page preview. */
+  /** Load immediately; for art above the fold. */
   eager?: boolean;
 }) {
   if (isCharacterSheet(photo)) {

@@ -16,6 +16,8 @@ it("WEB-3 gives the map one integrated phone shell with player stats and attende
   expect(screen.getAllByRole("main")).toHaveLength(1);
   expect(screen.queryByRole("navigation", { name: "Main navigation" })).toBeNull();
   expect(screen.queryByRole("contentinfo")).toBeNull();
+  expect(screen.getByRole("link", { name: "Conquest home" }).getAttribute("href")).toBe("/");
+  expect(screen.getByRole("link", { name: "Conquest home" }).querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   expect(screen.queryByText("Conference preview")).toBeNull();
   expect(screen.getByText(fixtures.attendee.name)).toBeTruthy();
   expect(screen.getByText(`${fixtures.attendee.xp} XP`)).toBeTruthy();
@@ -38,4 +40,18 @@ it("WEB-1 keeps the normal website shell on non-map routes", () => {
   expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeTruthy();
   expect(screen.getByRole("contentinfo")).toBeTruthy();
   expect(screen.getByText("Organizer page")).toBeTruthy();
+  const home = screen.getByRole("link", { name: "Conquest home" });
+  expect(home.getAttribute("href")).toBe("/");
+  expect(within(home).getByText("ConQuest")).toBeTruthy();
+  expect(home.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
+  expect(within(screen.getByRole("contentinfo")).getByText("ConQuest")).toBeTruthy();
+});
+
+it("WEB-10 keeps the branded home link reachable by keyboard", async () => {
+  render(<AppShell><p>Page</p></AppShell>);
+  const user = userEvent.setup();
+  await user.tab();
+  expect(document.activeElement).toBe(screen.getByRole("link", { name: "Skip to content" }));
+  await user.tab();
+  expect(document.activeElement).toBe(screen.getByRole("link", { name: "Conquest home" }));
 });

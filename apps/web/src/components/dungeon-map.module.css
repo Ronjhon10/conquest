@@ -72,10 +72,6 @@
   flex-wrap: wrap;
 }
 
-.hudTop > strong {
-  font: 800 22px/1 var(--font-display);
-  letter-spacing: 0.02em;
-}
 
 .xp {
   display: flex;
@@ -398,12 +394,7 @@
   letter-spacing: -0.03em;
 }
 
-.wordmark :global(.ui-icon) {
-  flex-shrink: 0;
-  width: clamp(22px, 5vw, 38px);
-  height: clamp(30px, 6vw, 48px);
-  color: #f5c354;
-}
+.wordmark { min-height: 44px; }
 
 .identity > p {
   font-size: clamp(8px, 1.9vw, 12px);

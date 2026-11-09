@@ -17,7 +17,7 @@ Judged on: runs on Kubernetes with Radar connected; Radar UI and MCP used while 
 | `2026-11-09-1550-radar-checks-after.*` | 0 findings after PR #66. Radar `diagnose` also caught the CPU-quota stall that #66 caused (Pending pods: `exceeded quota: team-quota`), fixed in PR #73 |
 | `2026-11-09-1540-dash0-xp-checkin-10s.md` (Radar section) | Radar AI investigation of `game-api` ([link](https://app.radarhq.io/c/yka3x0NpFNY/investigations/chat_W4HEC5zR67xENZ9X)): cluster healthy, rollout readiness blip explained the 503s |
 
-Radar was also used for: the first deploy (Argo CD apply and sync), `diagnose` on search-api not-ready (empty indexes, fixed with seed Job `search-seed-001`), and `get_changes` to find the 21:33 rollout 503s. See the `product/BUILD.md` log.
+Radar was also used for: verifying every rollout after the deploy outage (#89), the first deploy (Argo CD apply and sync), `diagnose` on search-api not-ready (empty indexes, fixed with seed Job `search-seed-001`), and `get_changes` to find the 21:33 rollout 503s. See the `product/BUILD.md` log.
 
 ### Dash0 (Stop Flying Blind)
 Judged on: depth of OTel (traces, logs, metrics, RUM); Agent0 or MCP finds and fixes something real; observability is part of the product; bonus for a dashboard or SLO.
@@ -40,13 +40,19 @@ Judged on: features land through Gitar-reviewed PRs; project rules; CI failure d
 | --- | --- |
 | _todo (Search lane)_ | A rank request and its query (Kibana or Dev Tools screenshot) |
 
-## Open items (as of 15:55)
+## Open items (as of 15:40)
 
-- **10 s XP check-ins (Game lane, Jacob).** The refresh fix (`WRITE_REFRESH = true`, issue #62) is in. Re-run `npm run load -w scripts/load`, add the before/after p95 to `2026-11-09-1540-dash0-xp-checkin-10s.md`, and confirm the Dash0 check rule clears.
-- **Stale `conquest-attendees` mapping on the cluster (Game lane).** The live index has `linkedin_url` with `index: false`. game-api now rebuilds drifted indexes on startup and keeps the documents (`ensureIndexes`), so roll out the current build and check the "rebuilding index" log line. Don't delete the index by hand.
-- **`conf-demo` links (Web lane).** Hardcoded until the organizer and signup screens land.
-- **RUM (Web, W.7)** and the **organizer dashboard link (Web, W.5).** `NEXT_PUBLIC_DASH0_DASHBOARD_URL` is already set in `deploy/web.yaml`.
-- **kubeconfig expires (~2 h).** Get a fresh one from Radar Cloud: Secret `kubeconfig` in namespace `default`, key `config`. Save it to `~/.kube/conquest.yaml`. Radar MCP doesn't need it.
+- **XP latency (P.W2, Jake).** Fixed so far:
+  - G.R3: `refresh=true` instead of `wait_for`
+  - G.R5 (Jacob): fewer round trips
+  - #91: leaderboard reads no longer race check-ins (409s)
+
+  The 15:35 load test (10 bots) had check-in p95 at 4.3 s and 11% failures from leaderboard races; #91 targets those failures. Next: re-run `npm run load -w scripts/load` after #91 deploys, record the numbers in `2026-11-09-1540-dash0-xp-checkin-10s.md`, and confirm the Dash0 check rule clears.
+- **RUM (P.W1, Jake, PR #92).** Code is in; it's off until a human sets repo variables `DASH0_RUM_ENDPOINT` and `DASH0_RUM_AUTH_TOKEN` (an **ingest-only** Dash0 token).
+- **Organizer dashboard link (Web, W.5).** `NEXT_PUBLIC_DASH0_DASHBOARD_URL` is already set in `deploy/web.yaml`.
+- **kubeconfig expires (~2 h).** Get a fresh one from Radar Cloud: Secret `kubeconfig` in namespace `default`, key `config`. Radar MCP doesn't need it.
+
+**Resolved:** the stale `conquest-attendees` mapping (G.R2 rebuilds drifted indexes on startup); `conf-demo` links (S.W1 points them at the live demo conference `d2927cdd-…`); **deploys blocked 15:11–15:33** (GHCR denied one random image per run, cross-package pushes of shared base layers). Fixed in #89: all images now go to one package, `conquest-web`, tagged `<name>-<sha>`.
 
 ## Where to find things
 

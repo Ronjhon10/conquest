@@ -171,6 +171,31 @@ describe("durable XP publication", () => {
     expect(LeaderboardResponse.parse(await res.json()).rows[0]).toMatchObject({ attendee_id: "a", xp: 25 });
   });
 
+  it("GM-14 leaderboard reads publish pending events without rewriting attendees (no races with check-ins)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const inner = createMemoryStore(); let fail = true; let attendeeWrites = 0;
+    const store: DocStore = {
+      ...inner,
+      create: async (index, id, doc) => {
+        if (index === INDEX.xpEvents && fail) throw new Error("local simulated write failure");
+        return inner.create(index, id, doc);
+      },
+      put: async (index, id, doc, v) => {
+        if (index === INDEX.attendees) attendeeWrites++;
+        return inner.put(index, id, doc, v);
+      },
+    };
+    const { deps, app, post, seed } = setup(store); await seed("a", "AAAAAA");
+    await deps.repos.conferences.create(fixtures.conference);
+    await post("/xp", { attendee_id: "a", kind: "photo" });
+    fail = false;
+    const before = attendeeWrites;
+    const res = await app.request("/api/game/conferences/conf-demo/leaderboard");
+    expect(res.status).toBe(200);
+    expect(LeaderboardResponse.parse(await res.json()).rows[0]).toMatchObject({ attendee_id: "a", xp: 25 });
+    expect(attendeeWrites).toBe(before);
+  });
+
   it("GM-17 a lost event-write response is replayed idempotently", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const inner = createMemoryStore(); let fail = true;

@@ -26,6 +26,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # One image's push failing must not cancel the other two (GHCR intermittently answers
+      # "denied: permission_denied: write_package" on one image per run; seen 2026-11-09 22:11-22:15).
+      fail-fast: false
       matrix:
         include:
           - name: web
@@ -42,14 +45,22 @@ jobs:
       - name: Image name and tag
         id: meta
         run: |
-          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/conquest-${{ matrix.name }}" >> "$GITHUB_OUTPUT"
-          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          # All three images live in ONE package (conquest-web, public), tagged <name>-<sha7>.
+          # With three packages, the jobs pushed the same base layers into three packages at
+          # once and GHCR denied one of them each run (permission_denied: write_package on the
+          # shared layers, 2026-11-09 22:11+), so nothing deployed. One package, no cross-package
+          # layer mounts.
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/conquest-web" >> "$GITHUB_OUTPUT"
+          echo "tag=${{ matrix.name }}-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "latest=${{ matrix.name }}-latest" >> "$GITHUB_OUTPUT"
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
+        id: push
+        continue-on-error: true
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -57,9 +68,29 @@ jobs:
           build-args: |
             SERVICE=${{ matrix.service }}
             APP_VERSION=${{ steps.meta.outputs.tag }}
+            NEXT_PUBLIC_DASH0_RUM_ENDPOINT=${{ vars.DASH0_RUM_ENDPOINT }}
+            NEXT_PUBLIC_DASH0_RUM_AUTH_TOKEN=${{ vars.DASH0_RUM_AUTH_TOKEN }}
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
-            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+      - name: Retry the push once after a pause
+        if: steps.push.outcome == 'failure'
+        run: sleep 20
+      - uses: docker/build-push-action@v6
+        if: steps.push.outcome == 'failure'
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          build-args: |
+            SERVICE=${{ matrix.service }}
+            APP_VERSION=${{ steps.meta.outputs.tag }}
+            NEXT_PUBLIC_DASH0_RUM_ENDPOINT=${{ vars.DASH0_RUM_ENDPOINT }}
+            NEXT_PUBLIC_DASH0_RUM_AUTH_TOKEN=${{ vars.DASH0_RUM_AUTH_TOKEN }}
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
   deploy:
@@ -79,7 +110,7 @@ jobs:
           git fetch -q origin "$GITHUB_SHA"
           git reset -q --hard "$GITHUB_SHA"
           for n in web search-api game-api; do
-            N="$n" IMG="ghcr.io/${OWNER}/conquest-$n" T="$TAG" \
+            N="$n" IMG="ghcr.io/${OWNER}/conquest-web" T="$n-$TAG" \
               yq -i '(.images[] | select(.name == strenv(N))) |= (.newName = strenv(IMG) | .newTag = strenv(T))' deploy/kustomization.yaml
           done
           git commit -qam "deploy: ${TAG} [skip ci]"

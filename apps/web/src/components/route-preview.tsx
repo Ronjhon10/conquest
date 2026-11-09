@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { useEffect, useState } from "react";
 import type {
   Ally,
@@ -276,7 +277,7 @@ export function RouteContent({
 }
 export function RoutePreview({
   view,
-  conf = "conf-demo",
+  conf = DEMO_CONFERENCE_ID,
   talkId,
 }: {
   view: string;
@@ -327,7 +328,10 @@ export function RoutePreview({
               )
             ).flatMap((result) => result.status === "fulfilled" ? [result.value] : []),
           }))
-        : api.talks(),
+        : view === "boss" && talkId
+          // The boss's own talk: the first 100 talks by time miss most bosses.
+          ? api.talk(talkId).then((r) => ({ results: [{ talk: r.talk, speakers: r.speakers }] }))
+          : api.talks(),
       attendeeRequest,
       view === "live" ? api.leaderboard(conf) : Promise.resolve({ rows: [] }),
     ])

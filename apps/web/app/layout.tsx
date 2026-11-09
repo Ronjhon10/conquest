@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppShell } from "../src/components/app-shell";
+import { Rum } from "../src/components/rum";
 import "../../../brand-assets/design-system/tokens.css";
 import "./globals.css";
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Rum />
         <AppShell>{children}</AppShell>
       </body>
     </html>

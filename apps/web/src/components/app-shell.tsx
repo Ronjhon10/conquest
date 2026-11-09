@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { Icon } from "./icon";
+import { Brand } from "./brand";
 import mapStyles from "./dungeon-map.module.css";
+import { DEMO_CONFERENCE_ID } from "../lib/demo";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -17,10 +19,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </a>
       {!immersive && <header className="site-header">
         <Link href="/" className="brand" aria-label="Conquest home">
-          CONQUEST
+          <Brand />
         </Link>
         <nav aria-label="Main navigation">
-          <Link href="/c/conf-demo/map">My map</Link>
+          <Link href={`/c/${DEMO_CONFERENCE_ID}/map`}>My map</Link>
           <Link href="/organizer/new" className="nav-organize">
             Organizers <Icon name="arrow-up-right" />
           </Link>
@@ -36,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       {!immersive && <footer className="site-footer">
-        <span className="brand-small">CONQUEST</span>
+        <span className="brand-small"><Brand compact /></span>
         <p>Find your talks. Meet your party.</p>
         <span>Made for the moments between sessions.</span>
       </footer>}
