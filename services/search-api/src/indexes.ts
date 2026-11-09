@@ -27,11 +27,17 @@ export function talksMapping({ semantic }: IndexOptions) {
       ends_at: { type: "date" },
       track: { type: "keyword" },
       level: { type: "keyword" },
-      tags: { type: "keyword", ...toSemantic },
+      // Lowercased so a title-cased goal ("AI Inference + Agentic") matches its tag exactly.
+      tags: { type: "keyword", normalizer: "lowercase_keyword", ...toSemantic },
       ...(semantic ? { semantic: { type: "semantic_text", inference_id: INFERENCE_ID } } : {}),
     },
   } as const;
 }
+
+/** Analysis only: Elastic Serverless refuses shard/replica settings but accepts these. */
+export const talksSettings = {
+  analysis: { normalizer: { lowercase_keyword: { type: "custom", filter: ["lowercase"] } } },
+} as const;
 
 export const speakersMapping = {
   dynamic: "strict",
@@ -48,12 +54,12 @@ export const speakersMapping = {
 export async function ensureIndexes(es: EsPort, opts: IndexOptions): Promise<{ created: string[] }> {
   const created: string[] = [];
   const wanted = [
-    [INDEX.talks, talksMapping(opts)],
-    [INDEX.speakers, speakersMapping],
+    [INDEX.talks, { mappings: talksMapping(opts), settings: talksSettings }],
+    [INDEX.speakers, { mappings: speakersMapping }],
   ] as const;
-  for (const [index, mappings] of wanted) {
+  for (const [index, body] of wanted) {
     if (await es.indexExists(index)) continue;
-    await es.createIndex(index, { mappings });
+    await es.createIndex(index, body);
     created.push(index);
   }
   return { created };
