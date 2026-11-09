@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PromptHealth Brand Guide</title>
+<!-- Exact fonts are "VCR OSD Mono" and "PP Neue Montreal". If they are installed or self-hosted they win;
+     otherwise these Google fonts are the closest free stand-ins. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@100;200;400&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   PROMPTHEALTH TOKENS (taken from prompthealth.com/pps/2025)
+   ============================================================ */
+:root{
+  /* Prompt Labs: dark CRT theme */
+  --ph-main:#52dcff;      /* default theme, cyan */
+  --ph-booth:#4e7bf2;     /* blue */
+  --ph-sessions:#a669d5;  /* purple */
+  --ph-party:#ff6242;     /* red-orange */
+  --ph-sponsors:#fea02d;  /* amber */
+  --ph-alert:#ff5252;     /* error / brand red */
+  --ph-grad-1:#fea02d; --ph-grad-2:#ff4a4a; --ph-grad-3:#fd5498; --ph-grad-4:#6385ff; --ph-grad-5:#80eaff;
+  --ph-gradient:linear-gradient(135deg,var(--ph-grad-1) 20%,var(--ph-grad-2) 40%,var(--ph-grad-3) 60%,var(--ph-grad-4) 80%,var(--ph-grad-5));
+
+  /* Surfaces */
+  --ph-bezel:#000000;     /* 20px monitor frame */
+  --ph-screen:#1c1c1a;    /* screen background */
+  --ph-deep:#131313;
+  --ph-white:#ffffff;
+  --ph-hairline:rgba(255,255,255,.3);
+
+  /* Prompt Health core (light site) */
+  --ph-brand:#ff5252; --ph-brand-hover:#df4444; --ph-navy:#153442; --ph-navy-base:#205066;
+  --ph-ink:#191919; --ph-grey-150:#c3c3c3; --ph-grey-175:#b0b0b0; --ph-grey-200:#7b7b7b;
+  --ph-paper:#efeeec; --ph-sky-pale:#d1e8f6; --ph-sky-mid:#8fc4e5; --ph-sky-bg:#e8f5f9;
+
+  /* Live theme: swapped per section */
+  --theme:var(--ph-main);
+
+  /* Type */
+  --font-mono:"VCR OSD Mono","VCR OSD MONO","VT323",ui-monospace,monospace;
+  --font-sans:"PP Neue Montreal","Ppneuemontreal","Inter Tight",Arial,sans-serif;
+
+  /* Motion */
+  --ease-snap:cubic-bezier(0.19,1,0.251,1.147);  /* slight overshoot, 0.3s */
+  --ease-out:cubic-bezier(0.19,1,0.22,1);
+  --ease-slide:cubic-bezier(0.16,1,0.3,1);       /* 0.5s panels */
+  --ease-soft:cubic-bezier(0.075,0.82,0.165,1);  /* 0.4s */
+
+  color-scheme:dark;
+}
+/* The brand is dark only. Light-mode viewers get the same screen. */
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:dark; } }
+:root[data-theme="dark"]{ color-scheme:dark; }
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ph-bezel)}
+body{
+  background:var(--ph-screen);color:var(--ph-white);
+  font-family:var(--font-sans);font-weight:100;font-size:19.2px;line-height:1.4;
+  border:20px solid var(--ph-bezel);min-height:100vh;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+@media (max-width:700px){ body{border-width:8px;font-size:16px} }
+
+/* ---------- CRT overlay (fixed, non-interactive) ---------- */
+.crt{position:fixed;inset:0;pointer-events:none;z-index:50}
+.crt::before{ /* scanlines */
+  content:"";position:absolute;inset:-10px 0 0 0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.3) 2px 4px);
+  animation:scanlines 8s linear infinite;
+}
+.crt::after{ /* RGB sub-pixels + vignette */
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(rgba(0,0,0,0) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,.2) 80%,rgba(0,0,0,.6) 100%),
+    repeating-linear-gradient(90deg,rgba(255,0,0,.06) 0 1px,rgba(0,255,0,.06) 1px 2px,rgba(0,0,255,.06) 2px 3px);
+  animation:flicker .1s ease infinite;
+}
+.grid-bg{ /* faint dot grid seen behind the screen */
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.5px);
+  background-size:48px 48px;background-position:12px 12px;
+}
+@keyframes scanlines{to{transform:translateY(10px)}}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.98}}
+@keyframes marquee{to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){ .crt::before,.crt::after,.ticker-track{animation:none} }
+
+/* ---------- Type primitives ---------- */
+.mono{font-family:var(--font-mono);font-weight:400;text-transform:uppercase;letter-spacing:.15em;color:var(--theme);line-height:1.1}
+.label{font-family:var(--font-mono);font-size:14.4px;letter-spacing:.35em;text-transform:uppercase;color:var(--theme)}
+.chroma{text-shadow:1px 1px 0 rgba(255,0,255,.3),-1px -1px 0 rgba(0,255,255,.3)}
+h1,h2,h3{font-weight:100;letter-spacing:.05em;line-height:1}
+h2{font-size:48px}
+h3{font-size:28.8px;line-height:1.2}
+p{max-width:58ch}
+.muted{color:rgba(255,255,255,.7)}
+
+/* ---------- Shell ---------- */
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:24px 22px 120px}
+.topbar{display:flex;align-items:center;gap:16px;padding:20px 0}
+.lockup{
+  flex:none;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;
+  border:2px solid transparent;
+  background:linear-gradient(var(--ph-screen),var(--ph-screen)) padding-box,var(--ph-gradient) border-box;
+}
+.lockup b{font-family:var(--font-sans);font-weight:400;font-size:22px;letter-spacing:-.02em;line-height:.9;text-transform:uppercase;
+  background:var(--ph-gradient);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lockup i{width:26px;height:26px;border-radius:6px;background:var(--ph-gradient);display:grid;place-items:center}
+.lockup i::after{content:"";width:12px;height:12px;border-radius:50%;border:3px dotted var(--ph-screen)}
+.ticker{flex:1;min-width:0;display:flex;align-items:center;gap:24px;border-bottom:1px solid var(--theme);padding-bottom:10px;overflow:hidden}
+.ticker .label{flex:none;font-size:14.24px;letter-spacing:2px}
+.ticker-win{flex:1;overflow:hidden;white-space:nowrap;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.ticker-track{display:inline-block;animation:marquee 30s linear infinite}
+.ticker-track span{font-family:var(--font-mono);font-size:14.24px;letter-spacing:2px;text-transform:uppercase;color:var(--theme)}
+@media (max-width:700px){ .ticker .label{display:none} }
+
+/* Section tab bar with slanted slats */
+.tabbar{display:flex;align-items:stretch;border-bottom:2px solid var(--theme);margin:32px 0 0;position:sticky;top:0;z-index:20;background:var(--ph-screen)}
+.slats{flex:1;min-width:60px;height:34px;align-self:end;
+  background:linear-gradient(var(--theme),var(--theme)) left/90px 100% no-repeat,
+             repeating-linear-gradient(-60deg,transparent 0 22px,var(--theme) 22px 34px) 90px 0/120px 100% no-repeat}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none}
+.tab{appearance:none;background:none;border:0;border-left:1px solid color-mix(in srgb,var(--theme) 50%,transparent);
+  font-family:var(--font-mono);font-size:14.4px;letter-spacing:5.76px;text-transform:uppercase;color:var(--theme);
+  padding:10px 18px;transition:.3s var(--ease-snap);white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--theme);color:var(--ph-white)}
+.tab:hover:not([aria-selected="true"]){background:color-mix(in srgb,var(--theme) 15%,transparent)}
+
+section{padding:72px 0 0;scroll-margin-top:60px}
+.sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:40px;border-bottom:1px solid var(--theme);padding-bottom:24px;margin-bottom:32px}
+.sec-head h2{margin-top:10px}
+@media (max-width:800px){ .sec-head{grid-template-columns:1fr;gap:12px} h2{font-size:36px} }
+
+/* ---------- Panels (themed boxes with hairline borders) ---------- */
+.panel{border:1px solid var(--theme);background:color-mix(in srgb,var(--theme) 6%,transparent);padding:18px 20px}
+.panel .label{display:block;margin-bottom:14px;font-size:13px}
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))}
+
+/* Type specimens */
+.spec{display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:baseline;padding:18px 0;border-bottom:1px solid var(--ph-hairline)}
+.spec code{font-family:var(--font-mono);font-size:13px;letter-spacing:1px;color:rgba(255,255,255,.55);text-transform:uppercase;line-height:1.5}
+@media (max-width:700px){ .spec{grid-template-columns:1fr;gap:6px} }
+
+/* Swatches */
+.sw{border:1px solid var(--ph-hairline);display:flex;flex-direction:column;cursor:pointer;transition:.3s var(--ease-snap)}
+.sw:hover{border-color:var(--ph-white)}
+.sw .chip{height:110px;position:relative}
+.sw .meta{padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.sw .meta b{font-weight:200;font-size:19px}
+.sw .meta span{font-family:var(--font-mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.sw.copied .meta span:last-child::after{content:"  // COPIED";color:var(--theme)}
+.sw-light .meta{background:var(--ph-paper);color:var(--ph-ink)}
+.sw-light .meta span{color:var(--ph-grey-200)}
+
+/* File cards (home screen cards) */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+@media (max-width:900px){ .cards{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.card{--c:var(--ph-main);position:relative;aspect-ratio:2/3;max-height:300px;width:100%;
+  background:rgba(82,220,255,.1);border-bottom:2px solid var(--c);
+  display:flex;flex-direction:column;justify-content:space-between;padding:20px;overflow:hidden;cursor:pointer;
+  transition:background .3s var(--ease-snap)}
+.card .label{color:var(--ph-main);font-size:14.4px;letter-spacing:5.04px;position:relative}
+.card h3{font-size:clamp(24px,2.6vw,32px);letter-spacing:.02em;position:relative}
+.card::before{ /* topo lines appear on hover */
+  content:"";position:absolute;inset:0;opacity:0;transition:opacity .3s;
+  background:repeating-radial-gradient(circle at 70% 40%,transparent 0 14px,rgba(255,255,255,.18) 14px 15px);
+}
+.card .bracket{position:absolute;top:66px;left:20px;width:40px;height:40px;opacity:0;transform:scale(.6);transition:.3s var(--ease-snap);
+  background:
+    linear-gradient(#fff,#fff) 0 0/10px 2px no-repeat,linear-gradient(#fff,#fff) 0 0/2px 10px no-repeat,
+    linear-gradient(#fff,#fff) 100% 0/10px 2px no-repeat,linear-gradient(#fff,#fff) 100% 0/2px 10px no-repeat,
+    linear-gradient(#fff,#fff) 0 100%/10px 2px no-repeat,linear-gradient(#fff,#fff) 0 100%/2px 10px no-repeat,
+    linear-gradient(#fff,#fff) 100% 100%/10px 2px no-repeat,linear-gradient(#fff,#fff) 100% 100%/2px 10px no-repeat;
+  border:1px solid rgba(255,255,255,.3)}
+.card:hover{background:var(--c)}
+.card:hover::before{opacity:1}
+.card:hover .bracket{opacity:1;transform:scale(1)}
+.card:hover .label{color:var(--ph-white)}
+
+/* Buttons */
+.btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--font-mono);font-size:14.7px;font-weight:700;letter-spacing:2.94px;text-transform:uppercase;
+  color:var(--theme);background:transparent;border:1px solid var(--theme);padding:16px 18px;min-height:52px;
+  transition:color .3s,background .3s var(--ease-snap);cursor:pointer;text-decoration:none}
+.btn.grad:hover{background:var(--ph-gradient);color:var(--ph-white);border-color:var(--ph-main)}
+.btn.fill:hover{background:var(--theme);color:var(--ph-white)}
+.btn.square{width:52px;padding:0;background:#efefef;color:#000;border-color:#efefef}
+.btn.alert{color:var(--ph-alert);border-color:var(--ph-alert)}
+.btn.alert:hover{background:var(--ph-alert);color:#fff}
+.tag{display:inline-flex;align-items:center;gap:8px;background:var(--theme);color:#000;font-family:var(--font-mono);font-size:14.4px;letter-spacing:2.88px;text-transform:uppercase;padding:4px 10px;line-height:1}
+.pager{display:flex;align-items:center;gap:12px}
+.pager .btn{width:52px;padding:0;font-weight:400}
+.dots{display:flex;gap:6px}
+.dots i{width:13px;height:13px;border:1px solid var(--theme);transition:.3s var(--ease-snap)}
+.dots i.on{background:var(--theme)}
+.check{display:flex;align-items:center;gap:14px;border:1px solid var(--theme);padding:12px 14px;font-family:var(--font-mono);font-size:14.4px;letter-spacing:2px;text-transform:uppercase;color:#fff;cursor:pointer;transition:.3s var(--ease-snap)}
+.check i{width:14px;height:14px;border:1px solid #fff;flex:none}
+.check.on{background:var(--theme)}
+.check.on i{background:#000;border-color:#000}
+
+/* Data table (sessions-style) */
+.dt{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);border:1px solid var(--theme);border-left:6px solid var(--theme)}
+.dt > div{padding:16px 18px;border-bottom:1px solid var(--theme)}
+.dt > div:nth-child(odd){border-right:1px solid var(--theme)}
+.dt > div:nth-last-child(-n+2){border-bottom:0}
+.dt .label{display:block;margin-bottom:12px;font-size:13px}
+@media (max-width:600px){ .dt{grid-template-columns:1fr} .dt > div:nth-child(odd){border-right:0} .dt > div:nth-last-child(2){border-bottom:1px solid var(--theme)} }
+
+/* Duotone photo treatment */
+.duo{aspect-ratio:1;position:relative;overflow:hidden;background:var(--ph-sponsors)}
+.duo .face{position:absolute;inset:0;background:
+  radial-gradient(circle at 50% 38%,#ffd7a1 0 17%,transparent 17.5%),
+  radial-gradient(ellipse at 50% 95%,#ffd7a1 0 40%,transparent 40.5%);mix-blend-mode:normal}
+.duo::after{content:"";position:absolute;inset:0;background:var(--theme);mix-blend-mode:multiply}
+.duo.alt{background:var(--ph-party)}
+
+/* Effects demos */
+.fx{height:170px;position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid var(--ph-hairline);background:var(--ph-deep)}
+.fx .demo-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.6) 2px 4px)}
+.fx .demo-rgb{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,0,0,.35) 0 1px,rgba(0,255,0,.35) 1px 2px,rgba(0,0,255,.35) 2px 3px)}
+.fx .demo-vig{position:absolute;inset:0;background:radial-gradient(rgba(0,0,0,0) 0%,rgba(0,0,0,0) 50%,rgba(0,0,0,.2) 80%,rgba(0,0,0,.8) 100%)}
+.glow{filter:drop-shadow(var(--theme) 0 -4px 20px)}
+.standby{font-family:var(--font-mono);font-size:clamp(28px,5vw,44px);letter-spacing:.12em;color:#fff;
+  filter:drop-shadow(rgba(255,0,255,.5) 2px 2px 0) drop-shadow(rgba(0,255,255,.5) -2px -2px 0) blur(.5px)}
+
+/* Motion demos */
+.ease-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.track{height:44px;border:1px solid var(--ph-hairline);position:relative}
+.track i{position:absolute;top:8px;left:8px;width:26px;height:26px;background:var(--theme)}
+.track.go i{left:calc(100% - 34px)}
+
+/* Cursor playground */
+.play{height:280px;border:1px solid var(--theme);position:relative;display:grid;place-items:center;overflow:hidden;background:color-mix(in srgb,var(--theme) 5%,transparent)}
+.play.cross{cursor:none}
+
+/* Token block */
+pre{font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6;color:rgba(255,255,255,.85);background:var(--ph-deep);border:1px solid var(--ph-hairline);padding:20px;overflow:auto;max-height:520px}
+ul.rules{list-style:none;display:grid;gap:12px}
+ul.rules li{padding-left:28px;position:relative}
+ul.rules li::before{content:"//";position:absolute;left:0;font-family:var(--font-mono);color:var(--theme)}
+
+/* ---------- Custom cursor ---------- */
+.has-cursor, .has-cursor *{cursor:none !important}
+.cur-dot{position:fixed;left:0;top:0;width:14.4px;height:14.4px;border-radius:50%;background:#fff;mix-blend-mode:difference;pointer-events:none;z-index:100;
+  transform:translate(-50%,-50%);transition:width .3s var(--ease-snap),height .3s var(--ease-snap),opacity .2s}
+.cur-dot.big{width:44px;height:44px}
+.cur-dot.hide{opacity:0}
+.ripple{position:fixed;width:14px;height:14px;border:1px solid #fff;border-radius:50%;pointer-events:none;z-index:99;transform:translate(-50%,-50%);mix-blend-mode:difference;animation:ripple .6s var(--ease-soft) forwards}
+@keyframes ripple{to{width:60px;height:60px;opacity:0}}
+.cross-h,.cross-v{position:fixed;background:var(--ph-hairline);pointer-events:none;z-index:98;opacity:0;transition:opacity .2s}
+.cross-h{left:0;right:0;height:1px}
+.cross-v{top:0;bottom:0;width:1px}
+.cross-box{position:fixed;width:28.8px;height:28.8px;border:2px solid #fff;display:grid;place-items:center;pointer-events:none;z-index:99;opacity:0;transform:translate(-50%,-50%) rotate(0);transition:opacity .2s,transform .3s var(--ease-snap)}
+.cross-box::after{content:"";width:8px;height:8px;background:#fff}
+.crossmode .cross-h,.crossmode .cross-v,.crossmode .cross-box{opacity:1}
+.crossmode .cur-dot{opacity:0}
+.crossmode.pressing .cross-box{transform:translate(-50%,-50%) rotate(45deg) scale(.8)}
+@media (pointer:coarse){ .cur-dot,.cross-h,.cross-v,.cross-box{display:none} }
+
+footer{margin-top:96px;border-top:1px solid var(--theme);padding-top:20px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="crt" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="topbar">
+    <span class="lockup"><i></i><b>Prompt<br>Health</b></span>
+    <div class="ticker">
+      <span class="label" id="sound">Sound on &nbsp;■</span>
+      <div class="ticker-win"><div class="ticker-track" id="ticker"></div></div>
+    </div>
+  </header>
+
+  <div style="padding:64px 0 8px">
+    <span class="label chroma">PromptHealth // Brand guide // v1</span>
+    <h1 style="font-size:clamp(44px,8vw,108px);margin-top:18px;letter-spacing:.02em">A clinic computer<br>from the future.</h1>
+    <p class="muted" style="margin-top:24px">Fonts, colors, effects, motion and cursor rules lifted from prompthealth.com/pps/2025. The screen is a dark CRT monitor in a black bezel. Labels talk like a terminal. Headlines are thin and quiet. Color comes from one live theme at a time.</p>
+  </div>
+
+  <nav class="tabbar" aria-label="Theme">
+    <div class="slats"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-t="main" aria-selected="true">Main</button>
+      <button class="tab" role="tab" data-t="booth" aria-selected="false">Booth</button>
+      <button class="tab" role="tab" data-t="sessions" aria-selected="false">Sessions</button>
+      <button class="tab" role="tab" data-t="party" aria-selected="false">Party</button>
+      <button class="tab" role="tab" data-t="sponsors" aria-selected="false">Sponsors</button>
+    </div>
+  </nav>
+
+  <!-- 001 TYPE -->
+  <section id="type">
+    <div class="sec-head">
+      <div><span class="label">001//TY</span><h2>Typography</h2></div>
+      <p class="muted">Two faces, never more. <b style="font-weight:400">VCR OSD Mono</b> for every label, number, button and system message, always uppercase and tracked wide. <b style="font-weight:400">PP Neue Montreal</b> at weight 100 (Thin) for headlines and body. Base size is 19.2px. Install both fonts; VT323 and Inter Tight are the stand-ins this page falls back to.</p>
+    </div>
+
+    <div class="spec"><code>Display / Neue Montreal 100<br>48px · lh 1.0 · ls 2.4px</code><div style="font-size:48px;letter-spacing:2.4px;line-height:1">Speaker Sessions</div></div>
+    <div class="spec"><code>Title / Neue Montreal 100<br>28.8px · lh 1.2 · ls 1.44px</code><div style="font-size:28.8px;letter-spacing:1.44px;line-height:1.2">Redefining compensation: retain top talent</div></div>
+    <div class="spec"><code>Lead / Neue Montreal 100<br>24px · lh 1.2 · ls 1.2px</code><div style="font-size:24px;letter-spacing:1.2px;line-height:1.2">We appreciate our partners and their commitment to our shared success.</div></div>
+    <div class="spec"><code>Body / Neue Montreal 100<br>19.2–21.6px · lh 1.3 · ls .05em</code><div style="font-size:20.4px;letter-spacing:1.02px;line-height:1.2">Join this roundtable for an in-depth discussion on the present and future of AI in physical therapy.</div></div>
+    <div class="spec"><code>Caption / Neue Montreal 100<br>14.4px · lh 1.4 · ls .72px</code><div style="font-size:14.4px;letter-spacing:.72px;line-height:1.4">VP of AI Engineering, PromptHealth</div></div>
+    <div class="spec"><code>Hero label / VCR 400<br>19.2px · ls 2.4px · upper</code><div class="mono chroma" style="font-size:19.2px;letter-spacing:2.4px">APTA Private Practice <span style="opacity:.45">Conference</span></div></div>
+    <div class="spec"><code>Index / VCR 400<br>14.4px · ls 5.04px · upper</code><div class="mono" style="font-size:14.4px;letter-spacing:5.04px">001//BO &nbsp; 002//SE &nbsp; 003//PA</div></div>
+    <div class="spec"><code>Field label / VCR 400<br>13–14.4px · ls 5.76px · upper</code><div class="mono" style="font-size:14.4px;letter-spacing:5.76px">Date and time</div></div>
+    <div class="spec"><code>Button / VCR 700<br>14.7px · ls 2.94px · upper</code><div class="mono" style="font-size:14.7px;letter-spacing:2.94px;font-weight:700">Why PromptHealth?</div></div>
+    <div class="spec"><code>Micro / VCR 400<br>8.4–12px · ls 2px · upper</code><div class="mono" style="font-size:12px;letter-spacing:2px;color:#d4f6ff">Drag + drop stickers &nbsp;!!! &nbsp;ERROR:0097454</div></div>
+
+    <div class="grid g2" style="margin-top:32px">
+      <div class="panel"><span class="label">Do</span><ul class="rules">
+        <li>Number things like files: <span class="mono" style="font-size:.8em">001//BO</span>, <span class="mono" style="font-size:.8em">SPKR 1/3</span>.</li>
+        <li>Keep mono text uppercase with wide tracking (0.15–0.4em).</li>
+        <li>Use Thin (100) for every sans size, even small captions.</li>
+      </ul></div>
+      <div class="panel"><span class="label" style="color:var(--ph-alert)">Don't</span><ul class="rules">
+        <li>Bold the sans. Weight 400 is the heaviest it goes.</li>
+        <li>Set paragraphs in mono. Mono is for labels and short commands only.</li>
+        <li>Add a third typeface.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 002 COLOR -->
+  <section id="color">
+    <div class="sec-head">
+      <div><span class="label">002//CO</span><h2>Color</h2></div>
+      <p class="muted">The screen is near-black <span class="mono" style="font-size:.75em">#1C1C1A</span> inside a pure black bezel. Text is white. One theme color drives every line, label and fill on a screen. Cyan is the default; each section swaps in its own. Click a swatch to copy it. Use the tabs above to see the theme change everything.</p>
+    </div>
+
+    <span class="label">Theme colors</span>
+    <div class="grid g3" style="margin:16px 0 36px" id="sw-theme"></div>
+
+    <span class="label">Signature gradient · 135°</span>
+    <div style="height:120px;background:var(--ph-gradient);margin:16px 0 10px"></div>
+    <div class="grid g4" style="margin-bottom:36px" id="sw-grad"></div>
+
+    <span class="label">Screen</span>
+    <div class="grid g4" style="margin:16px 0 36px" id="sw-screen"></div>
+
+    <span class="label">PromptHealth core · light marketing site</span>
+    <div class="grid g4" style="margin:16px 0" id="sw-core"></div>
+    <p class="muted" style="font-size:16px">The light palette belongs to the main marketing site: red <span class="mono" style="font-size:.8em">#FF5252</span> for calls to action, navy <span class="mono" style="font-size:.8em">#153442</span> for links and secondary buttons, ink <span class="mono" style="font-size:.8em">#191919</span> at 80% for body text.</p>
+  </section>
+
+  <!-- 003 FX -->
+  <section id="fx">
+    <div class="sec-head">
+      <div><span class="label">003//FX</span><h2>CRT effects</h2></div>
+      <p class="muted">Everything sits under a fixed, click-through overlay. Three layers stack on top of the page, plus a chromatic split on display text. This page runs the same overlay.</p>
+    </div>
+    <div class="grid g4">
+      <div><div class="fx"><div class="demo-scan"></div><span class="label">Scanlines</span></div><p class="muted" style="font-size:14.4px;margin-top:10px">2px clear, 2px black at 30%. Drifts 10px down over 8s, forever.</p></div>
+      <div><div class="fx"><div class="demo-rgb"></div><span class="label">RGB mask</span></div><p class="muted" style="font-size:14.4px;margin-top:10px">Vertical 1px red, green, blue stripes at 10%. Flickers opacity 1 → .98 every 0.1s.</p></div>
+      <div><div class="fx"><div class="demo-vig"></div><span class="label">Vignette</span></div><p class="muted" style="font-size:14.4px;margin-top:10px">Radial: clear to 50%, 20% black at 80%, 60% black at the edge.</p></div>
+      <div><div class="fx"><span class="standby">Stand by</span></div><p class="muted" style="font-size:14.4px;margin-top:10px">Chromatic split: magenta +1px, cyan −1px at 30%, plus a 0.5px blur on big type.</p></div>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="fx"><span class="mono glow" style="font-size:28px">Signal glow</span></div>
+      <div class="fx" style="background:#000"><span class="mono" style="font-size:18px;color:var(--ph-alert)">// Lockdown sequence &nbsp;<span id="err">ERROR:0097454</span></span></div>
+    </div>
+    <p class="muted" style="font-size:16px;margin-top:14px">Glow: <span class="mono" style="font-size:.8em">drop-shadow(theme 0 -4px 20px)</span>. Alerts flip to red <span class="mono" style="font-size:.8em">#FF5252</span> on black. Blend modes in use: difference (cursor), multiply (photo duotone), screen and color-dodge (glows).</p>
+  </section>
+
+  <!-- 004 COMPONENTS -->
+  <section id="components">
+    <div class="sec-head">
+      <div><span class="label">004//CP</span><h2>Components</h2></div>
+      <p class="muted">Square corners everywhere. 1px theme-color hairlines for structure, 2px for emphasis. Fills only appear on hover or when something is selected.</p>
+    </div>
+
+    <span class="label">File cards · hover one</span>
+    <div class="cards" style="margin:16px 0 40px">
+      <div class="card" style="--c:var(--ph-booth)"><span class="label">001//BO</span><i class="bracket"></i><h3>Booth</h3></div>
+      <div class="card" style="--c:var(--ph-sessions)"><span class="label">002//SE</span><i class="bracket"></i><h3>Sessions</h3></div>
+      <div class="card" style="--c:var(--ph-party)"><span class="label">003//PA</span><i class="bracket"></i><h3>Party</h3></div>
+      <div class="card" style="--c:var(--ph-sponsors)"><span class="label">004//SP</span><i class="bracket"></i><h3>Sponsors</h3></div>
+    </div>
+
+    <div class="grid g2">
+      <div class="panel"><span class="label">Buttons · text scrambles on hover</span>
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <button class="btn grad scramble">Why PromptHealth?</button>
+          <button class="btn fill scramble">Visit site</button>
+          <button class="btn square" aria-label="Close">✕</button>
+          <button class="btn alert scramble">Terminate test</button>
+        </div>
+      </div>
+      <div class="panel"><span class="label">Tag · pager · checklist</span>
+        <span class="tag">⌘ Iconic sponsor</span>
+        <div class="pager" style="margin:18px 0">
+          <button class="btn" id="prev" aria-label="Previous">‹</button>
+          <div class="dots" id="dots"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <button class="btn" id="next" aria-label="Next">›</button>
+        </div>
+        <div class="check on"><i></i>(1121) Main booth</div>
+        <div class="check" style="border-top:0"><i></i>(1028) Partner booth</div>
+      </div>
+    </div>
+
+    <span class="label" style="display:block;margin:40px 0 16px">Data sheet · session detail</span>
+    <div class="grid" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0" id="sheet">
+      <div class="dt">
+        <div><span class="label">Topic</span><h3 style="font-size:24px">AI integration into practice: panel discussion</h3></div>
+        <div><span class="label">Date and time</span><p style="font-size:16.8px;margin-top:28px">Wednesday, November 12<br>1:00pm – 2:30pm</p></div>
+        <div><span class="label">Location</span><p style="font-size:16.8px">Sandlake</p></div>
+        <div><span class="label">Spkr 1/2</span><p style="font-size:16.8px">Speaker name, PT, DPT</p><p style="font-size:13px;margin-top:18px" class="muted">Owner, sample clinic</p></div>
+      </div>
+      <div class="grid" style="grid-template-rows:1fr 1fr;gap:0;border:1px solid var(--theme);border-left:0">
+        <div class="duo"><div class="face"></div></div>
+        <div class="duo alt"><div class="face"></div></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:16px;margin-top:12px">Portraits are duotone: a warm base (amber or red-orange) with the theme color multiplied over it. Placeholders shown.</p>
+  </section>
+
+  <!-- 005 MOTION -->
+  <section id="motion">
+    <div class="sec-head">
+      <div><span class="label">005//MO</span><h2>Motion</h2></div>
+      <p class="muted">Fast and springy. Most things finish in 0.3s with a small overshoot. Panels slide in over 0.5s and settle softly. Marquees and scanlines run linear and never stop.</p>
+    </div>
+    <div class="ease-row" id="eases">
+      <div><div class="track" data-ease="var(--ease-snap)" data-dur=".3s"><i></i></div><code class="mono" style="font-size:13px;display:block;margin-top:8px">Snap · 0.3s · cubic-bezier(0.19, 1, 0.251, 1.147) · hovers, cursor, fills</code></div>
+      <div><div class="track" data-ease="var(--ease-out)" data-dur=".3s"><i></i></div><code class="mono" style="font-size:13px;display:block;margin-top:8px">Out · 0.3s · cubic-bezier(0.19, 1, 0.22, 1) · transforms</code></div>
+      <div><div class="track" data-ease="var(--ease-soft)" data-dur=".4s"><i></i></div><code class="mono" style="font-size:13px;display:block;margin-top:8px">Soft · 0.4s · cubic-bezier(0.075, 0.82, 0.165, 1) · reveals</code></div>
+      <div><div class="track" data-ease="var(--ease-slide)" data-dur=".5s"><i></i></div><code class="mono" style="font-size:13px;display:block;margin-top:8px">Slide · 0.5s · cubic-bezier(0.16, 1, 0.3, 1) · panels, carousels</code></div>
+    </div>
+    <button class="btn fill scramble" id="play" style="margin-top:20px">Run easing</button>
+    <div class="grid g3" style="margin-top:32px">
+      <div class="panel"><span class="label">Ticker</span><p style="font-size:16px">Header marquee loops venue, dates and year, separated by <span class="mono" style="font-size:.85em">|</span>. 30s linear (50s for slower bands).</p></div>
+      <div class="panel"><span class="label">Text scramble</span><p style="font-size:16px">On hover, mono text cycles random glyphs and resolves left to right in about 0.4s. Loading copy types itself: "Accessing files..."</p></div>
+      <div class="panel"><span class="label">Sound</span><p style="font-size:16px">UI clicks have sound (Howler). The header shows a <span class="mono" style="font-size:.85em">Sound on ■</span> toggle. Always offer mute.</p></div>
+    </div>
+  </section>
+
+  <!-- 006 CURSOR + SCROLL -->
+  <section id="cursor">
+    <div class="sec-head">
+      <div><span class="label">006//CU</span><h2>Cursor and scroll</h2></div>
+      <p class="muted">The system cursor is hidden. A 14.4px white dot with <span class="mono" style="font-size:.8em">mix-blend-mode: difference</span> follows the mouse, so it inverts whatever is under it. Clicks leave a ripple ring. Over maps and drag areas it turns into a full-screen crosshair.</p>
+    </div>
+    <div class="grid g2">
+      <div class="play"><span class="label">Dot mode · click anywhere</span></div>
+      <div class="play cross" data-cross><span class="label">Crosshair mode · hover, press</span></div>
+    </div>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="panel"><span class="label">Cursor spec</span><ul class="rules" style="font-size:16px">
+        <li>Dot: 14.4px white circle, difference blend, follows the pointer 1:1.</li>
+        <li>On links and cards the dot grows; the cursor style is still pointer underneath.</li>
+        <li>Crosshair: 1px lines at white 30% across the whole viewport, a 28.8px square with a 2px white border, solid center. Snaps with the 0.3s overshoot ease.</li>
+        <li>Draggable things (stickers) use <span class="mono" style="font-size:.85em">grab</span>.</li>
+        <li>Touch devices: no custom cursor at all.</li>
+      </ul></div>
+      <div class="panel"><span class="label">Scroll spec</span><ul class="rules" style="font-size:16px">
+        <li>The home screen does not scroll. It is one fixed monitor: black 20px bezel, header bar, centered content.</li>
+        <li>Opening a card swaps the screen to that section and re-tints everything with its theme color.</li>
+        <li>Sections move sideways, not down: arrow buttons and square page dots drive a horizontal track that slides 0.5s.</li>
+        <li>Tabs at the top jump between sections; a ✕ returns home.</li>
+        <li>The mouse wheel does nothing on the main screen. Long reading pages (like this guide) may scroll, with the tab bar sticky.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 007 TOKENS -->
+  <section id="tokens">
+    <div class="sec-head">
+      <div><span class="label">007//TK</span><h2>Tokens</h2></div>
+      <p class="muted">Copy this into the app's global CSS. Names follow the site's own variables (<span class="mono" style="font-size:.8em">--_prompt-labs---booth</span> and so on), shortened.</p>
+    </div>
+    <button class="btn fill scramble" id="copy-tokens" style="margin-bottom:14px">Copy tokens</button>
+<pre id="tokens-pre">:root {
+  /* theme */
+  --ph-main: #52dcff;   --ph-booth: #4e7bf2;   --ph-sessions: #a669d5;
+  --ph-party: #ff6242;  --ph-sponsors: #fea02d; --ph-alert: #ff5252;
+  --theme: var(--ph-main);  /* swap per section */
+
+  /* gradient */
+  --ph-gradient: linear-gradient(135deg, #fea02d 20%, #ff4a4a 40%, #fd5498 60%, #6385ff 80%, #80eaff);
+
+  /* surfaces */
+  --ph-bezel: #000;  --ph-screen: #1c1c1a;  --ph-deep: #131313;
+  --ph-hairline: rgba(255,255,255,.3);
+
+  /* core (light site) */
+  --ph-brand: #ff5252;  --ph-brand-hover: #df4444;  --ph-navy: #153442;
+  --ph-ink: #191919;    --ph-grey-200: #7b7b7b;     --ph-paper: #efeeec;
+
+  /* type */
+  --font-mono: "VCR OSD Mono", monospace;          /* labels, buttons, numbers */
+  --font-sans: "PP Neue Montreal", Arial, sans-serif; /* weight 100 */
+  --fs-base: 19.2px;  --fs-display: 48px;  --fs-title: 28.8px;
+  --fs-label: 14.4px; --ls-label: .35em;   --ls-button: .2em;
+
+  /* motion */
+  --ease-snap:  cubic-bezier(0.19, 1, 0.251, 1.147);  /* .3s */
+  --ease-out:   cubic-bezier(0.19, 1, 0.22, 1);       /* .3s */
+  --ease-soft:  cubic-bezier(0.075, 0.82, 0.165, 1);  /* .4s */
+  --ease-slide: cubic-bezier(0.16, 1, 0.3, 1);        /* .5s */
+}
+
+/* CRT overlay */
+.crt::before { background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.3) 2px 4px);
+               animation: scanlines 8s linear infinite; }
+.crt::after  { background:
+  radial-gradient(transparent 50%, rgba(0,0,0,.2) 80%, rgba(0,0,0,.6) 100%),
+  repeating-linear-gradient(90deg, rgba(255,0,0,.1) 0 1px, rgba(0,255,0,.1) 1px 2px, rgba(0,0,255,.1) 2px 3px);
+  animation: flicker .1s ease infinite; }
+.chroma { text-shadow: 1px 1px 0 rgba(255,0,255,.3), -1px -1px 0 rgba(0,255,255,.3); }
+@keyframes scanlines { to { transform: translateY(10px); } }
+@keyframes flicker { 50% { opacity: .98; } }</pre>
+  </section>
+
+  <footer>
+    <span class="label">PromptHealth // brand guide</span>
+    <span class="label" style="opacity:.6">Source: prompthealth.com/pps/2025 · captured 2026-11-09</span>
+  </footer>
+</div>
+
+<div class="cur-dot hide" id="dot"></div>
+<div class="cross-h" id="ch"></div><div class="cross-v" id="cv"></div><div class="cross-box" id="cb"></div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const root = document.documentElement;
+
+  // Ticker
+  const t = "PromptHealth | Rosen Shingle Creek. Orlando, FL | Nov-12 to Nov-15 | 2025 | ";
+  $("#ticker").innerHTML = `<span>${t.repeat(6)}</span><span>${t.repeat(6)}</span>`;
+
+  // Swatches
+  const sw = (id, list, light) => $(id).innerHTML = list.map(([n, hex, note]) =>
+    `<div class="sw${light ? " sw-light" : ""}" data-hex="${hex}" tabindex="0"><div class="chip" style="background:${hex}"></div><div class="meta"><b>${n}</b><span>${note}</span><span>${hex}</span></div></div>`).join("");
+  sw("#sw-theme", [
+    ["Main", "#52DCFF", "Default theme · cyan"], ["Booth", "#4E7BF2", "001 · blue"], ["Sessions", "#A669D5", "002 · purple"],
+    ["Party", "#FF6242", "003 · red-orange"], ["Sponsors", "#FEA02D", "004 · amber"], ["Alert", "#FF5252", "Errors · brand red"]]);
+  sw("#sw-grad", [["Stop 1", "#FEA02D", "20%"], ["Stop 2", "#FF4A4A", "40%"], ["Stop 3", "#FD5498", "60%"], ["Stop 4", "#6385FF", "80%"], ["Stop 5", "#80EAFF", "100%"]]);
+  sw("#sw-screen", [["Bezel", "#000000", "Frame · 20px"], ["Screen", "#1C1C1A", "Background"], ["Deep", "#131313", "Wells, video"], ["White", "#FFFFFF", "All text"]]);
+  sw("#sw-core", [["Brand red", "#FF5252", "CTA"], ["Red hover", "#DF4444", "CTA hover"], ["Navy", "#153442", "Links, secondary"], ["Navy base", "#205066", "Text blue"],
+    ["Ink", "#191919", "Body at 80%"], ["Grey 200", "#7B7B7B", "Muted"], ["Paper", "#EFEEEC", "Light bg"], ["Sky pale", "#D1E8F6", "Sky gradient"]], true);
+  $$(".sw").forEach(el => el.addEventListener("click", () => {
+    try { navigator.clipboard.writeText(el.dataset.hex); } catch (e) {}
+    el.classList.add("copied"); setTimeout(() => el.classList.remove("copied"), 1200);
+  }));
+
+  // Theme tabs
+  const themes = { main: "--ph-main", booth: "--ph-booth", sessions: "--ph-sessions", party: "--ph-party", sponsors: "--ph-sponsors" };
+  $$(".tab").forEach(b => b.addEventListener("click", () => {
+    $$(".tab").forEach(x => x.setAttribute("aria-selected", x === b));
+    root.style.setProperty("--theme", `var(${themes[b.dataset.t]})`);
+  }));
+
+  // Text scramble
+  const glyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#%*+=";
+  $$(".scramble").forEach(el => {
+    const final = el.textContent; let raf;
+    el.addEventListener("mouseenter", () => {
+      cancelAnimationFrame(raf); const start = performance.now();
+      const step = now => {
+        const p = Math.min(1, (now - start) / 400), n = Math.floor(p * final.length);
+        el.textContent = final.split("").map((c, i) => i < n || c === " " ? c : glyphs[Math.random() * glyphs.length | 0]).join("");
+        if (p < 1) raf = requestAnimationFrame(step); else el.textContent = final;
+      };
+      raf = requestAnimationFrame(step);
+    });
+  });
+
+  // Pager
+  let page = 0; const dots = $$("#dots i");
+  const go = d => { page = (page + d + dots.length) % dots.length; dots.forEach((x, i) => x.classList.toggle("on", i === page)); };
+  $("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
+  $$(".check").forEach(c => c.onclick = () => c.classList.toggle("on"));
+
+  // Easing demo
+  $$(".track").forEach(tr => tr.querySelector("i").style.transition = `left ${tr.dataset.dur} ${tr.dataset.ease}`);
+  $("#play").onclick = () => $$(".track").forEach(tr => tr.classList.toggle("go"));
+
+  // Copy tokens
+  $("#copy-tokens").onclick = () => { try { navigator.clipboard.writeText($("#tokens-pre").textContent); } catch (e) {} };
+
+  // Error code flicker
+  setInterval(() => { $("#err").textContent = "ERROR:" + String(Math.random() * 1e7 | 0).padStart(7, "0"); }, 900);
+
+  // Custom cursor
+  if (matchMedia("(pointer:fine)").matches) {
+    root.classList.add("has-cursor");
+    const dot = $("#dot"), ch = $("#ch"), cv = $("#cv"), cb = $("#cb");
+    addEventListener("pointermove", e => {
+      dot.classList.remove("hide");
+      dot.style.left = cb.style.left = cv.style.left = e.clientX + "px";
+      dot.style.top = cb.style.top = ch.style.top = e.clientY + "px";
+      const tgt = e.target.closest("a,button,.card,.sw,.check,.tab");
+      dot.classList.toggle("big", !!tgt);
+      root.classList.toggle("crossmode", !!e.target.closest("[data-cross]"));
+    });
+    document.addEventListener("pointerleave", () => dot.classList.add("hide"));
+    addEventListener("pointerdown", e => {
+      root.classList.add("pressing");
+      const r = document.createElement("div"); r.className = "ripple";
+      r.style.left = e.clientX + "px"; r.style.top = e.clientY + "px";
+      document.body.appendChild(r); setTimeout(() => r.remove(), 650);
+    });
+    addEventListener("pointerup", () => root.classList.remove("pressing"));
+  }
+})();
+</script>
+</body>
+</html>

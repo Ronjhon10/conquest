@@ -1,0 +1,574 @@
+<title>Cantina Brand Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Roboto+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: one long scroll; the whole page background fades to a new brand color per section,
+   giant display type left, mono copy right, sticky gradient CTA bar at the bottom.
+   Single-look brand (deliberately not theme-switched): every color is set explicitly. */
+:root {
+  /* Section grounds, in scroll order (measured from the reference site) */
+  --c-blue:   #0057FF;
+  --c-green:  #04D093;
+  --c-lime:   #CDFF3E;
+  --c-yellow: #FFC700;
+  --c-purple: #9E25E8;
+  --c-white:  #FFFFFF;
+  /* Accents */
+  --c-cyan:   #13FDCA;
+  --c-pink:   #FD5DD0;
+  --c-coral:  #F18078;
+  --c-magenta:#C019B9;
+  --c-sun:    #F5FC70;
+  --c-mint:   #33EC56;
+  /* Ink */
+  --c-ink:    #000000;
+  --c-paper:  #FFFFFF;
+  --c-scrim:  rgba(0,0,0,.5);
+  --grad-cta: linear-gradient(270deg, #04D093 1.14%, #F5FC70 99%);
+
+  /* Type */
+  --f-display: "Maricle", "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --f-mono: "Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --t-hero: clamp(64px, 13.5vw, 205px);
+  --t-h1: clamp(44px, 8vw, 120px);
+  --t-h2: clamp(30px, 4.4vw, 60px);
+  --t-h3: 28px;
+  --t-lead: clamp(22px, 3.4vw, 50px);
+  --t-body: 16px;
+  --t-small: 13px;
+
+  /* Shape */
+  --r-pill: 230px;
+  --r-lg: 12px;
+  --r-md: 10px;
+  --r-sm: 6px;
+  --offset: 6px;
+  --ease-bg: background-color .6s ease-in-out;
+  --ease-ui: all .2s linear;
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: auto; }
+body {
+  margin: 0;
+  background-color: var(--c-blue);
+  color: var(--c-ink);
+  font: 400 var(--t-body)/24px var(--f-mono);
+  transition: var(--ease-bg);
+  overflow-x: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  body, * { transition: none !important; animation: none !important; }
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 60; background: var(--c-ink);
+}
+a { color: inherit; transition: var(--ease-ui); }
+a.inline { color: var(--c-cyan); text-decoration: underline; }
+:focus-visible { outline: 3px solid var(--c-ink); outline-offset: 3px; }
+
+.wrap {
+  max-width: 1140px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Header ---------- */
+.hdr {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: var(--c-scrim);
+  color: var(--c-paper);
+}
+.hdr .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-block: 14px; }
+.menu { display: flex; align-items: center; gap: 12px; font: 700 12px/1 var(--f-mono); text-transform: uppercase; letter-spacing: .04em; }
+.langs { justify-self: end; display: flex; gap: 8px; }
+
+/* ---------- Atoms ---------- */
+.icon-btn {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--c-paper); color: var(--c-ink);
+  border: 2px solid var(--c-ink); border-radius: var(--r-md);
+  box-shadow: 4px 4px 0 var(--c-ink);
+  cursor: pointer; transition: var(--ease-ui); padding: 0;
+}
+.icon-btn:hover { transform: translate(4px,4px); box-shadow: 0 0 0 var(--c-ink); }
+
+.lang {
+  font: 700 12px/1 var(--f-mono); padding: 8px 9px; border-radius: var(--r-md);
+  border: 2px solid var(--c-ink); background: var(--c-paper); color: var(--c-ink);
+  box-shadow: 4px 4px 0 var(--c-ink); cursor: pointer; transition: var(--ease-ui);
+}
+.lang.on { background: var(--c-blue); color: var(--c-paper); border-color: var(--c-paper); box-shadow: 4px 4px 0 var(--c-paper); }
+.lang:hover { transform: translate(4px,4px); box-shadow: 0 0 0 transparent; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  font: 700 18px/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em;
+  padding: 12px 18px; border-radius: var(--r-sm); border: 0; cursor: pointer;
+  background: var(--c-blue); color: var(--c-paper);
+  box-shadow: var(--offset) var(--offset) 0 var(--c-paper);
+  outline: 3px solid var(--c-paper); outline-offset: 0;
+  transition: var(--ease-ui); text-decoration: none;
+}
+.btn:hover { transform: translate(var(--offset), var(--offset)); box-shadow: 0 0 0 var(--c-paper); color: var(--c-paper); text-decoration: none; }
+.btn.lime { background: var(--c-lime); color: var(--c-ink); text-transform: none; outline-color: var(--c-mint); box-shadow: var(--offset) var(--offset) 0 var(--c-mint); }
+.btn.lime:hover { color: var(--c-ink); box-shadow: 0 0 0 var(--c-mint); }
+.btn.ink { background: var(--c-ink); outline-color: var(--c-ink); box-shadow: var(--offset) var(--offset) 0 var(--c-pink); }
+.btn.ink:hover { box-shadow: 0 0 0 var(--c-pink); }
+
+.totop {
+  width: 56px; height: 56px; display: grid; place-items: center;
+  background: var(--c-coral); color: var(--c-paper); border: 2px solid var(--c-ink);
+  border-radius: var(--r-sm); box-shadow: 4px 4px 0 var(--c-ink); cursor: pointer; transition: var(--ease-ui);
+}
+.totop:hover { transform: translate(4px,4px); box-shadow: 0 0 0 var(--c-ink); }
+
+.chip { display: inline-block; font: 400 11px/1 var(--f-mono); padding: 6px 8px; border-radius: var(--r-sm); background: var(--c-ink); color: var(--c-mint); }
+
+/* Section label: black slab with a stepped second slab, display type in the section's accent */
+.label { position: relative; display: inline-block; margin-bottom: 40px; }
+.label span {
+  position: relative; z-index: 1; display: inline-block;
+  font: 700 clamp(20px, 2.4vw, 28px)/1.1 var(--f-display); color: var(--accent, var(--c-cyan));
+  background: var(--c-ink); padding: 6px 14px 8px;
+}
+.label::after {
+  content: ""; position: absolute; left: 62%; right: -14px; bottom: -16px; height: 26px; background: var(--c-ink);
+}
+.label.reveal span { animation: glitch .5s steps(5) both; }
+.label.reveal::after { animation: slab .5s steps(4) both; }
+@keyframes glitch { 0% { clip-path: inset(0 100% 0 0); transform: translateX(-8px); } 60% { transform: translateX(6px); } 100% { clip-path: inset(0 0 0 0); transform: none; } }
+@keyframes slab { 0% { transform: translateX(-40px); } 100% { transform: none; } }
+
+/* ---------- Sections ---------- */
+section { position: relative; padding-block: clamp(80px, 12vw, 160px); overflow: hidden; }
+section .wrap { position: relative; z-index: 1; }
+.ghost {
+  position: absolute; inset: 50% auto auto 50%; transform: translate(-50%,-50%);
+  font: 800 clamp(320px, 60vw, 900px)/.8 var(--f-display); color: var(--ghost, rgba(0,0,0,.08));
+  pointer-events: none; user-select: none; z-index: 0;
+}
+.center { text-align: center; }
+.lead { font: 700 var(--t-lead)/1.18 var(--f-mono); text-wrap: balance; max-width: 22ch; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; }
+h2 { font-size: var(--t-h1); line-height: .98; letter-spacing: -.02em; }
+.sub { max-width: 60ch; margin: 18px 0 0; }
+
+/* Hero */
+.hero { color: var(--c-paper); padding-block: 48px 120px; }
+.hero h1 { font-size: var(--t-hero); line-height: .976; letter-spacing: 0; }
+.hero .row { display: flex; align-items: center; gap: 2vw; flex-wrap: wrap; }
+.pill-img { flex: 0 0 auto; width: clamp(110px, 14vw, 215px); aspect-ratio: 1.8; border-radius: var(--r-pill); max-width: 100%; }
+.pill-img.a { background: radial-gradient(circle at 30% 40%, var(--c-pink) 0 22%, transparent 23%), radial-gradient(circle at 68% 55%, var(--c-cyan) 0 26%, transparent 27%), var(--c-ink); }
+.pill-img.b { background: repeating-linear-gradient(90deg, var(--c-lime) 0 14px, var(--c-green) 14px 28px); }
+.hero .last { display: grid; grid-template-columns: auto minmax(0, 360px); gap: 32px; align-items: end; }
+.hero .last p { margin: 0; }
+@media (max-width: 760px) { .hero .last { grid-template-columns: 1fr; } }
+
+/* Logo */
+.logo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; margin-top: 48px; }
+.tile { border-radius: var(--r-lg); padding: 40px 24px; display: grid; place-items: center; min-height: 220px; gap: 16px; text-align: center; }
+.tile small { font: 400 var(--t-small)/1.4 var(--f-mono); }
+.t-blue { background: var(--c-blue); color: var(--c-paper); }
+.t-ink { background: var(--c-ink); color: var(--c-paper); }
+.t-white { background: var(--c-paper); color: var(--c-ink); border: 2px solid var(--c-ink); }
+.lockup { display: flex; align-items: center; gap: 14px; }
+.word { font: 700 34px/.9 var(--f-display); letter-spacing: .02em; text-transform: uppercase; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; margin-top: 40px; }
+.rules h3 { font-size: 20px; margin-bottom: 6px; }
+.rules p { margin: 0; }
+
+/* Color */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 18px; margin-top: 40px; }
+.sw {
+  border: 2px solid var(--c-ink); border-radius: var(--r-lg); overflow: hidden; background: var(--c-paper);
+  box-shadow: var(--offset) var(--offset) 0 var(--c-ink); cursor: pointer; text-align: left; padding: 0;
+  font: inherit; color: var(--c-ink); transition: var(--ease-ui);
+}
+.sw:hover { transform: translate(var(--offset), var(--offset)); box-shadow: 0 0 0 var(--c-ink); }
+.sw i { display: block; height: 96px; border-bottom: 2px solid var(--c-ink); }
+.sw div { padding: 10px 12px 12px; display: grid; gap: 2px; }
+.sw b { font: 700 18px/1.1 var(--f-display); }
+.sw code { font: 400 12px/1.4 var(--f-mono); }
+.sw em { font: 400 11px/1.3 var(--f-mono); font-style: normal; opacity: .75; }
+.grad-bar { height: 72px; border-radius: var(--r-lg); background: var(--grad-cta); border: 2px solid var(--c-ink); margin-top: 28px; display: flex; align-items: center; padding: 0 20px; font-weight: 700; }
+.order { display: flex; flex-wrap: wrap; gap: 0; margin-top: 28px; border: 2px solid var(--c-ink); border-radius: var(--r-lg); overflow: hidden; }
+.order span { flex: 1 1 90px; padding: 18px 10px 10px; font: 700 12px/1.2 var(--f-mono); }
+
+/* Type */
+.spec { border-top: 2px solid var(--c-ink); padding-block: 28px; display: grid; grid-template-columns: 200px minmax(0,1fr); gap: 24px; align-items: baseline; }
+.spec:last-of-type { border-bottom: 2px solid var(--c-ink); }
+.spec .meta { font: 400 12px/1.6 var(--f-mono); }
+.spec .meta b { display: block; font-size: 14px; }
+.spec .sample { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .spec { grid-template-columns: 1fr; gap: 10px; } }
+.fontcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; margin-block: 40px; }
+.fontcard { background: var(--c-ink); color: var(--c-paper); border-radius: var(--r-lg); padding: 28px; }
+.fontcard .big { font-size: 96px; line-height: 1; margin: 8px 0 16px; }
+.fontcard p { margin: 0; font-size: 13px; line-height: 20px; }
+.fontcard .note { color: var(--c-lime); margin-top: 12px; }
+
+/* Components */
+.comp { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; margin-top: 40px; }
+.card { background: var(--c-paper); color: var(--c-ink); border: 2px solid var(--c-ink); border-radius: var(--r-lg); padding: 24px; display: grid; gap: 18px; align-content: start; min-width: 0; }
+.card h3 { font-size: 22px; }
+.card .stage { border-radius: var(--r-md); padding: 26px 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; min-height: 120px; }
+.card p { margin: 0; font-size: 13px; line-height: 20px; }
+.card code { font-size: 12px; background: var(--c-lime); padding: 1px 4px; border-radius: 3px; }
+.partner { background: var(--c-paper); border-radius: var(--r-pill); padding: 22px 40px; font: 700 22px/1 var(--f-display); border: 2px solid var(--c-ink); }
+.news h4 { margin: 0 0 6px; font: 700 26px/1.05 var(--f-display); text-decoration: underline; text-underline-offset: 4px; }
+.news p { margin: 0 0 14px; }
+.person { display: grid; gap: 4px; }
+.person .face { width: 120px; aspect-ratio: .9; background: var(--c-paper); border-radius: 4px 40px 40px 4px; position: relative; overflow: hidden; }
+.person .face::after { content: ""; position: absolute; inset: 22% 22% -10%; background: var(--c-blue); border-radius: 50% 50% 8px 8px; image-rendering: pixelated; }
+.person b { font: 700 22px/1.1 var(--f-display); color: var(--c-paper); }
+.person span { color: var(--c-paper); font-size: 13px; }
+
+/* Motion table */
+.motion { display: grid; gap: 0; margin-top: 40px; border-top: 2px solid var(--c-ink); }
+.motion > div { display: grid; grid-template-columns: 220px minmax(0,1fr) 220px; gap: 24px; padding-block: 22px; border-bottom: 2px solid var(--c-ink); align-items: start; }
+.motion h3 { font-size: 22px; }
+.motion p { margin: 0; }
+.motion code { font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 860px) { .motion > div { grid-template-columns: 1fr; gap: 8px; } }
+
+pre { background: var(--c-ink); color: var(--c-lime); border-radius: var(--r-lg); padding: 22px; overflow-x: auto; font: 400 13px/1.6 var(--f-mono); margin: 0; }
+.code-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 48px 0 16px; }
+.code-head h3 { font-size: 28px; }
+
+.outro h2 { font-size: clamp(64px, 14.5vw, 220px); letter-spacing: -.02em; line-height: 1; }
+
+/* Sticky CTA bar */
+.cta {
+  position: sticky; bottom: 0; z-index: 40; background: var(--grad-cta); color: var(--c-ink);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.cta .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px 16px; }
+.cta strong { font: 700 clamp(15px, 1.6vw, 20px)/1.2 var(--f-mono); }
+.dock { position: fixed; right: calc(10px + env(safe-area-inset-right, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 45; }
+.toast { position: fixed; left: 50%; top: calc(80px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); background: var(--c-ink); color: var(--c-lime); padding: 10px 16px; border-radius: var(--r-sm); font: 700 13px/1 var(--f-mono); z-index: 70; }
+</style>
+
+<header class="hdr">
+  <div class="wrap">
+    <div class="menu">
+      <button class="icon-btn" aria-label="Menu (example)"><svg width="16" height="14" viewBox="0 0 16 14" fill="none"><rect y="0" width="16" height="2.6" rx="1.3" fill="#000"/><rect y="5.7" width="16" height="2.6" rx="1.3" fill="#000"/><rect y="11.4" width="16" height="2.6" rx="1.3" fill="#000"/></svg></button>
+      Menu
+    </div>
+    <div class="lockup" aria-label="Cantina">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#000"/><path d="M28.5 13.2A10 10 0 1 0 28.5 26.8" stroke="#CDFF3E" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="21" cy="20" r="3.4" fill="#04D093"/></svg>
+      <span class="word" style="font-size:22px">Cantina</span>
+    </div>
+    <div class="langs"><button class="lang on">esp</button><button class="lang">eng</button></div>
+  </div>
+</header>
+
+<main>
+  <!-- 1. Hero -->
+  <section class="hero" data-bg="#0057FF">
+    <div class="wrap">
+      <p style="margin:0 0 24px;font-weight:700">Brand guide · v1 · 2026-11-09</p>
+      <h1 class="row"><span class="pill-img a" aria-hidden="true"></span>Cantina</h1>
+      <h1 class="row">Brand <span class="pill-img b" aria-hidden="true"></span></h1>
+      <div class="last">
+        <h1>Guide</h1>
+        <p>Fonts, colors, components and motion for Cantina. Every value here was measured from the live reference site with the browser's computed styles. Scroll the page: the background fades to the next brand color at each section, the same way the product should.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Voice -->
+  <section data-bg="#04D093" style="--ghost:rgba(19,253,202,.55)">
+    <span class="ghost" aria-hidden="true">C</span>
+    <div class="wrap center">
+      <div class="label"><span style="--accent:var(--c-mint)">How we sound</span></div>
+      <p class="lead">Big friendly display type, plain mono sentences, and loud colors that change as you go.</p>
+    </div>
+  </section>
+
+  <!-- 3. Logo -->
+  <section data-bg="#CDFF3E">
+    <div class="wrap">
+      <div class="label"><span style="--accent:var(--c-lime)">Logo</span></div>
+      <h2>The mark</h2>
+      <p class="sub">A rounded black tile holding a thick open C and a green dot: a table with a seat open. Pair it with the wordmark set in the display face, uppercase, tracked +2%.</p>
+      <div class="logo-grid">
+        <div class="tile t-blue">
+          <div class="lockup">
+            <svg width="64" height="64" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#000"/><path d="M28.5 13.2A10 10 0 1 0 28.5 26.8" stroke="#CDFF3E" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="21" cy="20" r="3.4" fill="#04D093"/></svg>
+            <span class="word">Cantina</span>
+          </div>
+          <small>Primary · on Blue</small>
+        </div>
+        <div class="tile t-ink">
+          <svg width="96" height="96" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#FFFFFF"/><path d="M28.5 13.2A10 10 0 1 0 28.5 26.8" stroke="#0057FF" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="21" cy="20" r="3.4" fill="#FD5DD0"/></svg>
+          <small>Mark only · inverse</small>
+        </div>
+        <div class="tile t-white">
+          <div class="lockup">
+            <svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#000"/><path d="M28.5 13.2A10 10 0 1 0 28.5 26.8" stroke="#CDFF3E" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="21" cy="20" r="3.4" fill="#04D093"/></svg>
+            <span class="word" style="font-size:28px">Cantina</span>
+          </div>
+          <small>On white · min height 24px</small>
+        </div>
+      </div>
+      <div class="rules">
+        <div><h3>Clear space</h3><p>Keep the width of the dot's diameter ×3 clear on every side.</p></div>
+        <div><h3>Corners</h3><p>Tile corner radius is 27.5% of its width (11 on a 40 grid).</p></div>
+        <div><h3>Don't</h3><p>Don't outline it, add drop shadows, or put the lime C on the lime ground.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Color -->
+  <section data-bg="#FFC700">
+    <div class="wrap">
+      <div class="label"><span style="--accent:var(--c-yellow)">Color</span></div>
+      <h2>Palette</h2>
+      <p class="sub">Six section grounds, used in this order as the page scrolls, plus accents for the logo, links and small controls. Text on every ground is pure black, except on Blue and Purple where it's white. Tap a swatch to copy its hex.</p>
+
+      <div class="order" aria-label="Section order">
+        <span style="background:#0057FF;color:#fff">1 Blue</span><span style="background:#04D093">2 Green</span><span style="background:#CDFF3E">3 Lime</span><span style="background:#FFC700">4 Yellow</span><span style="background:#9E25E8;color:#fff">5 Purple</span><span style="background:#fff">6 White</span>
+      </div>
+
+      <div class="swatches" id="swatches"></div>
+
+      <div class="grad-bar">CTA gradient · linear-gradient(270deg, #04D093 1.14%, #F5FC70 99%)</div>
+    </div>
+  </section>
+
+  <!-- 5. Type -->
+  <section data-bg="#9E25E8" style="--ghost:rgba(255,255,255,.12)">
+    <span class="ghost" aria-hidden="true">C</span>
+    <div class="wrap" style="color:#fff">
+      <div class="label"><span style="--accent:var(--c-pink)">Typography</span></div>
+      <h2>Two faces</h2>
+
+      <div class="fontcards">
+        <div class="fontcard">
+          <small>Display</small>
+          <div class="big" style="font-family:var(--f-display);font-weight:700">Aa</div>
+          <p><b>Maricle</b>, regular weight 400 (it draws heavy). Headlines, buttons, names, section labels.</p>
+          <p class="note">Maricle is a commercial face. Buy a web license and add it with @font-face. Until then the stack falls back to Bricolage Grotesque 700, which this page is showing.</p>
+        </div>
+        <div class="fontcard">
+          <small>Text</small>
+          <div class="big" style="font-family:var(--f-mono);font-weight:700">Aa</div>
+          <p><b>Roboto Mono</b> 400 and 700, free on Google Fonts. Body copy, nav, dates, captions, big statements.</p>
+          <p class="note">Body is 16px on a 24px line. Never set running text in the display face.</p>
+        </div>
+      </div>
+
+      <div class="spec"><div class="meta"><b>Hero</b>Display · 205px / 200px · 0</div><div class="sample" style="font:700 clamp(54px,10vw,140px)/.98 var(--f-display)">Quest</div></div>
+      <div class="spec"><div class="meta"><b>Outro</b>Display · 220px · −0.02em</div><div class="sample" style="font:700 clamp(40px,7vw,96px)/1 var(--f-display);letter-spacing:-.02em">Get in touch</div></div>
+      <div class="spec"><div class="meta"><b>Statement</b>Mono 700 · 50px / 59px</div><div class="sample" style="font:700 var(--t-lead)/1.18 var(--f-mono)">Find the talks that matter.</div></div>
+      <div class="spec"><div class="meta"><b>Name</b>Display · 28px</div><div class="sample" style="font:700 28px/1.1 var(--f-display)">Karla Córdoba</div></div>
+      <div class="spec"><div class="meta"><b>Role</b>Mono 400 · 16px · in [brackets]</div><div class="sample">[Innovation Maestra]</div></div>
+      <div class="spec"><div class="meta"><b>Body</b>Mono 400 · 16px / 24px</div><div class="sample" style="max-width:60ch">Cantina turns a conference into a quest. Check into talks, team up with people you meet, and leave with a recap you actually want to share.</div></div>
+      <div class="spec"><div class="meta"><b>Nav</b>Mono 700 · 12px · uppercase</div><div class="sample" style="font:700 12px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.04em">Menu</div></div>
+    </div>
+  </section>
+
+  <!-- 6. Components -->
+  <section data-bg="#0057FF">
+    <div class="wrap">
+      <div class="label"><span style="--accent:var(--c-cyan)">Components</span></div>
+      <h2 style="color:#fff">Parts</h2>
+      <p class="sub" style="color:#fff">Every control sits on a hard, unblurred offset shadow. On hover it slides down and right into that shadow, as if pressed. No blur, no soft drop shadows anywhere.</p>
+
+      <div class="comp">
+        <div class="card">
+          <h3>Primary button</h3>
+          <div class="stage" style="background:var(--grad-cta)"><a class="btn" href="#top">Let's go <span aria-hidden="true">→</span></a></div>
+          <p>Display face, uppercase, 18–20px. Blue fill, 6px radius, 3px white ring, white block offset <code>6px 6px</code>.</p>
+        </div>
+        <div class="card">
+          <h3>Pager buttons</h3>
+          <div class="stage" style="background:var(--c-mint)"><button class="btn lime"><span aria-hidden="true">←</span> Left</button><button class="btn lime">Right <span aria-hidden="true">→</span></button></div>
+          <p>Lime fill, black text, mint ring and mint offset. Used for carousels.</p>
+        </div>
+        <div class="card">
+          <h3>Small controls</h3>
+          <div class="stage" style="background:var(--c-blue)">
+            <button class="icon-btn" aria-label="Menu example"><svg width="16" height="14" viewBox="0 0 16 14"><rect y="0" width="16" height="2.6" rx="1.3" fill="#000"/><rect y="5.7" width="16" height="2.6" rx="1.3" fill="#000"/><rect y="11.4" width="16" height="2.6" rx="1.3" fill="#000"/></svg></button>
+            <button class="lang on">esp</button><button class="lang">eng</button>
+            <button class="totop" aria-label="Back to top example"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M11 24V3M2 11l9-9 9 9" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+          <p>Menu, language toggle and the coral back-to-top button: 2px black border, 4px black offset, 10px radius.</p>
+        </div>
+        <div class="card">
+          <h3>Section label</h3>
+          <div class="stage" style="background:var(--c-green)"><div class="label" style="margin:0 0 16px"><span style="--accent:var(--c-mint)">What drives us</span></div></div>
+          <p>Black slab, display type in the section's accent, a second slab stepped below it. It glitches in with stepped timing when it scrolls into view.</p>
+        </div>
+        <div class="card">
+          <h3>News item</h3>
+          <div class="stage news" style="background:var(--c-lime);justify-content:flex-start;display:block">
+            <h4>Night one recap</h4>
+            <p>Keynote, three parties, and a new XP record.</p>
+            <span class="chip">09.11.2026</span>
+          </div>
+          <p>Underlined display headline, one mono line, date in a black chip with mint text (DD.MM.YYYY).</p>
+        </div>
+        <div class="card">
+          <h3>Partner pill</h3>
+          <div class="stage" style="background:var(--c-yellow)"><div class="partner">Your sponsor</div></div>
+          <p>White stadium, 230px radius. Photos use the same pill crop.</p>
+        </div>
+        <div class="card">
+          <h3>Person</h3>
+          <div class="stage" style="background:var(--c-purple);justify-content:flex-start">
+            <div class="person"><div class="face" aria-hidden="true"></div><b>Luis Cajiao</b><span>[DevOps Engineer]</span></div>
+          </div>
+          <p>Portraits are posterized to two tones, Blue on White, in a shape with one square side and one round side. Name in display, role in mono brackets.</p>
+        </div>
+        <div class="card">
+          <h3>Header</h3>
+          <div class="stage" style="background:var(--c-scrim);color:#fff;justify-content:space-between"><span style="font:700 12px var(--f-mono)">MENU</span><span class="word" style="font-size:18px">Cantina</span><span style="font:700 12px var(--f-mono)">ESP ENG</span></div>
+          <p>Sticky, 50% black scrim over whatever color the page is, so it always reads as a darker shade of the current section.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Motion -->
+  <section data-bg="#FFFFFF" style="--ghost:rgba(19,253,202,.25)">
+    <span class="ghost" aria-hidden="true">C</span>
+    <div class="wrap">
+      <div class="label"><span style="--accent:var(--c-cyan)">Motion</span></div>
+      <h2>Scroll and cursor</h2>
+      <p class="sub">What we saw while scrolling and hovering the reference site, and how to build it.</p>
+      <div class="motion">
+        <div><h3>Section color</h3><p>The page background fades to the next section's color as that section reaches the middle of the screen. Sections themselves are transparent; the color lives on <code>body</code>.</p><code>transition: background-color .6s ease-in-out</code></div>
+        <div><h3>Scrolling</h3><p>Native scrolling. No smooth-scroll library, no scroll hijacking, no snapping. Long logo and photo rows are horizontal carousels moved by Left and Right buttons.</p><code>scroll-behavior: auto</code></div>
+        <div><h3>Cursor</h3><p>The normal system cursor everywhere: arrow on the page, pointer on anything clickable. No custom or trailing cursor.</p><code>cursor: pointer (controls only)</code></div>
+        <div><h3>Hover</h3><p>Controls press into their offset shadow: move by the shadow's offset and drop the shadow. Text links shift color. Everything uses one quick linear timing.</p><code>transition: all .2s linear</code></div>
+        <div><h3>Reveal</h3><p>Section labels appear in a few hard steps with a sideways jitter, like a terminal redraw. Body content is visible at rest and never waits on scroll to appear.</p><code>animation: .5s steps(5)</code></div>
+        <div><h3>Always there</h3><p>The gradient register bar stays pinned to the bottom of the screen and the coral back-to-top button floats above it on the right.</p><code>position: sticky; bottom: 0</code></div>
+      </div>
+
+      <div class="code-head"><h3>Tokens</h3><button class="btn ink" id="copyTokens">Copy CSS</button></div>
+      <pre id="tokens">:root {
+  /* section grounds, in scroll order */
+  --c-blue:    #0057FF;
+  --c-green:   #04D093;
+  --c-lime:    #CDFF3E;
+  --c-yellow:  #FFC700;
+  --c-purple:  #9E25E8;
+  --c-white:   #FFFFFF;
+  /* accents */
+  --c-cyan:    #13FDCA;
+  --c-pink:    #FD5DD0;
+  --c-coral:   #F18078;
+  --c-magenta: #C019B9;
+  --c-sun:     #F5FC70;
+  --c-mint:    #33EC56;
+  --c-ink:     #000000;
+  --c-scrim:   rgba(0, 0, 0, .5);
+  --grad-cta:  linear-gradient(270deg, #04D093 1.14%, #F5FC70 99%);
+
+  /* type */
+  --f-display: "Maricle", "Bricolage Grotesque", "Arial Black", sans-serif;
+  --f-mono:    "Roboto Mono", ui-monospace, Menlo, monospace;
+  --t-hero:    205px;  /* line-height 200px */
+  --t-outro:   220px;  /* letter-spacing -0.02em */
+  --t-body:    16px;   /* line-height 24px */
+
+  /* shape */
+  --r-pill: 230px;
+  --r-lg:   12px;
+  --r-md:   10px;
+  --r-sm:   6px;
+  --offset: 6px;       /* hard shadow: var(--offset) var(--offset) 0 */
+
+  /* motion */
+  --ease-bg: background-color .6s ease-in-out;
+  --ease-ui: all .2s linear;
+}</pre>
+    </div>
+  </section>
+
+  <!-- 8. Outro -->
+  <section class="outro center" data-bg="#04D093">
+    <div class="wrap">
+      <div class="label"><span style="--accent:var(--c-lime)">Let's build the next one</span></div>
+      <p>Questions about the brand? Ask in the team chat.</p>
+      <h2>Get in touch</h2>
+    </div>
+  </section>
+</main>
+
+<div class="dock"><button class="totop" id="totop" aria-label="Back to top"><svg width="22" height="26" viewBox="0 0 22 26"><path d="M11 24V3M2 11l9-9 9 9" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+
+<div class="cta">
+  <div class="wrap">
+    <strong>Start your quest on Cantina®</strong>
+    <a class="btn" href="#top" id="go">Let's go <span aria-hidden="true">→</span></a>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const colors = [
+    ["Blue", "#0057FF", "Ground 1 · hero, primary button"],
+    ["Green", "#04D093", "Ground 2 · CTA gradient end"],
+    ["Lime", "#CDFF3E", "Ground 3 · pager buttons"],
+    ["Yellow", "#FFC700", "Ground 4"],
+    ["Purple", "#9E25E8", "Ground 5"],
+    ["White", "#FFFFFF", "Ground 6 · pills, cards"],
+    ["Cyan", "#13FDCA", "Links on Blue, logo"],
+    ["Pink", "#FD5DD0", "Logo, highlights"],
+    ["Coral", "#F18078", "Back-to-top button"],
+    ["Magenta", "#C019B9", "Small accents"],
+    ["Sun", "#F5FC70", "CTA gradient start"],
+    ["Mint", "#33EC56", "Rings, date chips"],
+    ["Ink", "#000000", "All text, borders, shadows"]
+  ];
+  const toast = document.getElementById("toast");
+  let t;
+  const say = (msg) => { toast.textContent = msg; toast.hidden = false; clearTimeout(t); t = setTimeout(() => toast.hidden = true, 1400); };
+  const copy = (text, msg, fallbackEl) => {
+    try {
+      navigator.clipboard.writeText(text).then(() => say(msg), () => select(fallbackEl));
+    } catch (e) { select(fallbackEl); }
+  };
+  const select = (el) => { if (!el) return; const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); say("Selected. Press Cmd+C to copy"); };
+
+  const grid = document.getElementById("swatches");
+  for (const [name, hex, use] of colors) {
+    const b = document.createElement("button");
+    b.className = "sw";
+    b.innerHTML = `<i style="background:${hex}"></i><div><b>${name}</b><code>${hex}</code><em>${use}</em></div>`;
+    b.addEventListener("click", () => copy(hex, `Copied ${hex}`, b.querySelector("code")));
+    grid.appendChild(b);
+  }
+  document.getElementById("copyTokens").addEventListener("click", () => copy(document.getElementById("tokens").textContent, "Copied tokens", document.getElementById("tokens")));
+
+  // Section color: fade body background to the section crossing the middle of the viewport
+  const sections = [...document.querySelectorAll("section[data-bg]")];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) document.body.style.backgroundColor = e.target.dataset.bg;
+  }, { rootMargin: "-50% 0px -50% 0px" });
+  sections.forEach(s => io.observe(s));
+
+  // Label glitch on first view (labels are visible at rest; this only replays the reveal)
+  const lio = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add("reveal"); lio.unobserve(e.target); }
+  }, { threshold: .6 });
+  document.querySelectorAll("section .label").forEach(l => lio.observe(l));
+
+  const top = () => window.scrollTo(0, 0);
+  document.getElementById("totop").addEventListener("click", top);
+  document.querySelectorAll('a[href="#top"]').forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); top(); }));
+  document.querySelectorAll(".lang").forEach(b => b.addEventListener("click", () => {
+    b.parentElement.querySelectorAll(".lang").forEach(x => x.classList.toggle("on", x === b));
+  }));
+})();
+</script>
