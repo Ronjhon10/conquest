@@ -135,6 +135,7 @@ it("WEB-3 keeps available boss rooms and their speakers when another selected ta
   expect(await screen.findByRole("link", { name: fixtures.talks[0]!.title })).toBeTruthy();
   expect(screen.getAllByText("Speaker: Ada Fixture").length).toBeGreaterThan(0);
   expect(screen.getByRole("alert").textContent).toContain("1 talk could not be loaded");
+  await userEvent.setup().click(screen.getByRole("button", { name: "Quests" }));
   expect(screen.getByRole("heading", { name: "Your quests" })).toBeTruthy();
   expect(screen.queryByRole("link", { name: fixtures.talks[1]!.title })).toBeNull();
 });

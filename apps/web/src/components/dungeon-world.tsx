@@ -89,7 +89,7 @@ export function DungeonWorld({ stops, selectedId, onSelect, attendee }: {
             const { x, y } = positions[index]!;
             const selected = stop.talk.id === selectedId;
             return (
-              <li key={stop.talk.id} style={{ left: `${(x - 74) / 480 * 100}%`, top: `${(y - 56) / height * 100}%`, width: `${148 / 480 * 100}%` }}>
+              <li key={stop.talk.id} style={{ left: `${(x - 74) / 480 * 100}%`, top: `${(y - 66) / height * 100}%`, width: `${148 / 480 * 100}%`, height: `${138 / height * 100}%` }}>
                 <button
                   type="button"
                   className={`${styles.roomNode} ${selected ? styles.selectedRoom : ""}`}
