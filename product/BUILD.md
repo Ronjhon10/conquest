@@ -70,7 +70,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **G.R1** Review fixes: atomic XP totals/outbox, concurrent action limits, quest deduplication and exclusive party membership. (GM-6, GM-8..GM-10, GM-12, GM-14, GM-17) owner: Jake Nef
 - [x] **G.R2** Live QA: rebuild a game index whose live mapping can't search a field we filter on, keeping its documents (issue #61). (GM-23) owner: Jake Nef
 - [x] **G.R3** Live QA: game-api writes refresh explicitly instead of wait_for so check-in and network finish under the proxy timeout on Serverless (issue #62). (GM-6, GM-14, GM-17) owner: Jake Nef
-- [x] **G.R4** Review repairs: legacy-safe and atomic character recovery, durable coin gifts, and latest conference quest synchronization. (GM-13, GM-22, GM-23) owner: Jake Nef
+- [x] **G.R4** Review repairs: legacy-safe and atomic character recovery, durable coin gifts, and latest conference quest synchronization, indexed recovery fast paths and organizer quest validation. (GM-13, GM-22, GM-23) owner: Jake Nef
 
 ## Lane: Web (040)
 
@@ -117,6 +117,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - 2026-11-09 13:26  G.R1  Jake Nef (Codex)  Fixed review findings CQ-REVIEW-001..003: versioned attendee XP journal/outbox with replay on startup, attendee reads and aggregate reads; atomic action limits and network/quest deduplication; attendee party claims with rollback on failed joins. Cross-instance concurrency and failed-write regressions use in-memory stores only.
 - 2026-11-09 14:34  G.R4  Jake Nef (Codex)  Reproduced and fixed legacy LinkedIn index queries, racing duplicate signup, lost coin gifts after failed writes, and stale quests from concurrent edits. Deterministic linked-character create IDs, paginated legacy scans, coin outbox replay and async versioned quest sync; only completed Game behavior changed. Regression tests use local stores.
+- 2026-11-09 14:49  G.R4 follow-up  Jake Nef (Codex)  Addressed Gitar feedback: normal linked signup uses an indexed lookup before any legacy scan; PUT conference quests rejects personal goal kinds, and syncing removes legacy shared goal entries while preserving genuine personal goals. Added regression coverage and updated the contract/spec together.
 - 2026-11-09 14:40  S.7  Max (Claude)  search.rank span with a search.rank.query child per search, conquest.search.rank.duration histogram (ms, outcome), goals_count/limit/bosses_count attributes, errors by class only; main.ts logs via @conquest/telemetry. Tests check no goal/about/talk text reaches telemetry.
 - 2026-11-09 14:50  S follow-up  Max (Claude)  search-api /readyz is 503 until conquest-talks and conquest-speakers hold documents, not just exist.
 - 2026-11-09 15:00  S follow-up  Max (Claude)  `npm run verify` (read-only 020 checks against the .env cluster), `npm run demo` + DEMO-SNAPSHOT.md (in-memory for now), search-api README with slide text; tags get a lowercase normalizer so title-cased goals match their tags.

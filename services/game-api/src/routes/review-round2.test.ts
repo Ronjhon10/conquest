@@ -80,7 +80,12 @@ it("GM-22 concurrent quest replacements never accumulate the other edit's remove
 });
 
 it("GM-23 legacy character lookup continues beyond the first source page", async () => {
-  const { deps, signup } = setup(); await deps.repos.conferences.create(fixtures.conference);
+  const inner = createMemoryStore();
+  const legacy: DocStore = { ...inner, find: async (index, filter, opts) => {
+    if (index === INDEX.attendees && "linkedin_url" in filter) throw new Error("Cannot search on unindexed field [linkedin_url]");
+    return inner.find(index, filter, opts);
+  } };
+  const { deps, signup } = setup(legacy); await deps.repos.conferences.create(fixtures.conference);
   for (let i = 0; i < 105; i++) await deps.repos.attendees.create({ ...fixtures.attendee, id: `old-${String(i).padStart(3, "0")}`, linkedin_url: `https://www.linkedin.com/in/other-${i}/` });
   await deps.repos.attendees.create({ ...fixtures.attendee, id: "zz-legacy", linkedin_url: "https://www.linkedin.com/in/test-person/" });
   expect(AttendeeResponse.parse((await signup()).body).attendee.id).toBe("zz-legacy");
@@ -99,4 +104,28 @@ it("GM-13 concurrent gifts and XP updates preserve both journals and the coin ba
   expect((await deps.repos.attendees.get("att-jane"))).toMatchObject({ coins: 2, xp: 125 });
   expect(await deps.repos.coins.count()).toBe(1);
   expect(await deps.repos.xpEvents.count()).toBe(2);
+});
+
+it("GM-23 new linked signup uses an indexed lookup without scanning the conference", async () => {
+  const { deps, signup } = setup(); await deps.repos.conferences.create(fixtures.conference);
+  const find = vi.spyOn(deps.repos.attendees, "find");
+  expect((await signup()).status).toBe(200);
+  expect(find.mock.calls.some(([filter]) => filter?.linkedin_url !== undefined)).toBe(true);
+  expect(find.mock.calls.some(([filter]) => Object.keys(filter ?? {}).length === 1 && filter?.conference_id !== undefined)).toBe(false);
+});
+
+it("GM-22 conference quest APIs reject personal goal quests", async () => {
+  const { deps, send } = setup(); await deps.repos.conferences.create(fixtures.conference);
+  const response = await send("PUT", "/conferences/conf-demo/quests", { quests: [{ ...fixtures.conference.quests[0], kind: "goal" }] });
+  expect(response.status).toBe(400);
+});
+
+it("GM-22 replacing a legacy shared goal quest removes it and preserves genuine personal goals", async () => {
+  const { deps, send } = setup();
+  const shared = { ...fixtures.conference.quests[0]!, id: "legacy-shared", kind: "goal" as const };
+  const personal = { ...shared, id: "personal-goal" };
+  await deps.repos.conferences.create({ ...fixtures.conference, quests: [shared] });
+  await deps.repos.attendees.create({ ...fixtures.attendee, quests: [personal, shared] });
+  expect((await send("PUT", "/conferences/conf-demo/quests", { quests: [] })).status).toBe(200);
+  expect(GetAttendeeResponse.parse((await send("GET", "/attendees/att-jane")).body).attendee.quests).toEqual([personal]);
 });
