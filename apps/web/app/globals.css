@@ -1046,70 +1046,6 @@ textarea.cq-field {
   flex-direction: column;
   gap: 16px;
 }
-.home-trail__path {
-  list-style: none;
-  margin: 0;
-  padding: 0 6px 0 22px;
-  border-left: 3px solid var(--ink);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.home-trail__stop {
-  position: relative;
-  max-width: 520px;
-}
-.home-trail__stop:nth-child(2) {
-  margin-left: 40px;
-}
-.home-trail__stop::before {
-  content: "";
-  position: absolute;
-  left: -32px;
-  top: 26px;
-  width: 14px;
-  height: 14px;
-  background: var(--surface);
-  border: var(--stroke) solid var(--ink);
-  border-radius: 50%;
-}
-.home-trail__stop:nth-child(2)::before {
-  left: -72px;
-}
-.home-trail__stop:first-child::before {
-  background: var(--blue);
-}
-.home-trail__head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.home-trail__stop h3 {
-  font-size: 22px;
-  margin: 4px 0 0;
-  padding-right: 64px;
-}
-.home-trail__stop p {
-  font-size: 13px;
-  line-height: 19px;
-  margin: 0;
-}
-.home-marker {
-  display: inline-block;
-  font: 700 11px/1 var(--font-mono);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 6px 8px;
-  background: var(--blue);
-  color: var(--on-blue);
-  border: var(--stroke) solid var(--ink);
-  border-radius: var(--radius-sm);
-}
-.home-trail__you {
-  position: absolute;
-  right: 14px;
-  top: 14px;
-}
 
 .home-classes__grid {
   list-style: none;
@@ -1191,16 +1127,17 @@ textarea.cq-field {
   .home-section__intro h2 {
     font-size: 32px;
   }
-  .home-trail__stop:nth-child(2) {
-    margin-left: 0;
-  }
-  .home-trail__stop:nth-child(2)::before {
-    left: -32px;
-  }
   .home-classes__grid {
     gap: 14px;
   }
   .home-organizer h2 {
     font-size: 36px;
+  }
+}
+/* The real map is tall; keep its explanation in view beside it on wide screens. */
+@media (min-width: 1001px) {
+  .home-trail .home-section__intro {
+    position: sticky;
+    top: 24px;
   }
 }

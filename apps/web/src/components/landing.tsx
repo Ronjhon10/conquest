@@ -1,5 +1,6 @@
-import type { CharacterClass } from "@conquest/contracts";
+import { fixtures, type CharacterClass } from "@conquest/contracts";
 import { Avatar } from "./avatar";
+import { DungeonMap } from "./dungeon-map";
 import { Icon } from "./icon";
 import { ActionLink } from "./ui";
 
@@ -9,29 +10,6 @@ const classes: { id: CharacterClass; name: string; fits: string }[] = [
   { id: "wizard", name: "Wizard", fits: "Data, ML and AI" },
   { id: "rogue", name: "Rogue", fits: "Security and compliance" },
   { id: "bard", name: "Bard", fits: "Developers, community and the curious" },
-];
-
-// Sample stops in the shape of the real map (dungeon-map.tsx); titles are the
-// contract fixtures, not real sessions.
-const sampleTrail = [
-  {
-    time: "9:00 AM",
-    room: "Hall A",
-    title: "Platform Engineering Without Tears",
-    reason: "Matches your goal: platform engineering",
-  },
-  {
-    time: "11:00 AM",
-    room: "Room 255",
-    title: "Locking Down Your Cluster",
-    reason: "Matches your goal: cluster security",
-  },
-  {
-    time: "1:00 PM",
-    room: "Hall A",
-    title: "OpenTelemetry in Practice",
-    reason: "Fits your background",
-  },
 ];
 
 export function Landing() {
@@ -89,8 +67,9 @@ export function Landing() {
           <p className="cq-label">Your map</p>
           <h2 id="trail-title">A path through the day.</h2>
           <p>
-            Pick your goals. Conquest searches every talk and puts the best
-            fits on your map as bosses, in time order, never two at once.
+            Pick your goals. Conquest searches every talk and turns the best
+            fits into boss rooms on your map, in time order, never two at once.
+            Each speaker is the boss of their room.
           </p>
           <p>
             Each stop says why it was picked. Prefer a list, or step-free rooms
@@ -98,28 +77,14 @@ export function Landing() {
           </p>
         </div>
         <div className="home-trail__map">
-          <span className="cq-chip cq-chip--light">Sample trail</span>
-          <ol className="home-trail__path" aria-label="Sample dungeon path">
-            {sampleTrail.map((stop, index) => (
-              <li key={stop.title} className="cq-card home-trail__stop">
-                <div className="home-trail__head">
-                  {index === 0 ? (
-                    <span className="home-marker">Next · {stop.time}</span>
-                  ) : (
-                    <span className="cq-chip cq-chip--light">{stop.time}</span>
-                  )}
-                  <span className="cq-chip cq-chip--light">{stop.room}</span>
-                </div>
-                <h3>{stop.title}</h3>
-                <p>{stop.reason}.</p>
-                {index === 0 && (
-                  <span className="home-trail__you" aria-hidden="true">
-                    <Avatar name="You" characterClass="knight" size={56} />
-                  </span>
-                )}
-              </li>
-            ))}
-          </ol>
+          <span className="cq-chip cq-chip--light">Sample map · Demo Con</span>
+          <DungeonMap
+            conference={fixtures.conference}
+            attendee={fixtures.attendee}
+            talks={fixtures.talks}
+            speakers={fixtures.speakers}
+            conf="conf-demo"
+          />
         </div>
       </section>
 
