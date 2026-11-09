@@ -1,11 +1,19 @@
+// @vitest-environment happy-dom
 import { createElement } from "react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { fixtures } from "@conquest/contracts";
 import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { Landing } from "./landing";
 import { RouteContent } from "./route-preview";
 import { ErrorNotice, themeStyle } from "./ui";
+import { HomeHero } from "./home-hero";
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 it("WEB-1 renders the landing and every planned page shell with fixture data", () => {
   const landingHtml = renderToStaticMarkup(createElement(Landing));
@@ -49,6 +57,22 @@ it("WEB-1 renders the landing and every planned page shell with fixture data", (
     expect(html).toMatch(/<h1[ >]/);
     expect(html).toContain("Conference preview");
   }
+});
+it("WEB-1 resets the start animation after a bfcache restore", () => {
+  vi.useFakeTimers();
+  const { container } = render(createElement(HomeHero));
+  const start = screen.getByRole("link", { name: /Start your adventure/ });
+
+  fireEvent.click(start);
+  expect(container.querySelector(".home-hero__character--hop")).not.toBeNull();
+
+  const pageShow = new Event("pageshow") as PageTransitionEvent;
+  Object.defineProperty(pageShow, "persisted", { value: true });
+  act(() => window.dispatchEvent(pageShow));
+
+  expect(container.querySelector(".home-hero__character--hop")).toBeNull();
+  fireEvent.click(start);
+  expect(container.querySelector(".home-hero__character--hop")).not.toBeNull();
 });
 it("WEB-12 applies conference colors and the custom boss noun to the map shell", () => {
   const conference = structuredClone(fixtures.conference);

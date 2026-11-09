@@ -1,7 +1,7 @@
 "use client";
 // Home hero (WEB-1): one character that hops when you start your adventure, then signup opens.
 import Link from "next/link";
-import { useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { Avatar } from "./avatar";
 import { Icon } from "./icon";
@@ -12,6 +12,17 @@ export function HomeHero() {
   const [hopping, setHopping] = useState(false);
   const leaving = useRef(false);
   const joinHref = `/c/${DEMO_CONFERENCE_ID}/join`;
+
+  useEffect(() => {
+    const reset = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        leaving.current = false;
+        setHopping(false);
+      }
+    };
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
+  }, []);
 
   function start(e: MouseEvent<HTMLAnchorElement>) {
     // New tab, modified click or reduced motion: just follow the link.
