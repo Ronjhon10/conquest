@@ -36,17 +36,21 @@ function setup(roomName = "Room 255") {
   return userEvent.setup();
 }
 function titles(name: string) {
-  return within(screen.getByRole("list", { name })).getAllByRole("link").map((link) => link.textContent);
+  const list = within(screen.getByRole("list", { name }));
+  return name === "Dungeon path"
+    ? list.getAllByRole("button").map((button) => button.getAttribute("aria-label")!.split(". ")[0])
+    : list.getAllByRole("link").map((link) => link.textContent);
 }
 it("WEB-3 orders the same selected talks by time in the path and list with metadata and boss links", async () => {
   motion();
   const user = setup();
   const expected = fixtures.talks.slice(0, 3).map((talk) => talk.title);
   expect(titles("Dungeon path")).toEqual(expected);
-  expect(screen.getByText("Tue 9:00 AM")).toBeTruthy();
+  expect(screen.getAllByText("Tue 9:00 AM").length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Room 255/).length).toBeGreaterThan(0);
-  expect(screen.getByText("Security goal")).toBeTruthy();
-  expect(screen.getByRole("link", { name: expected[2] }).getAttribute("href")).toBe("/c/conf-demo/boss/talk-3");
+  await user.click(screen.getByRole("button", { name: /^Locking Down Your Cluster/ }));
+  expect(within(screen.getByRole("region", { name: "Selected boss" })).getByText("Security goal")).toBeTruthy();
+  expect(screen.getByRole("link", { name: "View encounter" }).getAttribute("href")).toBe("/c/conf-demo/boss/talk-3");
   await user.click(screen.getByRole("checkbox", { name: "List view" }));
   expect(titles("Talk list")).toEqual(expected);
   expect(screen.getByText("Security goal")).toBeTruthy();
@@ -71,7 +75,7 @@ it("WEB-5 filters non-step-free rooms only from the path, retaining marked talks
   const user = setup();
   await user.click(screen.getByRole("checkbox", { name: "Step-free only" }));
   expect(titles("Dungeon path")).toHaveLength(2);
-  expect(screen.queryByRole("link", { name: fixtures.talks[2]!.title })).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Locking Down Your Cluster/ })).toBeNull();
   expect(screen.getByRole("status").textContent).toContain("2 of 3");
   await user.click(screen.getByRole("checkbox", { name: "List view" }));
   expect(titles("Talk list")).toHaveLength(3);
@@ -83,7 +87,7 @@ it("WEB-5 filters non-step-free rooms only from the path, retaining marked talks
 it("WEB-5 marks missing room information as unconfirmed and excludes it from the step-free path", async () => {
   motion();
   const user = setup("Unknown room");
-  expect(screen.getByText("Step-free access unconfirmed")).toBeTruthy();
+  expect(screen.getByRole("button", { name: /Locking Down Your Cluster.*Step-free access unconfirmed/ })).toBeTruthy();
   await user.click(screen.getByRole("checkbox", { name: "Step-free only" }));
   expect(titles("Dungeon path")).toHaveLength(2);
 });
@@ -133,4 +137,36 @@ it("WEB-3 keeps available boss rooms and their speakers when another selected ta
   expect(screen.getByRole("alert").textContent).toContain("1 talk could not be loaded");
   expect(screen.getByRole("heading", { name: "Your quests" })).toBeTruthy();
   expect(screen.queryByRole("link", { name: fixtures.talks[1]!.title })).toBeNull();
+});
+
+it("WEB-3 selects a chamber with the keyboard and updates one floating encounter panel", async () => {
+  motion();
+  const user = setup();
+  const room = screen.getByRole("button", { name: /^Locking Down Your Cluster/ });
+  room.focus();
+  await user.keyboard("{Enter}");
+  expect(room.getAttribute("aria-pressed")).toBe("true");
+  const panel = screen.getByRole("region", { name: "Selected boss" });
+  expect(within(panel).getByRole("heading", { name: "Locking Down Your Cluster" })).toBeTruthy();
+  expect(screen.getAllByRole("region", { name: "Selected boss" })).toHaveLength(1);
+  await user.click(screen.getByRole("checkbox", { name: "Step-free only" }));
+  expect(screen.queryByRole("heading", { name: "Locking Down Your Cluster" })).toBeNull();
+  expect(within(screen.getByRole("region", { name: "Selected boss" })).getByRole("heading", { name: fixtures.talks[0]!.title })).toBeTruthy();
+});
+
+it("WEB-3 switches actual conference days in venue time and keeps all days in the list", async () => {
+  motion();
+  const talks = structuredClone(fixtures.talks.slice(0, 2));
+  talks[0]!.starts_at = "2026-11-11T06:30:00Z"; // Nov 10 at 11:30 PM in Salt Lake City.
+  talks[1]!.starts_at = "2026-11-11T15:00:00Z";
+  const attendee = { ...fixtures.attendee, map: fixtures.attendee.map.slice(0, 2) };
+  render(<DungeonMap conference={fixtures.conference} attendee={attendee} talks={talks} conf="conf-demo" />);
+  const user = userEvent.setup();
+  expect(titles("Dungeon path")).toEqual([talks[0]!.title]);
+  await user.click(screen.getByRole("button", { name: /Day 2/ }));
+  expect(titles("Dungeon path")).toEqual([talks[1]!.title]);
+  expect(screen.getByRole("link", { name: "View encounter" }).getAttribute("href")).toBe("/c/conf-demo/boss/talk-2");
+  expect(screen.queryByRole("button", { name: /Day 3/ })).toBeNull();
+  await user.click(screen.getByRole("checkbox", { name: "List view" }));
+  expect(titles("Talk list")).toEqual(talks.map((talk) => talk.title));
 });
