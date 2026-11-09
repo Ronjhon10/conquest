@@ -181,7 +181,7 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
       } else if (method === "POST" && !id) {
         const input = C.CreateAttendeeRequest.parse(body);
         const conf = find(conferences, input.conference_id);
-        const created: C.Attendee = {
+        const created = C.Attendee.parse({
           ...structuredClone(C.fixtures.attendee),
           ...input,
           id: nextId("att"),
@@ -200,7 +200,7 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
           coins: 3,
           code: `D${sequence.toString(8).replace(/0/g, "A").replace(/1/g, "B").padStart(5, "2")}`,
           quests: conf.quests,
-        };
+        });
         attendees.push(created);
         result = { attendee: created };
       } else {
