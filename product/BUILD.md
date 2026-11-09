@@ -40,7 +40,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Search (020)
 
-- [ ] **S.1** Scrape KubeCon NA 2026 schedule → `data/kubecon-na-2026.ndjson` (talks + speakers). (SR-1) owner: Max
+- [x] **S.1** Scrape KubeCon NA 2026 schedule → `data/kubecon-na-2026.ndjson` (talks + speakers). (SR-1) owner: Max
 - [ ] **S.2** Index mappings, idempotent seed. (SR-2) owner: Max
 - [ ] **S.3** `GET /talks` hybrid search with highlight and fuzziness; `GET /talks/:id`, `GET /speakers/:id`. (SR-3, SR-4, SR-11, SR-12) owner: Max
 - [ ] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
@@ -85,4 +85,5 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
 - 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.
 - 2026-11-09 12:40  G.1  Jacob (Claude)  game-api storage: strict mappings for the 5 Game indexes + idempotent ensureIndexes on start; DocStore seam (Elasticsearch with refresh wait_for and if_seq_no/if_primary_term; in-memory for tests); typed repos validated with contracts schemas, update() retries version conflicts up to 3 times; SearchClient (HTTP + fixture fake); /readyz checks Elasticsearch.
+- 2026-11-09 12:50  S.1  Max (Claude)  scripts/seed scraper (one GET of the LF schedule page, embedded Sessionize JSON) -> data/kubecon-na-2026.ndjson: 480 real talks, 703 speakers. SR-1 tests on the transform and the committed file.
 - 2026-11-09 13:20  G.2-G.10  Jacob (Claude + Sonnet agents in parallel)  All game-api routes built against fakes: conferences + theme fallback/contrast, attendees (LinkedIn normalize, photo, code, map, goal quests, allies), POST /xp with rules module, parties + 1.25x, quest completion (incl. coin quests), coins + recognition, leaderboard/report as ES aggregations (memory twin for tests), recap with template fallback, xp.award span + metrics. 116 tests green; demo path smoke-tested in memory. Not yet run against real Elasticsearch.
