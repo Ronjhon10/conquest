@@ -4,7 +4,7 @@ description: Ship a change as an Argo Rollouts canary in this team's cluster at 
 ---
 
 > **Conquest notes (read first; they override the starter text below).** This is the cnh-starter skill adapted for Conquest.
-> - `main` is protected: "push to `main`" in this skill means **open a PR and merge it after CI and Gitar pass**. The merge is the push that deploys. Never push directly to `main` (only the build-and-deploy bot does, for its `deploy:` commit).
+> - `main` is protected: "push to `main`" in this skill means **open a PR and merge it after CI and Gitar pass**. The merge is the push that deploys. Never push directly to `main`. The build-and-deploy bot writes its `deploy: <sha7>` commit to the **`deploy` branch** (main plus image tags), which Argo CD tracks; you don't need to `git pull` it. Where this skill checks `status.sync.revision` against `origin/main`, compare it with `origin/deploy` instead.
 > - We run three Deployments: `web` (behind Service `app`, the public URL), `search-api` and `game-api`. Where this skill says Deployment `app`, check `web`, then the two APIs. The Argo CD Application is still `app` in `team-<team>`.
 > - The build makes three images: `ghcr.io/ronjhon10/conquest-web`, `-search-api`, `-game-api`, all tagged with the seven-character commit SHA.
 > - The setup script is `./deploy/setup-team.sh <team>`. Cluster details are in `deploy/README.md`.

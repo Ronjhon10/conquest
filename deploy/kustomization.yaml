@@ -1,5 +1,5 @@
-# Argo CD deploys this folder to the team namespace on every push to main.
-# The build-and-deploy Action sets the images below on every push; don't edit newName/newTag by hand.
+# Argo CD deploys this folder from the `deploy` branch. On main the tags stay `latest`;
+# build-and-deploy writes the real tags on the deploy branch. Don't edit newName/newTag by hand.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: team-__TEAM__

@@ -4,8 +4,8 @@ How Conquest runs and ships. Spec: [specs/010-platform.md](../specs/010-platform
 
 ```
 PR ──▶ ci (lint, typecheck, test) + Gitar review/auto-fix ──merge──▶ main
-main ──▶ build-and-deploy Action: 3 images to GHCR, bot commits "deploy: <sha>" with new tags
-     ──▶ Argo CD in our vcluster syncs deploy/ ──▶ Radar shows the rollout
+main ──▶ build-and-deploy Action: 3 images to GHCR, bot force-pushes branch `deploy` = main + new tags
+deploy ──▶ Argo CD in our vcluster syncs deploy/ ──▶ Radar shows the rollout
 https://__TEAM__.cnh.radarhq.io ──▶ Service app:80 ──▶ web (Next) ──┬─ /api/search/* ──▶ search-api
                                                                      └─ /api/game/*   ──▶ game-api ──▶ search-api
 search-api, game-api ──▶ Elastic Serverless (outside the cluster)
@@ -37,6 +37,7 @@ Each takes 5 to 10 minutes. Nothing here goes in git: keys and kubeconfigs live 
 - **Budget** for everything we run: 2 CPU / 4 GiB requests, 4 CPU / 8 GiB limits, 4 PVCs / 20 GiB. Our three pods request 300m / 640Mi. That's why Elasticsearch stays on Elastic Serverless.
 - **Only Service `app` port 80** is routed to `https://__TEAM__.cnh.radarhq.io`. No LoadBalancer or NodePort. `deploy/httproute.yaml` is inert; leave it.
 - **No privileged, hostPath, hostNetwork or hostPID pods** (they stay Pending with a `SyncError` event). That's why telemetry goes straight to Dash0, not through a node agent.
+- **`main` is protected** (PR + green `ci`; personal repos can't let the Actions bot bypass), so Argo CD tracks the bot-owned `deploy` branch instead. Never commit to `deploy` by hand.
 - **Argo CD** has no web UI; drive it through Radar (`manage_gitops`). Self-heal reverts manual edits to what it deployed, so fix things in git.
 - **Prometheus** is preinstalled and Radar reads it (`query_prometheus`).
 - **kubectl**: kubeconfig is Secret `kubeconfig` in namespace `default`, key `config` (Radar Cloud, Resources, Secrets, Reveal). Save it outside the repo. Token lasts about 12 to 24 hours.
