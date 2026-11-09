@@ -15,21 +15,22 @@ const overlaps = (a: Talk, b: Talk) => a.starts_at < b.ends_at && b.starts_at < 
  */
 export async function buildMap(deps: Deps, goals: string[], about: string): Promise<{ map: BossSlot[]; talks: Map<string, Talk> }> {
   const ranked = await deps.search.rank({ goals, about, limit: MAP_MAX });
-  const schedule = await deps.search.searchTalks("", 100);
-  const talks = new Map(schedule.map((t) => [t.id, t]));
-  for (const b of ranked) {
-    if (!talks.has(b.talk_id)) {
-      const found = await deps.search.getTalk(b.talk_id);
-      if (found) talks.set(found.talk.id, found.talk);
-    }
-  }
-
+  const talks = new Map<string, Talk>();
+  const found = await Promise.all(ranked.map((b) => deps.search.getTalk(b.talk_id)));
+  for (const row of found) if (row) talks.set(row.talk.id, row.talk);
   const map = [...ranked];
-  const picked = () => map.flatMap((b) => talks.get(b.talk_id) ?? []);
-  for (const t of schedule) {
-    if (map.length >= MAP_MIN) break;
-    if (map.some((b) => b.talk_id === t.id) || picked().some((p) => overlaps(p, t))) continue;
-    map.push({ talk_id: t.id, score: 0, reason: FILLER_REASON });
+  const pageSize = 100;
+  // The first page may contain only simultaneous sessions. Continue until the map
+  // reaches its documented minimum or the schedule really runs out.
+  for (let offset = 0; map.length < MAP_MIN && offset <= 9900; offset += pageSize) {
+    const schedule = await deps.search.searchTalks("", pageSize, offset);
+    for (const talk of schedule) {
+      if (map.length >= MAP_MIN) break;
+      if (map.some((b) => b.talk_id === talk.id || (talks.has(b.talk_id) && overlaps(talks.get(b.talk_id)!, talk)))) continue;
+      talks.set(talk.id, talk);
+      map.push({ talk_id: talk.id, score: 0, reason: FILLER_REASON });
+    }
+    if (schedule.length < pageSize) break;
   }
   const start = (b: BossSlot) => talks.get(b.talk_id)?.starts_at ?? "";
   map.sort((a, b) => start(a).localeCompare(start(b)));

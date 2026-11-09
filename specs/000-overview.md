@@ -149,7 +149,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 
 | Method + path | Body / query | Returns |
 | --- | --- | --- |
-| `GET /api/search/talks` | `?q=&limit=20` | `{ results: { talk: Talk; score: number; highlight: string \| null }[] }` |
+| `GET /api/search/talks` | `?q=&limit=20&offset=0` (limit ≤100; offset 0–9900, only when q is empty) | `{ results: { talk: Talk; score: number; highlight: string \| null }[] }` |
 | `GET /api/search/rooms` | | `{ rooms: string[] }` (all distinct room names, sorted) |
 | `GET /api/search/talks/:id` | | `{ talk: Talk; speakers: Speaker[] }` |
 | `POST /api/search/rank` | `{ goals: string[]; about: string; limit?: number }` | `{ bosses: BossSlot[] }` |
