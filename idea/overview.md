@@ -1,16 +1,24 @@
 # Overview
 
-Status: picked at kickoff (2026-11-09). Built from the [kickoff transcript](../meeting-recordings/team/2026-11-09-1040-kickoff-ideation-transcript.md), its [summary](../meeting-recordings/team/2026-11-09-1040-kickoff-ideation-summary.md) and the [whiteboard](../meeting-recordings/team/2026-11-09-1040-kickoff-whiteboard.md). When this file and those disagree, this file is the current answer; change it here when we change our minds.
+Status: picked at kickoff (2026-11-09); tracks updated after kickoff to enter all of them. Built from the [kickoff transcript](../meeting-recordings/team/2026-11-09-1040-kickoff-ideation-transcript.md), its [summary](../meeting-recordings/team/2026-11-09-1040-kickoff-ideation-summary.md) and the [whiteboard](../meeting-recordings/team/2026-11-09-1040-kickoff-whiteboard.md). When this file and those disagree, this file is the current answer; change it here when we change our minds.
 
 ## The hackathon
 
-- **Event:** _(name not recorded yet)_
+- **Event:** Cloud Native Hackathon with Kelsey Hightower (WeMakeDevs, featured in KubeCon NA), The Shop Workspace, Salt Lake City, 2026-11-09. Event pages: https://luma.com/cnh and https://www.wemakedevs.org/hackathons/cnh
+- **Challenge (verbatim gist):** build something that makes conferences easier before, during, or after, for attendees, speakers, sponsors, or organizers.
 - **Theme:** make conferences better
-- **Tracks we're entering:** Elasticsearch (main) and Guitar (CI/CD checks, second). Dropped: Radar and Kubernetes (contrived for a conference). Dash0 is out unless there's time left (see open questions).
-- **Deadline:** submit by 5:30 (2026-11-09)
+- **Tracks we're entering: all of them** (decided after kickoff, 2026-11-09). A project enters every track whose tool it genuinely uses. "Guitar" in the transcript is **Gitar**, Sonar's AI code verification agent, so Sonar and Guitar are the same track. Kubernetes is not its own track; Radar requires it.
+- **Deadline:** submissions close 5:30 PM MT (2026-11-09), then presentations and judging; winners at 6:30 PM
 - **Format:** probably a two-minute submitted video, not a live pitch
-- **Judging criteria:** _(not written down yet)_. What we know about the judges: one wants "tech to serve the user, not show off"; another wants "a real user with a real problem" and is skeptical of AI added for its own sake. They're technical and want to see how the track tools are actually used.
-- **Prizes we're going for:** Elasticsearch track, Guitar track
+- **Judging criteria (from the hackathon page, per track):**
+  - **Sonar, Never Merge Broken ($4k):** Gitar is part of how we build, features land through reviewed PRs; project-aware setup with review instructions and repo rules; CI failure diagnosis and auto-apply; makes conferences easier.
+  - **Dash0, Stop Flying Blind ($4k):** depth of OpenTelemetry instrumentation (traces, logs, metrics, RUM on the frontend); Agent0 or the Dash0 MCP server finds and fixes a real issue during the day; observability is part of the product; bonus for a dashboard or SLO.
+  - **Radar, AI SRE ($4k):** runs on Kubernetes with Radar connected; Radar UI and MCP used while building and operating; AI investigation of a real issue, findings shown.
+  - **Elasticsearch, Find the Right Talk ($4k):** Elasticsearch is the core data layer, not a side feature; smart keyword, semantic, vector or hybrid search.
+  - **Merge Forward (iPad):** makes conferences more inclusive and accessible.
+  - **Best overall (NVIDIA DGX Spark):** any project.
+- **About the judges:** what we know about the judges: one wants "tech to serve the user, not show off"; another wants "a real user with a real problem" and is skeptical of AI added for its own sake. They're technical and want to see how the track tools are actually used.
+- **Prizes we're going for:** all four sponsor tracks, Merge Forward, best overall
 
 ## The idea
 
@@ -33,7 +41,12 @@ Status: picked at kickoff (2026-11-09). Built from the [kickoff transcript](../m
 
 - **How the tracks fit:**
   - **Elasticsearch:** talks, speakers and booths are indexed as documents. Keyword plus semantic search over an attendee's goals and LinkedIn interests ranks the talks that become their bosses, and backs the free-typed "what do you want out of this conference" step.
-  - **Guitar:** runs CI checks behind the scenes on the code generated for each organizer's custom dungeon, with checks set up per conference. Organizers never see it.
+  - **Elasticsearch is the only database:** talks, speakers, attendees, XP events. Leaderboard and after-action report are aggregations.
+  - **Kubernetes + Radar:** the app runs as services on the event's cluster with Radar connected; we use Radar's AI investigations on whatever really breaks.
+  - **Dash0:** every service and the browser send OpenTelemetry to Dash0. Every XP event is a span and a metric; the organizer's live stats are a Dash0 dashboard with an SLO.
+  - **Sonar / Gitar:** every feature lands through a Gitar-reviewed PR with project rules (XP logic needs a test named by criterion ID; every screen needs alt text). Gitar auto-fixes failing CI. Stretch: per-conference generated dungeon repos reviewed by Gitar.
+  - **Merge Forward:** screen-reader list view of the map, step-free routes between rooms, alt text enforced in review.
+  - Architecture and lanes: [specs/000-overview.md](../specs/000-overview.md).
 
 - **Why it wins:** it's a real problem every judge has sat through, aimed at real people (attendees, organizers, speakers), and the track tech does real work (search picks your talks; CI keeps generated dungeons from breaking) rather than being bolted on. And it's fun to watch in a two-minute video. Even if you lose the hackathon, you could win the dungeon.
 
@@ -48,7 +61,7 @@ An organizer themes a dungeon, an attendee signs up with LinkedIn and gets a map
 2. **Attendee, before the conference** (live): sign up, LinkedIn, character, goals (pre-filled), then the map and quests.
 3. **At the conference** (live, the key part): every way to earn XP, split screen with real-life footage next to the phone. Organizer sees the leaderboard.
 4. **After:** attendee recap post, organizer after-action report, speaker recognition.
-5. **Slides:** how Elasticsearch and Guitar work behind the scenes. Also name Elasticsearch during the walkthrough.
+5. **Slides:** how Elasticsearch, Kubernetes + Radar, Dash0 and Gitar work behind the scenes, with the real Radar and Dash0 findings. Also name Elasticsearch during the walkthrough.
 
 Shown with one real theme, plus screenshots of others (beauty conference, dental conference).
 
@@ -61,20 +74,16 @@ Shown with one real theme, plus screenshots of others (beauty conference, dental
 
 ## Open questions
 
-- Second track is Guitar or Sonar? The board says "Elastic Search + Sonar", the conversation says Guitar. **Default until answered:** Guitar.
-- Dash0 in or out? **Default:** out. Revisit only if there's time for an organizer live-stats view.
 - How do coins work: do you start with some, or earn them from bosses and quests? **Default:** every attendee starts with a few coins and earns more from bosses.
 - How does the participation reward stay meaningful without a failure state? **Default:** check-in gives base XP; photos, party fights and quests are where the bonus is.
 - Is the avatar badge sticker (scanned like a QR code) in the MVP? **Default:** a QR code on the phone in the app; the sticker is a slide.
 - Do XP for helping with accessibility and giving swag to speakers (on the board) count? **Default:** not for the MVP.
 - Crowd heat map for organizers? **Default:** no.
-- Event name and judging criteria. **Default:** fill in when someone checks the event page.
 
 ## Ideas we considered
 
 | Idea | Why not (or not yet) |
 | --- | --- |
-| Radar / Kubernetes as the dungeon | Contrived for a conference |
-| Dash0 tracking every XP event as OpenTelemetry traces for the organizer dashboard | Observability tooling, hard to fit; left out at the end of kickoff |
+| Radar / Kubernetes as the dungeon (each boss room its own service) | Contrived; we run on Kubernetes for real but the game doesn't pretend the cluster is the dungeon |
 | Speaker ranking by coins | Changed to coins as "giving respect", not a ranking |
 | Quizzes after talks | Feels like homework; Conquest has no failing |
