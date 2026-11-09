@@ -1,5 +1,5 @@
 import { type Attendee, fixtures, type Quest, XpResponse } from "@conquest/contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
 import { type Deps, memoryDeps } from "../deps";
 import { checkQuests } from "./award";
@@ -163,4 +163,16 @@ describe("quest completion", () => {
     expect(r.attendee.xp).toBe(25 + 10 + 20);
     expect(await questEvents(deps, "a1")).toHaveLength(2);
   });
+
+  it("GM-10 checking quests reads the attendee's events once, not once per quest (P.W2 latency)", async () => {
+    const { deps } = setup();
+    const quests = Array.from({ length: 8 }, (_, i) => quest(`q-${i}`, 10, "photo", 5, null));
+    await seed(deps, "a1", "AAAAAA", quests);
+    const find = vi.spyOn(deps.repos.xpEvents, "find");
+    const count = vi.spyOn(deps.repos.xpEvents, "count");
+    await checkQuests(deps, "a1");
+    // No quest is met, so: one events read and no per-quest count.
+    expect({ find: find.mock.calls.length, count: count.mock.calls.length }).toEqual({ find: 1, count: 0 });
+  });
 });
+
