@@ -135,15 +135,17 @@ export function RouteContent({
       {view === "map" ? (
         <div className={`preview-grid ${mapStyles.layout}`}>
           <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} />
-          <Panel title="Your quests">
-            {(attendee?.quests ?? conference.quests).map((q) => (
-              <p key={q.id}>
-                <strong>{q.title}</strong>
-                <br />
-                {q.description}
-              </p>
-            ))}
-          </Panel>
+          <div id="quests">
+            <Panel title="Your quests">
+              {(attendee?.quests ?? conference.quests).map((q) => (
+                <p key={q.id}>
+                  <strong>{q.title}</strong>
+                  <br />
+                  {q.description}
+                </p>
+              ))}
+            </Panel>
+          </div>
         </div>
       ) : view === "live" ? (
         <Panel title="The leaderboard">
