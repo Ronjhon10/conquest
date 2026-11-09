@@ -3,7 +3,8 @@ import type { Attendee, XpEvent, XpKind } from "@conquest/contracts";
 import { SpanStatusCode } from "@opentelemetry/api";
 import type { Deps } from "../deps";
 import { checkinsCount, tracer, xpAwardedCounter } from "../telemetry";
-import { applyMultiplier, levelForXp } from "./rules";
+import { completeQuests } from "./quests";
+import { applyMultiplier, levelForXp, PARTY_MULTIPLIER } from "./rules";
 
 export type AwardSpec = {
   kind: XpKind;
@@ -16,12 +17,24 @@ export type AwardSpec = {
 };
 
 // G.5: 1.25 when a party member already checked into this talk (GM-7)
-export async function partyMultiplier(_deps: Deps, _attendee: Attendee, _talkId: string): Promise<number> {
+export async function partyMultiplier(deps: Deps, attendee: Attendee, talkId: string): Promise<number> {
+  if (!attendee.party_id) return 1.0;
+  const party = await deps.repos.parties.get(attendee.party_id);
+  if (!party) return 1.0;
+  for (const memberId of party.member_ids) {
+    if (memberId === attendee.id) continue;
+    if ((await deps.repos.xpEvents.count({ attendee_id: memberId, kind: "checkin", talk_id: talkId })) > 0) {
+      return PARTY_MULTIPLIER;
+    }
+  }
   return 1.0;
 }
 
 // G.6 (GM-10)
-export async function checkQuests(_deps: Deps, _attendeeId: string): Promise<void> {}
+// Returns the latest attendee after any quest XP; POST /coins calls this too.
+export async function checkQuests(deps: Deps, attendeeId: string): Promise<Attendee | null> {
+  return completeQuests(deps, attendeeId);
+}
 
 /** xp.award span + metrics around the award (GM-18). Attributes are ids, kinds and counts only. */
 export async function awardXp(
@@ -79,6 +92,6 @@ async function awardXpInner(
     return { ...a, xp, level: levelForXp(xp), coins: a.coins + (spec.coins ?? 0) };
   });
   if (!updated) throw new Error(`attendee ${attendee.id} vanished during award`);
-  await checkQuests(deps, attendee.id);
-  return { event, attendee: updated };
+  const latest = await checkQuests(deps, attendee.id);
+  return { event, attendee: latest ?? updated };
 }

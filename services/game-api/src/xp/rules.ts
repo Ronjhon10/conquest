@@ -7,6 +7,10 @@ export const XP = {
 } as const;
 
 export const PHOTO_LIMIT = 20;
+/** 030 Behavior 7: bonus when a party member already checked into the same talk. */
+export const PARTY_MULTIPLIER = 1.25;
+/** 030 Behavior 14: max party members. */
+export const MAX_PARTY_SIZE = 4;
 export const BOSS_COIN_REWARD = 1;
 
 export function checkinBaseXp(isBoss: boolean): number {
