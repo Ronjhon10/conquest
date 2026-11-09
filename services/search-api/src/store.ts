@@ -5,12 +5,12 @@ import { INDEX, type Speaker, type Talk } from "@conquest/contracts";
 import type { EsPort } from "./es";
 import { searchTalksBody, talksBySpeakerBody, type SearchOptions } from "./queries";
 import { fromTalkDoc, type TalkDoc } from "./seed";
-import { facetsFromAggs, suggestBody, type Facets } from "./suggest";
+import { facetsFromResult, suggestBody, type Facets } from "./suggest";
 
 export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
 export interface TalkStore {
-  searchTalks(q: string, limit: number): Promise<TalkHit[]>;
+  searchTalks(q: string, limit: number, offset?: number): Promise<TalkHit[]>;
   rooms(): Promise<string[]>;
   getTalk(id: string): Promise<Talk | null>;
   getSpeakers(ids: string[]): Promise<Speaker[]>;
@@ -64,21 +64,31 @@ export class EsTalkStore implements TalkStore {
     return this.opts;
   }
 
-  async searchTalks(q: string, limit: number): Promise<TalkHit[]> {
+  async searchTalks(q: string, limit: number, offset = 0): Promise<TalkHit[]> {
     void this.maybeRedetect();
-    const res = await this.searchWithFallback(q, limit);
+    const res = await this.searchWithFallback(q, limit, offset);
     return res.hits.map((h) => ({ talk: fromTalkDoc(h.source), score: h.score, highlight: h.highlight?.abstract?.[0] ?? null }));
   }
 
-  /** If the cluster refuses the rrf retriever, switch to bool.should for good (020 Behavior 3). */
-  private async searchWithFallback(q: string, limit: number) {
-    try {
-      return await this.es.search<TalkDoc>(INDEX.talks, searchTalksBody(q, limit, this.opts));
-    } catch (err) {
-      if (!this.opts.rrf || !isRrfRefusal(err)) throw err;
-      this.opts = { ...this.opts, rrf: false };
-      console.warn(JSON.stringify({ level: "warn", msg: "rrf retriever refused; using bool.should" }));
-      return this.es.search<TalkDoc>(INDEX.talks, searchTalksBody(q, limit, this.opts));
+  /** RRF refusal falls back to bool; an inference outage falls back to BM25 until re-detection. */
+  private async searchWithFallback(q: string, limit: number, offset: number) {
+    for (;;) {
+      // Each in-flight query remembers its mode, even if another query disables semantic search.
+      const attempted = { ...this.opts };
+      try {
+        return await this.es.search<TalkDoc>(INDEX.talks, searchTalksBody(q, limit, attempted, offset));
+      } catch (err) {
+        if (attempted.semantic && isInferenceFailure(err)) {
+          this.opts = { semantic: false, rrf: false };
+          this.lastCheck = this.now();
+          console.warn(JSON.stringify({ level: "warn", msg: "inference unavailable; using BM25" }));
+        } else if (attempted.rrf && isRrfRefusal(err)) {
+          this.opts = { ...this.opts, rrf: false };
+          console.warn(JSON.stringify({ level: "warn", msg: "rrf retriever refused; using bool.should" }));
+        } else {
+          throw err;
+        }
+      }
     }
   }
 
@@ -116,7 +126,8 @@ export class EsTalkStore implements TalkStore {
     return res.hits.map((h) => fromTalkDoc(h.source));
   }
   async facets(about: string) {
-    return facetsFromAggs((await this.es.search<TalkDoc>(INDEX.talks, suggestBody(about))).aggregations);
+    const res = await this.es.search<Pick<TalkDoc, "tags" | "track">>(INDEX.talks, suggestBody(about));
+    return facetsFromResult(res.hits.map((h) => h.source), res.aggregations);
   }
   async ready() {
     try {
@@ -134,4 +145,10 @@ function isRrfRefusal(err: unknown): boolean {
   const status = e?.meta?.statusCode;
   const text = JSON.stringify(e?.meta?.body ?? (err instanceof Error ? err.message : "")).toLowerCase();
   return (status === 400 || status === 403) && (text.includes("rrf") || text.includes("retriever") || text.includes("license"));
+}
+
+function isInferenceFailure(err: unknown): boolean {
+  const meta = (err as { meta?: { statusCode?: number; body?: unknown } })?.meta;
+  return [400, 401, 403, 404, 429, 500, 502, 503, 504].includes(meta?.statusCode ?? 0)
+    && /inference|openai|model_not_found_exception/i.test(JSON.stringify(meta?.body ?? {}));
 }

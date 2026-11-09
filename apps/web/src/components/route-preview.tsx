@@ -58,6 +58,9 @@ export function RouteContent({
   talkId?: string;
 }) {
   const { conference, attendee, talks, rows } = data;
+  if (view === "map") {
+    return <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} fullPage />;
+  }
   const organizer = ["new", "setup", "live", "report", "theme"].includes(view);
   const selectedTalk = talks.find((t) => t.id === talkId);
   return (
@@ -133,20 +136,7 @@ export function RouteContent({
           </div>
         </div>
       )}
-      {view === "map" ? (
-        <div className={`preview-grid ${mapStyles.layout}`}>
-          <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} />
-          <Panel title="Your quests">
-            {(attendee?.quests ?? conference.quests).map((q) => (
-              <p key={q.id}>
-                <strong>{q.title}</strong>
-                <br />
-                {q.description}
-              </p>
-            ))}
-          </Panel>
-        </div>
-      ) : view === "live" ? (
+      {view === "live" ? (
         <Panel title="The leaderboard">
           <table className="leaderboard">
             <caption>Conference adventurers, ranked by XP</caption>
@@ -371,7 +361,7 @@ export function RoutePreview({
     (view === "new" || view === "speaker") &&
     process.env.NEXT_PUBLIC_FAKE_API !== "1";
   return (
-    <div className="page-container">
+    <div className={view === "map" ? mapStyles.routeContent : "page-container"}>
       {error ? (
         <ErrorNotice message={error} onRetry={() => setAttempt((n) => n + 1)} />
       ) : data ? (

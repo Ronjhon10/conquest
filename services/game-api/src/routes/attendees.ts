@@ -18,6 +18,8 @@ import { normalizeLinkedInUrl } from "../attendees/linkedin";
 import type { Deps } from "../deps";
 import { ApiError, body } from "../http";
 import { publishPendingAwards } from "../xp/journal";
+import { existingLinkedAttendee, linkedAttendeeId } from "../attendees/identity";
+import { AlreadyExistsError } from "../store/store";
 
 const MAX_PHOTO = 40 * 1024;
 const PHOTO_PREFIX = "data:image/jpeg;base64,";
@@ -71,7 +73,7 @@ export function attendeesRoutes(deps: Deps) {
 
     // Signing up again with the same link (a new phone, a cleared browser) returns the same character.
     if (linkedin_url) {
-      const [existing] = await deps.repos.attendees.find({ conference_id: conference.id, linkedin_url }, { size: 1 });
+      const existing = await existingLinkedAttendee(deps, conference.id, linkedin_url);
       if (existing) return c.json({ attendee: existing });
     }
 
@@ -82,7 +84,7 @@ export function attendeesRoutes(deps: Deps) {
       async (code) => (await deps.repos.attendees.find({ conference_id: conference.id, code }, { size: 1 })).length > 0,
     );
     const attendee: Attendee = {
-      id: deps.newId(),
+      id: linkedin_url ? linkedAttendeeId(conference.id, linkedin_url) : deps.newId(),
       conference_id: conference.id,
       name: req.name,
       headline: req.headline,
@@ -100,7 +102,14 @@ export function attendeesRoutes(deps: Deps) {
       quests: [...quests, ...conference.quests],
       created_at: deps.now().toISOString(),
     };
-    await deps.repos.attendees.create(attendee);
+    try {
+      await deps.repos.attendees.create(attendee);
+    } catch (err) {
+      if (!(err instanceof AlreadyExistsError) || !linkedin_url) throw err;
+      const existing = await deps.repos.attendees.get(attendee.id);
+      if (!existing) throw err;
+      return c.json({ attendee: existing });
+    }
     return c.json({ attendee });
   });
 

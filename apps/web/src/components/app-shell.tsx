@@ -1,0 +1,46 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
+import { Icon } from "./icon";
+import mapStyles from "./dungeon-map.module.css";
+import { DEMO_CONFERENCE_ID } from "../lib/demo";
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const immersive = /^\/c\/[^/]+\/map\/?$/.test(pathname ?? "");
+  const fake = process.env.NEXT_PUBLIC_FAKE_API === "1";
+  return (
+    <>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
+      {!immersive && <header className="site-header">
+        <Link href="/" className="brand" aria-label="Conquest home">
+          CONQUEST
+        </Link>
+        <nav aria-label="Main navigation">
+          <Link href={`/c/${DEMO_CONFERENCE_ID}/map`}>My map</Link>
+          <Link href="/organizer/new" className="nav-organize">
+            Organizers <Icon name="arrow-up-right" />
+          </Link>
+        </nav>
+      </header>}
+      <main id="main" className={immersive ? mapStyles.routeShell : undefined}>
+        {fake && !immersive && (
+          <div className="demo-banner">
+            Demo world{" "}
+            <span>Sample conference · your character stays in this tab</span>
+          </div>
+        )}
+        {children}
+      </main>
+      {!immersive && <footer className="site-footer">
+        <span className="brand-small">CONQUEST</span>
+        <p>Find your talks. Meet your party.</p>
+        <span>Made for the moments between sessions.</span>
+      </footer>}
+    </>
+  );
+}

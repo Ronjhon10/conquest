@@ -1,3 +1,4 @@
+import { PHOTO_LIMIT } from "../xp/rules";
 import { type Attendee, ErrorBody, fixtures, XpResponse } from "@conquest/contracts";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../app";
@@ -64,17 +65,17 @@ describe("POST /xp", () => {
     expect(r.event.xp).toBe(r.event.base_xp);
   });
 
-  it("GM-8 photo gives 25 XP (talk optional) and the 21st is 409 photo_limit", async () => {
+  it("GM-8 photo gives 25 XP (talk optional) and the 7th is 409 photo_limit", async () => {
     const { deps, post } = setup();
     await seed(deps, "a1", "AAAAAA");
     const first = XpResponse.parse((await post({ attendee_id: "a1", kind: "photo", talk_id: "talk-2" })).json);
     expect(first.event).toMatchObject({ xp: 25, talk_id: "talk-2" });
-    for (let i = 1; i < 20; i++) expect((await post({ attendee_id: "a1", kind: "photo" })).res.status).toBe(200);
+    for (let i = 1; i < PHOTO_LIMIT; i++) expect((await post({ attendee_id: "a1", kind: "photo" })).res.status).toBe(200);
     const over = await post({ attendee_id: "a1", kind: "photo" });
     expect(over.res.status).toBe(409);
     expect(errCode(over.json)).toBe("photo_limit");
-    // 20 photos at 25 XP, plus the fixture's "Capture the moment" quest (75 XP) at the third photo (GM-10)
-    expect((await deps.repos.attendees.get("a1"))?.xp).toBe(575);
+    // 6 photos at 25 XP, plus the fixture's "Capture the moment" quest (75 XP) at the third photo (GM-10)
+    expect((await deps.repos.attendees.get("a1"))?.xp).toBe(PHOTO_LIMIT * 25 + 75);
   });
 
   it("GM-9 network gives 50 XP to both, either-direction repeat is 409, own code is 400 self", async () => {

@@ -1,5 +1,7 @@
 # Room art v1
 
+The connected-map revision follows the original [02 Map · 16-bit reference](https://claude.ai/artifact/L6M24BzoY4UfwAL2cJpAV3#play-28ecf9fefbf4). It uses a top-down floor plan and existing character sprites; these room dioramas are retained as assets but no longer rendered on the map. No character artwork was changed.
+
 Generated with the built-in imagegen tool using `public/characters/wizard-v1.png` as a style reference. Original transparent PNGs are copied unchanged into `public/rooms/keynote-v1.png` and `public/rooms/workshop-v1.png`. These are decorative illustrative boss-room archetypes, not portraits of actual speakers or real venue floor plans. The talk, speaker names, and physical room labels come from the APIs. Next Image serves sized versions; list view omits artwork entirely. Stable chronological stop numbers select alternating art and survive step-free filtering.
 
 ## Keynote prompt

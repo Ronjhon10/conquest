@@ -18,7 +18,7 @@ export type Repo<T extends { id: string }> = {
    * Read, apply `change`, write with if_seq_no/if_primary_term; on conflict re-read and retry
    * (up to UPDATE_RETRIES retries). Returns null if the doc doesn't exist.
    */
-  update(id: string, change: (doc: T) => T): Promise<T | null>;
+  update(id: string, change: (doc: T) => T | Promise<T>): Promise<T | null>;
   find(filter?: Filter, opts?: FindOptions): Promise<T[]>;
   count(filter?: Filter): Promise<number>;
 };
@@ -50,7 +50,7 @@ function repo<S extends z.ZodType<{ id: string }>>(store: DocStore, index: GameI
       for (let attempt = 0; ; attempt++) {
         const current = await store.get<T>(index, id);
         if (!current) return null;
-        const next = check(change(check(current.doc)));
+        const next = check(await change(check(current.doc)));
         try {
           // Preserve storage-only metadata, such as the durable XP outbox.
           await store.put(index, id, { ...current.doc, ...next }, current.version);
@@ -79,3 +79,14 @@ export function createRepos(store: DocStore) {
   };
 }
 export type Repos = ReturnType<typeof createRepos>;
+
+/** Stable id pagination for operations that must visit every attendee, including legacy rows. */
+export async function* scanRepo<T extends { id: string }>(repo: Repo<T>, filter: Filter) {
+  let afterId: string | undefined;
+  for (;;) {
+    const page = await repo.find(filter, { size: 100, sort: { field: "id", order: "asc" }, afterId });
+    for (const row of page) yield row;
+    if (page.length < 100) return;
+    afterId = page.at(-1)!.id;
+  }
+}
