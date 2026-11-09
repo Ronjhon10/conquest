@@ -9,6 +9,7 @@ import type {
   Talk,
 } from "@conquest/contracts";
 import { Avatar } from "./avatar";
+import { DungeonMap } from "./dungeon-map";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
 import { formatTalkTime } from "../lib/time";
@@ -130,32 +131,7 @@ export function RouteContent({
       )}
       {view === "map" ? (
         <div className="preview-grid">
-          <section
-            className="dungeon-surface"
-            style={themeStyle(conference.theme)}
-          >
-            <p className="cq-label">{conference.theme.name}</p>
-            <h2>Your {conference.theme.boss_noun} trail</h2>
-            <p>{conference.theme.intro}</p>
-            <ol className="talk-list">
-              {(attendee?.map ?? []).map((boss) => {
-                const talk = talks.find((t) => t.id === boss.talk_id);
-                return talk ? (
-                  <li className="cq-card" key={talk.id}>
-                    <div className="talk-meta">
-                      {formatTalkTime(talk.starts_at)} · {talk.room}
-                    </div>
-                    <Link
-                      href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(talk.id)}`}
-                    >
-                      {talk.title}
-                    </Link>
-                    <p>{boss.reason}</p>
-                  </li>
-                ) : null;
-              })}
-            </ol>
-          </section>
+          <DungeonMap conference={conference} attendee={attendee} talks={talks} conf={conf} />
           <Panel title="Your quests">
             {(attendee?.quests ?? conference.quests).map((q) => (
               <p key={q.id}>
@@ -348,7 +324,13 @@ export function RoutePreview({
       : Promise.resolve(null);
     Promise.all([
       api.conference(conf),
-      api.talks(),
+      view === "map"
+        ? attendeeRequest.then(async (result) => ({
+            results: await Promise.all((result?.attendee.map ?? []).map(async (boss) => ({
+              talk: (await api.talk(boss.talk_id)).talk,
+            }))),
+          }))
+        : api.talks(),
       attendeeRequest,
       view === "live" ? api.leaderboard(conf) : Promise.resolve({ rows: [] }),
     ])
