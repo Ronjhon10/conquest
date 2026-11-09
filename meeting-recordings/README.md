@@ -4,7 +4,7 @@ Transcripts and notes from our talks. This repo is public, so everything here is
 
 ## Naming
 
-`YYYY-MM-DD-HHMM-topic-transcript.md` with `YYYY-MM-DD-HHMM-topic-summary.md` beside it. Audio files are optional. If you add one, keep it under 25 MB. Prefer the transcript.
+`YYYY-MM-DD-HHMM-topic-transcript.md` with `YYYY-MM-DD-HHMM-topic-summary.md` beside it. Whiteboard photos go beside them as `YYYY-MM-DD-HHMM-topic-whiteboard.jpg` with a `-whiteboard.md` that transcribes the text. Strip location data before committing. Audio files are optional. If you add one, keep it under 25 MB. Prefer the transcript.
 
 ## Recording to repo
 
