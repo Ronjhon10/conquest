@@ -74,7 +74,8 @@ async function awardXpInner(deps: Deps, attendee: Attendee, spec: AwardSpec): Pr
   const multiplier = spec.multiplier ?? 1;
   await publishPendingAwards(deps, attendee.id);
   const committed = await commitAward(deps, {
-    id: deps.newId(),
+    // Fixed id per attendee and quest, so racing completions can only pay once.
+    id: spec.kind === "quest" && spec.questId ? `${attendee.id}:quest:${spec.questId}` : deps.newId(),
     conference_id: attendee.conference_id,
     attendee_id: attendee.id,
     kind: spec.kind,

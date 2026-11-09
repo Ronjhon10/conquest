@@ -1,6 +1,7 @@
 // Quest completion (030 Behavior 5 goal quests, Behavior 10; GM-10).
 import type { Attendee, Quest } from "@conquest/contracts";
 import type { Deps } from "../deps";
+import { AlreadyExistsError } from "../store/store";
 import { awardXp } from "./award";
 
 async function progress(deps: Deps, attendeeId: string, quest: Quest): Promise<number> {
@@ -32,7 +33,11 @@ export async function completeQuests(deps: Deps, attendeeId: string): Promise<At
     // Re-check immediately before awarding: a nested pass may have just completed it.
     if (await isCompleted(deps, attendeeId, quest.id)) continue;
     const current = (await deps.repos.attendees.get(attendeeId)) ?? attendee;
-    await awardXp(deps, current, { kind: "quest", baseXp: quest.xp, questId: quest.id });
+    try {
+      await awardXp(deps, current, { kind: "quest", baseXp: quest.xp, questId: quest.id });
+    } catch (err) {
+      if (!(err instanceof AlreadyExistsError)) throw err; // another request completed it first
+    }
   }
   return deps.repos.attendees.get(attendeeId);
 }
