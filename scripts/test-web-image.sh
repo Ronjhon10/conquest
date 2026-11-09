@@ -14,7 +14,7 @@ docker build -f apps/web/Dockerfile -t "$image" .
 container="$(docker run -d --rm -p 127.0.0.1::8080 "$image")"
 port="$(docker port "$container" 8080/tcp | cut -d: -f2)"
 origin="http://127.0.0.1:$port"
-curl --fail --silent --show-error --retry 20 --retry-connrefused --retry-delay 1 "$origin/healthz" >/dev/null
+curl --fail --silent --show-error --retry 20 --retry-all-errors --retry-delay 1 --connect-timeout 1 --max-time 2 "$origin/healthz" >/dev/null
 for source in apps/web/public/fonts/*.ttf; do
   filename="$(basename "$source")"
   curl --fail --silent --show-error "$origin/fonts/$filename" -o "$assets_tmp/$filename"
