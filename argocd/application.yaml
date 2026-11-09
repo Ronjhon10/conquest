@@ -4,16 +4,16 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: app
-  namespace: team-__TEAM__
+  namespace: team-conquest
 spec:
-  project: team-__TEAM__
+  project: team-conquest
   source:
     repoURL: https://github.com/Ronjhon10/conquest.git
     targetRevision: deploy   # main + image tags, written by build-and-deploy
     path: deploy
   destination:
     server: https://kubernetes.default.svc
-    namespace: team-__TEAM__
+    namespace: team-conquest
   syncPolicy:
     automated:
       prune: true

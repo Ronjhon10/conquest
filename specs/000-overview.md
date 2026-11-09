@@ -150,6 +150,7 @@ All JSON. Errors are `{ "error": { "code": string, "message": string } }` with a
 | Method + path | Body / query | Returns |
 | --- | --- | --- |
 | `GET /api/search/talks` | `?q=&limit=20` | `{ results: { talk: Talk; score: number; highlight: string \| null }[] }` |
+| `GET /api/search/rooms` | | `{ rooms: string[] }` (all distinct room names, sorted) |
 | `GET /api/search/talks/:id` | | `{ talk: Talk; speakers: Speaker[] }` |
 | `POST /api/search/rank` | `{ goals: string[]; about: string; limit?: number }` | `{ bosses: BossSlot[] }` |
 | `POST /api/search/suggest-goals` | `{ about: string }` | `{ goals: string[] }` (3-6 short phrases) |
@@ -228,9 +229,8 @@ The two-minute video follows this. Everything we build serves it first.
 
 ## Open questions
 
-None open.
+- Video or live presentation? **Default:** record the two-minute video by 5:15; be ready to demo live too.
 
 ### Resolved
 
 - Is RRF (reciprocal rank fusion) available on the Elastic Serverless trial? **Resolved 2026-11-09:** yes. Elastic's reference lists the `rrf` retriever as generally available on Elastic Cloud Serverless. search-api uses it and keeps the `bool.should` fallback in case a cluster refuses it (020 Behavior 3).
-- Video or live presentation? **Resolved 2026-11-09:** both, as the default said: record the two-minute video by 5:15 and be ready to demo live.

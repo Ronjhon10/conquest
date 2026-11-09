@@ -1,6 +1,8 @@
 // POST /rank: turn stated goals and about text into the bosses on the map (020 Behavior 4).
 import type { BossSlot, RankRequest, Talk } from "@conquest/contracts";
-import type { TalkStore } from "./store";
+import { SpanStatusCode, type Span } from "@opentelemetry/api";
+import type { TalkHit, TalkStore } from "./store";
+import { instruments, type Instruments } from "./telemetry";
 
 export const RRF_K = 60;
 export const PER_LIST = 20;
@@ -75,7 +77,7 @@ export function pickBosses(fused: Fused[], talks: Map<string, Talk>, limit: numb
     .map((p) => p.slot);
 }
 
-export async function rank(store: TalkStore, req: RankRequest): Promise<BossSlot[]> {
+export async function rank(store: TalkStore, req: RankRequest, inst: Instruments = instruments()): Promise<BossSlot[]> {
   const limit = Math.min(req.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
   const goals = [...new Set(req.goals.map((g) => g.trim()).filter(Boolean))].slice(0, 6);
   const about = req.about.trim();
@@ -83,13 +85,64 @@ export async function rank(store: TalkStore, req: RankRequest): Promise<BossSlot
     ...goals.map((g) => ({ goal: g, weight: 1, text: g })),
     ...(about ? [{ goal: null, weight: 0.5, text: about }] : []),
   ];
-  if (queries.length === 0) return [];
 
-  const results = await Promise.all(queries.map((q) => store.searchTalks(q.text, PER_LIST)));
-  const talks = new Map<string, Talk>();
-  const lists = queries.map((q, i) => {
-    for (const h of results[i]!) talks.set(h.talk.id, h.talk);
-    return { goal: q.goal, weight: q.weight, talkIds: results[i]!.map((h) => h.talk.id) };
-  });
-  return pickBosses(fuse(lists), talks, limit, lists);
+  // 020 Behavior 6: one span, a child per search, duration histogram. Counts only, never text.
+  const started = performance.now();
+  return inst.tracer.startActiveSpan(
+    "search.rank",
+    { attributes: { "conquest.search.goals_count": goals.length, "conquest.search.has_about": about.length > 0, "conquest.search.limit": limit } },
+    async (span) => {
+      let outcome = "ok";
+      try {
+        if (queries.length === 0) {
+          span.setAttribute("conquest.search.bosses_count", 0);
+          return [];
+        }
+        const results = await Promise.all(
+          queries.map((q, i) =>
+            inst.tracer.startActiveSpan(
+              "search.rank.query",
+              { attributes: { "conquest.search.list": q.goal === null ? "about" : "goal", "conquest.search.list_index": i } },
+              (child) => traced(child, () => store.searchTalks(q.text, PER_LIST), (hits: TalkHit[]) => child.setAttribute("conquest.search.hits", hits.length)),
+            ),
+          ),
+        );
+        const talks = new Map<string, Talk>();
+        const lists = queries.map((q, i) => {
+          for (const h of results[i]!) talks.set(h.talk.id, h.talk);
+          return { goal: q.goal, weight: q.weight, talkIds: results[i]!.map((h) => h.talk.id) };
+        });
+        const bosses = pickBosses(fuse(lists), talks, limit, lists);
+        span.setAttribute("conquest.search.bosses_count", bosses.length);
+        return bosses;
+      } catch (err) {
+        outcome = "error";
+        markError(span, err);
+        throw err;
+      } finally {
+        span.end();
+        inst.rankDuration.record(performance.now() - started, { outcome });
+      }
+    },
+  );
+}
+
+async function traced<T>(span: Span, run: () => Promise<T>, onOk: (v: T) => void): Promise<T> {
+  try {
+    const v = await run();
+    onOk(v);
+    return v;
+  } catch (err) {
+    markError(span, err);
+    throw err;
+  } finally {
+    span.end();
+  }
+}
+
+/** Error status with the error's class only: messages can echo the query text. */
+function markError(span: Span, err: unknown) {
+  const type = err instanceof Error ? err.constructor.name : "unknown";
+  span.setStatus({ code: SpanStatusCode.ERROR, message: type });
+  span.setAttribute("error.type", type);
 }

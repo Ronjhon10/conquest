@@ -6,7 +6,7 @@ How Conquest runs and ships. Spec: [specs/010-platform.md](../specs/010-platform
 PR ──▶ ci (lint, typecheck, test) + Gitar review/auto-fix ──merge──▶ main
 main ──▶ build-and-deploy Action: 3 images to GHCR, bot force-pushes branch `deploy` = main + new tags
 deploy ──▶ Argo CD in our vcluster syncs deploy/ ──▶ Radar shows the rollout
-https://__TEAM__.cnh.radarhq.io ──▶ Service app:80 ──▶ web (Next) ──┬─ /api/search/* ──▶ search-api
+https://conquest.cnh.radarhq.io ──▶ Service app:80 ──▶ web (Next) ──┬─ /api/search/* ──▶ search-api
                                                                      └─ /api/game/*   ──▶ game-api ──▶ search-api
 search-api, game-api ──▶ Elastic Serverless (outside the cluster)
 web (browser RUM), search-api, game-api ──OTLP──▶ Dash0 (no collector in the cluster)
@@ -23,7 +23,7 @@ Each takes 5 to 10 minutes. Nothing here goes in git: keys and kubeconfigs live 
 5. **Checks "before".** In Radar Cloud, open Checks for our namespace and screenshot it into `demo/evidence/`. Do this in the first hour.
 6. **Elastic Serverless.** https://ela.st/hack-kubecon, project type Elasticsearch. Copy the endpoint and create an API key.
 7. **Dash0.** Sign up at accounts.dash0.com (pick the region carefully; it can't change). Get the OTLP endpoint and an auth token, plus a **separate ingest-only token** for the browser. Connect the Dash0 MCP server to your agent.
-8. **Create the cluster Secret** (in your terminal, never in a chat): Radar Cloud, our cluster, Resources, Secrets, Create, or with kubectl:
+8. **Create the cluster Secret** (in your terminal, never in a chat). Easiest: save the kubeconfig (below) to `~/.kube/conquest.yaml`, then `KUBECONFIG=~/.kube/conquest.yaml ./deploy/create-secret.sh conquest` reads your `.env` and never prints values. Or by hand: Radar Cloud, our cluster, Resources, Secrets, Create, or with kubectl:
    ```bash
    kubectl -n team-<team> create secret generic conquest-secrets \
      --from-literal=elasticsearch-url=... --from-literal=elasticsearch-api-key=... \
@@ -35,7 +35,7 @@ Each takes 5 to 10 minutes. Nothing here goes in git: keys and kubeconfigs live 
 ## Cluster facts (from the starter)
 
 - **Budget** for everything we run: 2 CPU / 4 GiB requests, 4 CPU / 8 GiB limits, 4 PVCs / 20 GiB. Our three pods request 300m / 640Mi. That's why Elasticsearch stays on Elastic Serverless.
-- **Only Service `app` port 80** is routed to `https://__TEAM__.cnh.radarhq.io`. No LoadBalancer or NodePort. `deploy/httproute.yaml` is inert; leave it.
+- **Only Service `app` port 80** is routed to `https://conquest.cnh.radarhq.io`. No LoadBalancer or NodePort. `deploy/httproute.yaml` is inert; leave it.
 - **No privileged, hostPath, hostNetwork or hostPID pods** (they stay Pending with a `SyncError` event). That's why telemetry goes straight to Dash0, not through a node agent.
 - **`main` is protected** (PR + green `ci`; personal repos can't let the Actions bot bypass), so Argo CD tracks the bot-owned `deploy` branch instead. Never commit to `deploy` by hand.
 - **Argo CD** has no web UI; drive it through Radar (`manage_gitops`). Self-heal reverts manual edits to what it deployed, so fix things in git.

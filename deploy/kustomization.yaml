@@ -2,7 +2,7 @@
 # build-and-deploy writes the real tags on the deploy branch. Don't edit newName/newTag by hand.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: team-__TEAM__
+namespace: team-conquest
 resources:
   - web.yaml
   - search-api.yaml

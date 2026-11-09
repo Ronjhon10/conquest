@@ -1,4 +1,4 @@
-import { GetSpeakerResponse, GetTalkResponse, RankRequest, RankResponse, SearchTalksQuery, SearchTalksResponse, SuggestGoalsRequest, SuggestGoalsResponse } from "@conquest/contracts";
+import { GetSpeakerResponse, GetTalkResponse, RankRequest, RankResponse, SearchRoomsResponse, SearchTalksQuery, SearchTalksResponse, SuggestGoalsRequest, SuggestGoalsResponse } from "@conquest/contracts";
 import { Hono } from "hono";
 import { ApiError, body, installErrorHandling, parse } from "./http";
 import { rank } from "./rank";
@@ -18,7 +18,7 @@ export function createApp({ store }: AppDeps = {}) {
   };
   app.get("/healthz", (c) => c.json(health));
   app.get("/readyz", async (c) => {
-    if (store && !(await store.ready())) return c.json({ error: { code: "not_ready", message: "Search indexes not reachable" } }, 503);
+    if (store && !(await store.ready())) return c.json({ error: { code: "not_ready", message: "Search indexes not reachable or not seeded yet" } }, 503);
     return c.json(health);
   });
 
@@ -30,6 +30,8 @@ export function createApp({ store }: AppDeps = {}) {
     const results = await need().searchTalks(q, limit);
     return c.json(SearchTalksResponse.parse({ results }));
   });
+
+  api.get("/rooms", async (c) => c.json(SearchRoomsResponse.parse({ rooms: await need().rooms() })));
 
   api.get("/talks/:id", async (c) => {
     const s = need();

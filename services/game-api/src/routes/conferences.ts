@@ -55,7 +55,6 @@ export function conferencesRoutes(deps: Deps) {
 
 /** 030 Behavior 3: every distinct room in the talks index, all step-free. */
 async function roomsFromTalks(deps: Deps): Promise<Room[]> {
-  const talks = await deps.search.searchTalks("", 100);
-  const names = [...new Set(talks.map((t) => t.room))];
+  const names = await deps.search.rooms();
   return names.map((name) => ({ name, step_free: true, step_free_note: null }));
 }

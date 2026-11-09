@@ -157,4 +157,14 @@ describe("coins and recognition", () => {
     expect((await t.deps.repos.attendees.get("att-jane"))?.coins).toBe(2);
     expect((await t.recognition("spk-lin")).coins).toBe(1);
   });
+
+  it("GM-10 a coin gift completes a coin quest and the response includes its XP", async () => {
+    const t = setup();
+    const quest = { id: "q-coin", title: "Thank a speaker", description: "Give a coin.", xp: 40, kind: "organizer" as const, sponsor: null, target: { type: "coin" as const, count: 1, talk_ids: null } };
+    await t.addAttendee({ xp: 0, level: 1, quests: [quest] });
+    await t.checkIn("att-jane", "talk-4");
+    const res = await t.give("att-jane", "talk-4");
+    expect(res.status).toBe(200);
+    expect(GiveCoinResponse.parse(await res.json()).attendee.xp).toBe(40);
+  });
 });

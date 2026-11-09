@@ -26,6 +26,14 @@ describe("index mappings and seed (S.2)", () => {
     expect(JSON.stringify(es.indexes.get(INDEX.talks)!.body)).not.toContain("semantic_text");
   });
 
+  it("SR-13 tags are matched case-insensitively, so a title-cased goal hits its lowercase tag", async () => {
+    const es = new MemoryEs();
+    await ensureIndexes(es, { semantic: false });
+    const body = es.indexes.get(INDEX.talks)!.body as { mappings: { properties: { tags: object } }; settings: object };
+    expect(body.mappings.properties.tags).toMatchObject({ type: "keyword", normalizer: "lowercase_keyword" });
+    expect(body.settings).toEqual({ analysis: { normalizer: { lowercase_keyword: { type: "custom", filter: ["lowercase"] } } } });
+  });
+
   it("SR-11 without embeddings the talks mapping has no semantic field; with them, title/abstract/tags copy into it", () => {
     const plain = talksMapping({ semantic: false }).properties;
     expect("semantic" in plain).toBe(false);

@@ -4,6 +4,7 @@ import type { CoinGift, GiveCoinRequest, GiveCoinResponse, SpeakerRecognition } 
 import type { Deps } from "../deps";
 import { ApiError } from "../http";
 import { AlreadyExistsError } from "../store/store";
+import { checkQuests } from "../xp/award";
 
 const noCoins = () => new ApiError(409, "no_coins", "No coins left to give");
 
@@ -49,7 +50,9 @@ export async function giveCoin(deps: Deps, req: GiveCoinRequest): Promise<GiveCo
     await repos.attendees.update(attendee.id, (a) => ({ ...a, coins: a.coins + 1 }));
     throw new ApiError(409, "already_gifted", "You already gave a coin for this talk");
   }
-  return { gift, attendee: updated };
+  // Coin gifts count toward "coin" quests (030 Behavior 10).
+  const latest = await checkQuests(deps, attendee.id);
+  return { gift, attendee: latest ?? updated };
 }
 
 export async function speakerRecognition(deps: Deps, speakerId: string): Promise<SpeakerRecognition> {
