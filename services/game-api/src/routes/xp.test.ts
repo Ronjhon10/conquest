@@ -73,7 +73,8 @@ describe("POST /xp", () => {
     const over = await post({ attendee_id: "a1", kind: "photo" });
     expect(over.res.status).toBe(409);
     expect(errCode(over.json)).toBe("photo_limit");
-    expect((await deps.repos.attendees.get("a1"))?.xp).toBe(500);
+    // 20 photos at 25 XP, plus the fixture's "Capture the moment" quest (75 XP) at the third photo (GM-10)
+    expect((await deps.repos.attendees.get("a1"))?.xp).toBe(575);
   });
 
   it("GM-9 network gives 50 XP to both, either-direction repeat is 409, own code is 400 self", async () => {
