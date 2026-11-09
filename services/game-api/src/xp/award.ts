@@ -1,6 +1,7 @@
 // Every XP award goes through awardXp (030 Behavior 6-13). Later steps hook in at the marked points.
 import type { Attendee, XpEvent, XpKind } from "@conquest/contracts";
 import type { Deps } from "../deps";
+import { completeQuests } from "./quests";
 import { applyMultiplier, levelForXp } from "./rules";
 
 export type AwardSpec = {
@@ -19,7 +20,10 @@ export async function partyMultiplier(_deps: Deps, _attendee: Attendee, _talkId:
 }
 
 // G.6 (GM-10)
-export async function checkQuests(_deps: Deps, _attendeeId: string): Promise<void> {}
+// Returns the latest attendee after any quest XP; POST /coins calls this too.
+export async function checkQuests(deps: Deps, attendeeId: string): Promise<Attendee | null> {
+  return completeQuests(deps, attendeeId);
+}
 
 /** Writes the event, then bumps the attendee's xp/level/coins with a versioned update. */
 export async function awardXp(
@@ -48,6 +52,6 @@ export async function awardXp(
     return { ...a, xp, level: levelForXp(xp), coins: a.coins + (spec.coins ?? 0) };
   });
   if (!updated) throw new Error(`attendee ${attendee.id} vanished during award`);
-  await checkQuests(deps, attendee.id);
-  return { event, attendee: updated };
+  const latest = await checkQuests(deps, attendee.id);
+  return { event, attendee: latest ?? updated };
 }
