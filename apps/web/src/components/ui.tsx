@@ -108,7 +108,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main id="main">
         {fake && (
           <div className="demo-banner">
-            Demo world <span>Sample data · changes reset on reload</span>
+            Demo world{" "}
+            <span>Sample conference · your character stays in this tab</span>
           </div>
         )}
         {children}

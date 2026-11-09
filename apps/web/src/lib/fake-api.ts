@@ -1,9 +1,13 @@
 import * as C from "@conquest/contracts";
+import { normalizeLinkedIn } from "./signup";
 import type { Transport } from "./api";
 
-// Browser-memory fixtures only. These simulate API shape; game rules belong to Game.
-// A reload resets the demo. No fetch, remote image, SDK or storage connection is used.
-export function createFakeTransport(): Transport {
+export type DemoStorage = Pick<Storage, "getItem" | "setItem">;
+const SNAPSHOT_KEY = "conquest:demo-world:v2";
+
+// Fixture simulation only; game rules belong to Game. Optional tab storage
+// keeps signup available after refresh. No network or remote SDK is used.
+export function createFakeTransport(storage?: DemoStorage): Transport {
   const conference = structuredClone(C.fixtures.conference);
   const talks = structuredClone(C.fixtures.talks);
   for (const [i, talk] of C.fixtures.talks.entries()) {
@@ -30,6 +34,32 @@ export function createFakeTransport(): Transport {
   const parties: C.Party[] = [];
   const gifts: C.CoinGift[] = [];
   let sequence = 0;
+  try {
+    const raw = storage?.getItem(SNAPSHOT_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      const confs = C.Conference.array().safeParse(saved.conferences);
+      const users = C.Attendee.array().safeParse(saved.attendees);
+      const teams = C.Party.array().safeParse(saved.parties);
+      const coins = C.CoinGift.array().safeParse(saved.gifts);
+      if (
+        confs.success &&
+        users.success &&
+        teams.success &&
+        coins.success &&
+        Number.isSafeInteger(saved.sequence) &&
+        saved.sequence >= 0
+      ) {
+        conferences.splice(0, conferences.length, ...confs.data);
+        attendees.splice(0, attendees.length, ...users.data);
+        parties.push(...teams.data);
+        gifts.push(...coins.data);
+        sequence = saved.sequence;
+      }
+    }
+  } catch {
+    /* Invalid or unavailable tab storage starts a fresh demo. */
+  }
   const nextId = (prefix: string) => `${prefix}-demo-${++sequence}`;
   function find<T extends { id: string }>(items: T[], id: string): T {
     const item = items.find((item) => item.id === id);
@@ -129,9 +159,18 @@ export function createFakeTransport(): Transport {
         else result = { conference: conf };
       }
     } else if (resource === "attendees") {
-      if (id === "draft")
+      if (id === "draft") {
+        const input = C.DraftAttendeeRequest.parse(body);
+        const text = `${input.headline} ${input.about}`.toLowerCase();
+        const suggestedClass = /security|compliance/.test(text)
+          ? "rogue"
+          : /platform|infra|sre|ops/.test(text)
+            ? "knight"
+            : /data|\bml\b|\bai\b|research/.test(text)
+              ? "wizard"
+              : "bard";
         result = {
-          class: "knight",
+          class: suggestedClass,
           avatar_seed: "demo1234",
           suggested_goals: [
             "Platform engineering",
@@ -139,7 +178,7 @@ export function createFakeTransport(): Transport {
             "Security",
           ],
         };
-      else if (method === "POST" && !id) {
+      } else if (method === "POST" && !id) {
         const input = C.CreateAttendeeRequest.parse(body);
         const conf = find(conferences, input.conference_id);
         const created: C.Attendee = {
@@ -147,6 +186,15 @@ export function createFakeTransport(): Transport {
           ...input,
           id: nextId("att"),
           photo: input.photo ?? null,
+          linkedin_url:
+            normalizeLinkedIn(input.linkedin_url) ?? input.linkedin_url,
+          map: [...talks.slice(0, 5), ...talks.slice(6, 7)].map((talk, i) => ({
+            talk_id: talk.id,
+            score: 1 / (i + 1),
+            reason: input.goals.length
+              ? `Matches your goal "${input.goals[i % input.goals.length]}"`
+              : "Fits your background",
+          })),
           xp: 0,
           level: 1,
           coins: 3,
@@ -235,6 +283,16 @@ export function createFakeTransport(): Transport {
     // XP simulation is deliberately deferred to W.4, against the Game lane's rules.
     if (result === undefined)
       throw new Error("This demo action isn't available yet.");
+    if (method !== "GET") {
+      try {
+        storage?.setItem(
+          SNAPSHOT_KEY,
+          JSON.stringify({ conferences, attendees, parties, gifts, sequence }),
+        );
+      } catch {
+        /* A full/blocked store keeps this session usable in memory. */
+      }
+    }
     return structuredClone(result);
   };
 }
