@@ -68,6 +68,8 @@ jobs:
           build-args: |
             SERVICE=${{ matrix.service }}
             APP_VERSION=${{ steps.meta.outputs.tag }}
+            NEXT_PUBLIC_DASH0_RUM_ENDPOINT=${{ vars.DASH0_RUM_ENDPOINT }}
+            NEXT_PUBLIC_DASH0_RUM_AUTH_TOKEN=${{ vars.DASH0_RUM_AUTH_TOKEN }}
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}
@@ -84,6 +86,8 @@ jobs:
           build-args: |
             SERVICE=${{ matrix.service }}
             APP_VERSION=${{ steps.meta.outputs.tag }}
+            NEXT_PUBLIC_DASH0_RUM_ENDPOINT=${{ vars.DASH0_RUM_ENDPOINT }}
+            NEXT_PUBLIC_DASH0_RUM_AUTH_TOKEN=${{ vars.DASH0_RUM_AUTH_TOKEN }}
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.latest }}

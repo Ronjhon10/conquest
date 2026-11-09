@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@conquest/contracts": "*",
+    "@dash0/sdk-web": "0.28.2",
     "jose": "^6.2.17",
     "next": "^16.4.5",
     "qrcode": "^1.5.4",
