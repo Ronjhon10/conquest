@@ -1,3 +1,4 @@
+import { Signup } from "../../../../src/components/signup";
 import { notFound } from "next/navigation";
 import { RoutePreview } from "../../../../src/components/route-preview";
 const titles: Record<string, string> = {
@@ -22,5 +23,6 @@ export default async function Page({ params }: Props) {
     (name === "boss" ? view.length !== 2 : view.length !== 1)
   )
     notFound();
+  if (name === "join") return <Signup conf={conf} />;
   return <RoutePreview conf={conf} view={name} talkId={view[1]} />;
 }

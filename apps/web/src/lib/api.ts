@@ -1,16 +1,8 @@
 import * as C from "@conquest/contracts";
 import { createFakeTransport } from "./fake-api";
 
-export class ApiError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public status = 0,
-  ) {
-    super(message);
-    this.name = "ApiError";
-  }
-}
+import { ApiError } from "./errors";
+export { ApiError } from "./errors";
 
 export type Transport = (path: string, init?: RequestInit) => Promise<unknown>;
 export function createHttpTransport(fetcher: typeof fetch = fetch): Transport {
@@ -187,7 +179,7 @@ let instance: Api | undefined;
 export function getApi(): Api {
   return (instance ??= createApi(
     process.env.NEXT_PUBLIC_FAKE_API === "1"
-      ? createFakeTransport()
+      ? createFakeTransport(demoStorage())
       : createHttpTransport(),
   ));
 }
@@ -195,4 +187,12 @@ export function readableError(error: unknown): string {
   return error instanceof ApiError
     ? error.message
     : "Something went wrong. Please try again.";
+}
+
+function demoStorage(): Storage | undefined {
+  try {
+    return typeof window === "undefined" ? undefined : window.sessionStorage;
+  } catch {
+    return undefined;
+  }
 }

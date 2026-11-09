@@ -64,7 +64,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Lane: Web (040)
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
-- [ ] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
+- [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
 - [ ] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
@@ -92,5 +92,6 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
 - 2026-11-09 13:15  S.4  Max (Claude)  conquest-embeddings inference endpoint (OpenAI text-embedding-3-small) created on start and before seeding when OPENAI_API_KEY is set; semantic_text field; rrf retriever with a one-way fallback to bool.should (semantic 2x) when refused; `seed -- --recreate`. Unit tests for every fallback; SR-5 is an ES_INTEGRATION=1 + OPENAI_API_KEY test, not run here (no Docker, no key).
 - 2026-11-09 13:10  P.3  Jake Nef (Claude)  packages/telemetry: startTelemetry (NodeSDK, auto-instrumentations, OTLP/HTTP traces+metrics+logs to Dash0, ESM hook), log() with trace_id/span_id. PL-1, PL-2 tests. Smoke-tested under tsx against a local OTLP receiver: HTTP server spans, traces/metrics/logs all exported with the bearer header. Services not wired yet (their index.ts is Search/Game lane); README shows the 3-line entry.
+- 2026-11-09 13:17  W.2  Danny (Codex)  Two-screen signup with LinkedIn format validation, optional local photo crop/compression, four editable classes, suggested/custom goals, saved attendee identity, personal map, shared photo/sprite avatars, and reload-safe tab demo data. Tests cover WEB-2, WEB-15, WEB-16, keyboard signup, failed requests and duplicate-submit prevention; tests/lint/typecheck/build verified before PR.
 - 2026-11-09 13:25  S.5  Max (Claude)  POST /rank: one search per goal plus the about text at half weight (top 20 each, in parallel), reciprocal rank fusion (k=60), clash-free walk, reasons, time order. SR-6..SR-9 tests on the real schedule and on pure fusion.
 - 2026-11-09 13:35  S.6  Max (Claude)  POST /suggest-goals: one request with a sampler (top 50 BM25 hits) of tag/track terms plus a global tag count; drops formats and tags on >60% of talks, tops up to 3, title-cases with acronyms. SR-10 tests on the real schedule.
