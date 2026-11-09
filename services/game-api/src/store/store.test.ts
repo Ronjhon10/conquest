@@ -218,3 +218,13 @@ describe("GM-23 stale index mappings", () => {
     log.mockRestore();
   });
 });
+
+it("GM-17 writes refresh explicitly so the next read sees them without waiting for the Serverless refresh cycle", async () => {
+  const create = vi.fn().mockResolvedValue({ _seq_no: 0, _primary_term: 1 });
+  const index = vi.fn().mockResolvedValue({ _seq_no: 1, _primary_term: 1 });
+  const store = createElasticStore({ create, index } as unknown as import("@elastic/elasticsearch").Client);
+  await store.create(INDEX.xpEvents, "ev-1", event({}));
+  await store.put(INDEX.attendees, "att-jane", fixtures.attendee, { seq_no: 0, primary_term: 1 });
+  expect(create.mock.calls[0]![0].refresh).toBe(true);
+  expect(index.mock.calls[0]![0].refresh).toBe(true);
+});
