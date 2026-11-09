@@ -9,3 +9,5 @@ The entire `/c/[conf]/map` route is one phone-first screen: Conquest/conference 
 Quests opens an in-screen panel, whose close control returns focus to the trigger. Encounter and connect actions use the existing routes. List view, reduced-motion default, venue-time day selection and step-free filtering remain functional. The UI does not invent check-in completion, quest progress or player position tracking.
 
 Automated checks cover the integrated shell, player metadata, navigation, quest controls and existing map behavior. Browser visual verification of the implementation remains pending.
+
+Map controls use the shared `cq-btn`/`cq-btn--secondary` classes from other pages. Keep typography, borders, radii, hard shadows and press behavior in the shared styles; map-specific CSS should only adapt layout and sizing.

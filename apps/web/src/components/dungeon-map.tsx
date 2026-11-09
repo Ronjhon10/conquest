@@ -123,14 +123,14 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
             {!showList && days.length > 0 && (
               <div className={styles.days} role="group" aria-label="Conference day">
                 {days.map((value, index) => (
-                  <button type="button" key={value} aria-pressed={value === day} onClick={() => { setDayChoice(value); setSelectedId(null); }}>
+                  <button type="button" className={`cq-btn ${value === day ? "" : "cq-btn--secondary"}`} key={value} aria-pressed={value === day} onClick={() => { setDayChoice(value); setSelectedId(null); }}>
                     Day {index + 1}<span className="sr-only"> · {value}</span>
                   </button>
                 ))}
               </div>
             )}
-            <label><input type="checkbox" checked={showList} onChange={(event) => setListChoice(event.target.checked)} /> List view</label>
-            <label><input type="checkbox" checked={stepFreeOnly} onChange={(event) => setStepFreeOnly(event.target.checked)} /> Step-free only</label>
+            <label className="cq-btn cq-btn--secondary"><input type="checkbox" checked={showList} onChange={(event) => setListChoice(event.target.checked)} /> List view</label>
+            <label className="cq-btn cq-btn--secondary"><input type="checkbox" checked={stepFreeOnly} onChange={(event) => setStepFreeOnly(event.target.checked)} /> Step-free only</label>
           </div>
           <p className={fullPage ? "sr-only" : styles.hint}>Times are in Salt Lake City time. The list keeps all days and every room’s access notes.</p>
           <p className={fullPage ? "sr-only" : styles.count} role="status">{showList ? `${stops.length} talks in your list.` : `${visibleStops.length} of ${dayStops.length} talks on your path.`}</p>
@@ -165,15 +165,15 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
               </>}
               {questsOpen && (
                 <section ref={questsPanelRef} tabIndex={-1} className={styles.questPanel} id={`map-quests-${conf}`} aria-label="Your quests">
-                  <div><h2>Your quests</h2><button type="button" onClick={() => { setQuestsOpen(false); questsButtonRef.current?.focus(); }} aria-label="Close quests">×</button></div>
+                  <div><h2>Your quests</h2><button className="cq-btn cq-btn--secondary" type="button" onClick={() => { setQuestsOpen(false); questsButtonRef.current?.focus(); }} aria-label="Close quests">×</button></div>
                   <ul>{attendee.quests.map((quest) => <li key={quest.id}><strong>{quest.title}</strong><p>{quest.description}</p><span>{quest.xp} XP</span></li>)}</ul>
                   {!attendee.quests.length && <p>No quests yet.</p>}
                 </section>
               )}
               <nav className={styles.actionBar} aria-label="Map actions">
-                <button ref={questsButtonRef} type="button" aria-expanded={questsOpen} aria-controls={`map-quests-${conf}`} onClick={() => setQuestsOpen((open) => !open)}><Icon name="quests" />Quests</button>
-                {selected && <Link href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(selected.talk.id)}`}><Icon name="talk" />Talk actions</Link>}
-                <Link href={`/c/${encodeURIComponent(conf)}/connect`}><Icon name="people" />Connect</Link>
+                <button className="cq-btn cq-btn--secondary" ref={questsButtonRef} type="button" aria-expanded={questsOpen} aria-controls={`map-quests-${conf}`} onClick={() => setQuestsOpen((open) => !open)}><Icon name="quests" />Quests</button>
+                {selected && <Link className="cq-btn cq-btn--secondary" href={`/c/${encodeURIComponent(conf)}/boss/${encodeURIComponent(selected.talk.id)}`}><Icon name="talk" />Talk actions</Link>}
+                <Link className="cq-btn cq-btn--secondary" href={`/c/${encodeURIComponent(conf)}/connect`}><Icon name="people" />Connect</Link>
               </nav>
           </div>
         </>
@@ -181,7 +181,7 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
       {fullPage && (
         <nav className={styles.bottomNav} aria-label="Attendee pages">
           {[["join", "Join"], ["map", "Map"], ["connect", "Allies"], ["party", "Party"], ["recap", "Recap"]].map(([route, label]) => (
-            <Link key={route} href={`/c/${encodeURIComponent(conf)}/${route}`} aria-current={route === "map" ? "page" : undefined}>{label}</Link>
+            <Link className={`cq-btn ${route === "map" ? "" : "cq-btn--secondary"}`} key={route} href={`/c/${encodeURIComponent(conf)}/${route}`} aria-current={route === "map" ? "page" : undefined}>{label}</Link>
           ))}
         </nav>
       )}
