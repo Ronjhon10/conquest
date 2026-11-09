@@ -13,6 +13,10 @@ it("WEB-1 renders the landing and every planned page shell with fixture data", (
   expect(landingHtml).toContain('href="/organizer/new"');
   expect(landingHtml).toContain("Create a conference");
   expect(landingHtml).toContain('class="text-link"');
+  expect(landingHtml).toContain('aria-label="Boss encounters in time order"');
+  expect(landingHtml).toContain("Ada Fixture");
+  expect(landingHtml).toContain("Lin Sample");
+  expect(landingHtml).toContain("Every speaker is a boss.");
   for (const view of [
     "join",
     "map",
