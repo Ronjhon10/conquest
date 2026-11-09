@@ -110,7 +110,7 @@ describe("conferences", () => {
   it("GM-3 rooms default to every distinct room in the talks index, all step-free", async () => {
     const { send } = setup();
     const { conference } = await create(send);
-    const expected = [...new Set(fixtures.talks.map((t) => t.room))];
+    const expected = [...new Set(fixtures.talks.map((t) => t.room))].sort();
     expect(expected.length).toBeGreaterThan(0);
     expect(conference.rooms.map((r) => r.name)).toEqual(expected);
     for (const room of conference.rooms) expect(room).toMatchObject({ step_free: true, step_free_note: null });

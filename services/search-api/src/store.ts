@@ -11,6 +11,7 @@ export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
 export interface TalkStore {
   searchTalks(q: string, limit: number): Promise<TalkHit[]>;
+  rooms(): Promise<string[]>;
   getTalk(id: string): Promise<Talk | null>;
   getSpeakers(ids: string[]): Promise<Speaker[]>;
   getSpeaker(id: string): Promise<Speaker | null>;
@@ -46,6 +47,25 @@ export class EsTalkStore implements TalkStore {
       console.warn(JSON.stringify({ level: "warn", msg: "rrf retriever refused; using bool.should" }));
       return this.es.search<TalkDoc>(INDEX.talks, searchTalksBody(q, limit, this.opts));
     }
+  }
+
+  async rooms(): Promise<string[]> {
+    const rooms: string[] = [];
+    let after: { room: string } | undefined;
+    for (;;) {
+      // Composite aggregation pages over every room, regardless of the talk hit limit.
+      const result = await this.es.search<never>(INDEX.talks, { size: 0, aggs: { rooms: { composite: {
+        size: 100, sources: [{ room: { terms: { field: "room" } } }], ...(after ? { after } : {}),
+      } } } });
+      const page = result.aggregations?.rooms as {
+        buckets: { key: { room: string } }[]; after_key?: { room: string };
+      } | undefined;
+      if (!page?.buckets.length) break;
+      rooms.push(...page.buckets.map((b) => b.key.room));
+      if (!page.after_key) break;
+      after = page.after_key;
+    }
+    return rooms;
   }
 
   async getTalk(id: string) {

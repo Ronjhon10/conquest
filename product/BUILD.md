@@ -48,6 +48,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
 - [x] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
 
+- [x] **S.R1** Complete room-discovery contract and Game conference integration, independent of talk-search limits. (OV-2, GM-3) owner: Jake Nef
+
 ## Lane: Game (030)
 
 - [x] **G.1** Index setup, Elasticsearch repository layer, fake search client. owner: Jacob Bingham
@@ -92,6 +94,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 12:55  S.2  Max (Claude)  search-api EsPort (client adapter + in-memory fake), conquest-talks/conquest-speakers mappings (semantic field only when embeddings are on), idempotent `npm run seed -w services/search-api` by id. SR-2 unit tests; ES_INTEGRATION=1 test written, not run locally (no Docker on this Mac).
 - 2026-11-09 13:00  W.1  Danny (Codex)  Brand-system frame, local fonts, all route previews, shared typed/validated API client, 12-talk/3-attendee memory fixtures, loading/error recovery, scoped dungeon theme variables. WEB-1/WEB-12/WEB-14 tests; full tests, lint, typecheck and production build pass. Browser host unavailable; visual QA remains for the next browser session. Theme studio recorded as W.5a, not implemented here.
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
+- 2026-11-09 13:30  S.R1  Jake Nef (Codex)  Fixed CQ-REVIEW-004 with GET /api/search/rooms and SearchRoomsResponse, complete composite aggregation over room names, memory/HTTP implementations and Game conference integration. Regression exercises the committed 480-talk schedule and all 28 rooms without network calls.
 - 2026-11-09 13:15  S.4  Max (Claude)  conquest-embeddings inference endpoint (OpenAI text-embedding-3-small) created on start and before seeding when OPENAI_API_KEY is set; semantic_text field; rrf retriever with a one-way fallback to bool.should (semantic 2x) when refused; `seed -- --recreate`. Unit tests for every fallback; SR-5 is an ES_INTEGRATION=1 + OPENAI_API_KEY test, not run here (no Docker, no key).
 - 2026-11-09 13:10  P.3  Jake Nef (Claude)  packages/telemetry: startTelemetry (NodeSDK, auto-instrumentations, OTLP/HTTP traces+metrics+logs to Dash0, ESM hook), log() with trace_id/span_id. PL-1, PL-2 tests. Smoke-tested under tsx against a local OTLP receiver: HTTP server spans, traces/metrics/logs all exported with the bearer header. Services not wired yet (their index.ts is Search/Game lane); README shows the 3-line entry.
 - 2026-11-09 13:17  W.2  Danny (Codex)  Two-screen signup with LinkedIn format validation, optional local photo crop/compression, four editable classes, suggested/custom goals, saved attendee identity, personal map, shared photo/sprite avatars, and reload-safe tab demo data. Tests cover WEB-2, WEB-15, WEB-16, keyboard signup, failed requests and duplicate-submit prevention; tests/lint/typecheck/build verified before PR.
