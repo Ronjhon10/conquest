@@ -93,6 +93,6 @@ it("WEB-6 asks for a code before calling the API", async () => {
 
 it("WEB-11 lists allies from the attendee record", async () => {
   setup();
-  const ally = C.fixtures.allies[0];
+  const ally = C.fixtures.allies[0]!;
   expect(await screen.findByText(ally.name)).toBeTruthy();
 });

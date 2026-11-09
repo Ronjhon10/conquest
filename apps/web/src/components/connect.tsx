@@ -135,7 +135,6 @@ function MyCode({ code }: { code: string }) {
   return (
     <div className="connect-code" style={{ display: "flex", gap: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
       {src && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           width={192}
