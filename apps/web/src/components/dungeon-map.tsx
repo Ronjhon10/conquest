@@ -4,6 +4,7 @@
 // (the next conference day before the event, the last one after). Screen readers get every talk,
 // all days, with step-free notes, as a list (WEB-3, WEB-5).
 import Link from "next/link";
+import { VT323 } from "next/font/google";
 import { useState } from "react";
 import { xpForLevel } from "@conquest/contracts";
 import type { Attendee, Conference, Speaker, Talk } from "@conquest/contracts";
@@ -12,6 +13,9 @@ import { Avatar } from "./avatar";
 import { themeStyle } from "./ui";
 import { bossName, DungeonWorld, type MapStop } from "./dungeon-world";
 import styles from "./quest-map.module.css";
+
+// The dungeon layer's pixel face (design system `pixel`), self-hosted by next/font at build time.
+const pixel = VT323({ weight: "400", subsets: ["latin"], variable: "--font-pixel-face", display: "swap" });
 
 const dayKey = new Intl.DateTimeFormat("en-CA", { timeZone: CONFERENCE_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
 const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: CONFERENCE_TIME_ZONE, weekday: "long", month: "short", day: "numeric" });
@@ -64,21 +68,26 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, n
   const progress = Math.max(0, Math.min(levelEnd - levelStart, attendee.xp - levelStart));
 
   return (
-    <section className={styles.map} style={themeStyle(theme)}>
+    <section className={`${styles.map} ${pixel.variable}`} style={themeStyle(theme)}>
       <header className={styles.head}>
         <p className="cq-label">{theme.name}</p>
         <h1 className="cq-slab">Your {theme.boss_noun} trail</h1>
         {day && <p className={styles.day}>{dayLabel.format(new Date(todays[0]?.talk.starts_at ?? now))} · {todays.length} {todays.length === 1 ? "talk" : "talks"} today</p>}
       </header>
 
-      <div className={styles.player}>
+      <div className={`${styles.panel} ${styles.player}`}>
         <Link href={`/c/${confHref}/profile`} aria-label="Edit your character">
           <Avatar name={attendee.name} photo={attendee.photo} characterClass={attendee.class} seed={attendee.avatar_seed} size={44} />
         </Link>
         <div className={styles.level}>
           <strong>{attendee.name}</strong>
           <span>Level {attendee.level}</span>
-          <progress aria-label="Progress to next level" max={levelEnd - levelStart} value={progress} />
+          <progress className="sr-only" aria-label="Progress to next level" max={levelEnd - levelStart} value={progress} />
+          <span className={styles.blocks} aria-hidden="true">
+            {Array.from({ length: 10 }, (_, i) => (
+              <i key={i} className={i < Math.round((progress / Math.max(1, levelEnd - levelStart)) * 10) ? styles.on : undefined} />
+            ))}
+          </span>
         </div>
         <div className={styles.stat}><strong>{attendee.xp}</strong><span>XP</span></div>
         <div className={styles.stat}><strong>{attendee.coins}</strong><span>coins</span></div>
@@ -102,22 +111,22 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, n
       </div>
 
       {selected && (
-        <section className={`cq-card ${styles.encounter}`} aria-live="polite" aria-label="Selected boss">
-          <p className="cq-label">{bossName(selected.talk, theme)}</p>
+        <section className={`${styles.panel} ${styles.encounter}`} aria-live="polite" aria-label="Selected boss">
+          <p className={styles.bossTitle}>{bossName(selected.talk, theme)}</p>
           <h2>{selected.talk.title}</h2>
           <p className={styles.meta}>
             {formatTalkTime(selected.talk.starts_at)} · {selected.talk.room}
             {selected.speakerNames.length > 0 && <> · {selected.speakerNames.join(", ")}</>}
           </p>
           <p>{selected.reason}</p>
-          <Link className="cq-btn" href={`/c/${confHref}/boss/${encodeURIComponent(selected.talk.id)}`}>
-            Fight this boss <span aria-hidden="true">→</span>
+          <Link className={styles.fight} href={`/c/${confHref}/boss/${encodeURIComponent(selected.talk.id)}`}>
+            ▶ Fight this boss
           </Link>
         </section>
       )}
 
       {attendee.quests.length > 0 && (
-        <details className={`cq-card ${styles.quests}`}>
+        <details className={`${styles.panel} ${styles.quests}`}>
           <summary>Quests ({attendee.quests.length})</summary>
           <ul>
             {attendee.quests.map((q) => (

@@ -63,9 +63,12 @@ export function DungeonWorld({ stops, selectedId, onSelect, attendee, theme, see
 }) {
   const s = hash(seed);
   const { bg, accent, fg } = theme.palette;
+  const pid = `dw${hash(seed) % 100000}`;
   const floor = mix(bg, fg, 0.12);
-  const tile = mix(bg, fg, 0.2);
+  const tile = mix(bg, fg, 0.22);
   const wall = mix(bg, accent, 0.35);
+  const dark = mix(bg, "#000000", 0.5);
+  const light = mix(wall, "#ffffff", 0.25);
   const W = 360;
   const ROW = 168;
   const height = stops.length * ROW + 40;
@@ -78,16 +81,36 @@ export function DungeonWorld({ stops, selectedId, onSelect, attendee, theme, see
   const decor = (i: number) => (s >> (i * 2 + 5)) % 3; // 0 torches, 1 pillars, 2 crystals
 
   return (
-    <div className={styles.world} style={{ aspectRatio: `${W} / ${height}`, background: bg }}>
-      <svg className={styles.floorPlan} viewBox={`0 0 ${W} ${height}`} aria-hidden="true" focusable="false">
+    <div className={styles.world} style={{ aspectRatio: `${W} / ${height}`, background: bg, ["--accent" as string]: accent }}>
+      <svg className={styles.floorPlan} viewBox={`0 0 ${W} ${height}`} aria-hidden="true" focusable="false" shapeRendering="crispEdges">
+        <defs>
+          <pattern id={`${pid}-tiles`} width="16" height="16" patternUnits="userSpaceOnUse">
+            <rect width="16" height="16" fill={floor} />
+            <path d="M0 15V0H15" stroke={tile} strokeWidth="2" fill="none" />
+            <rect x="6" y="6" width="2" height="2" fill={tile} />
+          </pattern>
+          <pattern id={`${pid}-bricks`} width="16" height="8" patternUnits="userSpaceOnUse">
+            <rect width="16" height="8" fill={wall} />
+            <path d="M0 0H16M0 4H16M8 0V4M0 4V8" stroke={dark} strokeWidth="1" />
+            <rect x="1" y="1" width="5" height="1" fill={light} />
+            <rect x="9" y="5" width="5" height="1" fill={light} />
+          </pattern>
+          <pattern id={`${pid}-void`} width="24" height="24" patternUnits="userSpaceOnUse">
+            <rect width="24" height="24" fill={bg} />
+            <rect x="4" y="5" width="2" height="2" fill={tile} opacity="0.5" />
+            <rect x="17" y="15" width="2" height="2" fill={tile} opacity="0.35" />
+          </pattern>
+        </defs>
+        <rect width={W} height={height} fill={`url(#${pid}-void)`} />
         {positions.slice(1).map((point, index) => {
           const prev = positions[index]!;
-          const mid = (prev.y + point.y) / 2;
+          const mid = Math.round((prev.y + point.y) / 2);
           const d = `M${prev.x} ${prev.y}V${mid}H${point.x}V${point.y}`;
           return (
             <g key={index}>
-              <path d={d} fill="none" stroke={wall} strokeWidth="34" />
-              <path d={d} fill="none" stroke={tile} strokeWidth="22" />
+              <path d={d} fill="none" stroke={dark} strokeWidth="36" strokeLinecap="square" />
+              <path d={d} fill="none" stroke={`url(#${pid}-bricks)`} strokeWidth="32" strokeLinecap="square" />
+              <path d={d} fill="none" stroke={`url(#${pid}-tiles)`} strokeWidth="18" strokeLinecap="square" />
             </g>
           );
         })}
@@ -95,18 +118,30 @@ export function DungeonWorld({ stops, selectedId, onSelect, attendee, theme, see
           const kind = decor(i);
           return (
             <g key={stops[i]!.talk.id}>
-              <rect x={x - 76} y={y - 70} width="152" height="140" rx="6" fill={wall} />
-              <rect x={x - 68} y={y - 62} width="136" height="124" rx="4" fill={floor} />
-              {[-52, 52].map((dx) =>
+              <rect x={x - 76} y={y - 70} width="152" height="140" fill={dark} />
+              <rect x={x - 72} y={y - 66} width="144" height="132" fill={`url(#${pid}-bricks)`} />
+              <rect x={x - 60} y={y - 54} width="120" height="112" fill={`url(#${pid}-tiles)`} />
+              <rect x={x - 60} y={y - 54} width="120" height="4" fill={dark} opacity="0.5" />
+              {[-48, 48].map((dx) =>
                 kind === 0 ? (
                   <g key={dx}>
-                    <rect x={x + dx - 3} y={y - 58} width="6" height="12" fill={mix(bg, "#000000", 0.4)} />
-                    <rect x={x + dx - 4} y={y - 64} width="8" height="8" fill={accent} />
+                    <rect x={x + dx - 2} y={y - 50} width="4" height="10" fill={dark} />
+                    <rect x={x + dx - 4} y={y - 58} width="8" height="8" fill={accent} />
+                    <rect x={x + dx - 2} y={y - 62} width="4" height="6" fill={mix(accent, "#ffffff", 0.6)} />
                   </g>
                 ) : kind === 1 ? (
-                  <rect key={dx} x={x + dx - 6} y={y - 58} width="12" height="22" fill={wall} />
+                  <g key={dx}>
+                    <rect x={x + dx - 6} y={y - 52} width="12" height="24" fill={wall} />
+                    <rect x={x + dx - 6} y={y - 52} width="12" height="4" fill={light} />
+                    <rect x={x + dx - 6} y={y - 32} width="12" height="4" fill={dark} />
+                  </g>
                 ) : (
-                  <polygon key={dx} points={`${x + dx},${y - 62} ${x + dx + 7},${y - 48} ${x + dx},${y - 40} ${x + dx - 7},${y - 48}`} fill={accent} opacity="0.8" />
+                  <g key={dx}>
+                    <rect x={x + dx - 2} y={y - 54} width="4" height="4" fill={accent} />
+                    <rect x={x + dx - 6} y={y - 50} width="12" height="8" fill={accent} />
+                    <rect x={x + dx - 2} y={y - 42} width="4" height="4" fill={accent} />
+                    <rect x={x + dx - 2} y={y - 50} width="2" height="4" fill={mix(accent, "#ffffff", 0.6)} />
+                  </g>
                 ),
               )}
             </g>
