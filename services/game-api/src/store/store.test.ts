@@ -1,5 +1,5 @@
 import { fixtures, INDEX, type Attendee, type XpEvent } from "@conquest/contracts";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createElasticStore, toQuery } from "./elastic";
 import { MAPPINGS } from "./indexes";
 import { createMemoryStore } from "./memory";
@@ -143,4 +143,16 @@ describe("index setup", () => {
     await expect(repos.attendees.update("att-jane", (a) => a)).rejects.toBeInstanceOf(VersionConflictError);
     expect(puts).toBe(UPDATE_RETRIES + 1);
   });
+});
+
+it("GM-17 upgrades existing attendee indexes with the durable outbox mapping", async () => {
+  const putMapping = vi.fn().mockResolvedValue({ acknowledged: true });
+  const client = { indices: { exists: vi.fn().mockResolvedValue(true), putMapping } };
+  const store = createElasticStore(client as unknown as import("@elastic/elasticsearch").Client);
+  await store.ensureIndexes();
+  await store.ensureIndexes();
+  expect(putMapping).toHaveBeenCalledTimes(2);
+  expect(putMapping).toHaveBeenCalledWith({ index: INDEX.attendees, properties: {
+    _xp_journal: { type: "object", enabled: false }, _xp_pending: { type: "boolean" },
+  } });
 });

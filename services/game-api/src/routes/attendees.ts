@@ -16,6 +16,7 @@ import { randomAvatarSeed, uniqueCode } from "../attendees/code";
 import { normalizeLinkedInUrl } from "../attendees/linkedin";
 import type { Deps } from "../deps";
 import { ApiError, body } from "../http";
+import { publishPendingAwards } from "../xp/journal";
 
 const MAX_PHOTO = 40 * 1024;
 const PHOTO_PREFIX = "data:image/jpeg;base64,";
@@ -105,6 +106,7 @@ export function attendeesRoutes(deps: Deps) {
   });
 
   r.get("/attendees/:id", async (c) => {
+    await publishPendingAwards(deps, c.req.param("id"));
     const attendee = await deps.repos.attendees.get(c.req.param("id"));
     if (!attendee) throw new ApiError(404, "not_found", "No such attendee");
     const party = attendee.party_id ? await deps.repos.parties.get(attendee.party_id) : null;

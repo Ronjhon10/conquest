@@ -61,6 +61,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [ ] **G.9** Recap (OpenAI + template). (GM-16) owner: Jacob Bingham
 - [ ] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
 
+- [x] **G.R1** Review fixes: atomic XP totals/outbox, concurrent action limits, quest deduplication and exclusive party membership. (GM-6, GM-8..GM-10, GM-12, GM-14, GM-17) owner: Jake Nef
+
 ## Lane: Web (040)
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
@@ -97,4 +99,5 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 13:35  S.6  Max (Claude)  POST /suggest-goals: one request with a sampler (top 50 BM25 hits) of tag/track terms plus a global tag count; drops formats and tags on >60% of talks, tops up to 3, title-cases with acronyms. SR-10 tests on the real schedule.
 - 2026-11-09 14:10  S.5 follow-up  Max (Claude)  /rank picks one boss per goal before filling by fused order (SR-13); all spec open questions resolved (000, 010, 020, 030, 040).
 
+- 2026-11-09 13:26  G.R1  Jake Nef (Codex)  Fixed review findings CQ-REVIEW-001..003: versioned attendee XP journal/outbox with replay on startup, attendee reads and aggregate reads; atomic action limits and network/quest deduplication; attendee party claims with rollback on failed joins. Cross-instance concurrency and failed-write regressions use in-memory stores only.
 - 2026-11-09 13:37  W.2 visual follow-up  Danny (Codex)  Replaced placeholder character sprites with four detailed pixel-art PNGs based on the user reference; full-body selection preview and portrait tiles, refined navigation/selection/class icons. Existing WEB-16 and signup regression tests pass. Web Docker runtime now copies public assets so character art and fonts are served in production.
