@@ -1,7 +1,7 @@
 // Every XP award goes through awardXp (030 Behavior 6-13). Later steps hook in at the marked points.
 import type { Attendee, XpEvent, XpKind } from "@conquest/contracts";
 import type { Deps } from "../deps";
-import { applyMultiplier, levelForXp } from "./rules";
+import { applyMultiplier, levelForXp, PARTY_MULTIPLIER } from "./rules";
 
 export type AwardSpec = {
   kind: XpKind;
@@ -14,7 +14,16 @@ export type AwardSpec = {
 };
 
 // G.5: 1.25 when a party member already checked into this talk (GM-7)
-export async function partyMultiplier(_deps: Deps, _attendee: Attendee, _talkId: string): Promise<number> {
+export async function partyMultiplier(deps: Deps, attendee: Attendee, talkId: string): Promise<number> {
+  if (!attendee.party_id) return 1.0;
+  const party = await deps.repos.parties.get(attendee.party_id);
+  if (!party) return 1.0;
+  for (const memberId of party.member_ids) {
+    if (memberId === attendee.id) continue;
+    if ((await deps.repos.xpEvents.count({ attendee_id: memberId, kind: "checkin", talk_id: talkId })) > 0) {
+      return PARTY_MULTIPLIER;
+    }
+  }
   return 1.0;
 }
 
