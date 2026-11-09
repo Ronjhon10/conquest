@@ -2,7 +2,7 @@
 
 Generated with the built-in imagegen tool on 2026-11-09 from the user's supplied Conquest signup image. Reference applies to character detail only; the Conquest frame still follows `brand-assets/design-system`.
 
-Assets are copied into `public/characters/`: `knight-v1.png`, `wizard-v1.png`, `rogue-v1.png`, `bard-v1.png`. Each is a 1254×1254 PNG with alpha transparency. Full-body art is used for the selected character and CSS portrait framing for small avatars and class pickers. No image postprocessing was applied. Profile photos still take precedence. Curated class art replaces the old seed-colored SVG placeholders; `avatar_seed` stays in the contract for future appearance variants. The neutral fallback uses the knight art with a generic adventurer text alternative.
+Assets are copied into `public/characters/`: `knight-v1.png`, `wizard-v1.png`, `rogue-v1.png`, `bard-v1.png`. Each is a 1254×1254 PNG with alpha transparency. Full-body art is used for the selected character and CSS portrait framing for small avatars and class pickers. The source PNGs are unmodified. Next Image serves appropriately sized, high-quality optimized variants to the browser; `sizes` accounts for the 2.4× portrait framing. Profile photos still take precedence. Curated class art replaces the old seed-colored SVG placeholders; `avatar_seed` stays in the contract for future appearance variants. The neutral fallback uses the knight art with a generic adventurer text alternative.
 
 ## Final prompt: knight
 
@@ -25,3 +25,5 @@ This is the ROGUE class: a young adult with short tousled sandy-blond hair, char
 ### Bard
 
 This is the BARD class: a young adult woman with a straight dark bob and bangs, a friendly clear expressive face, a cropped slate jacket over an ivory hoodie, a soft olive scarf, a gold conference lanyard and badge, a rounded canvas backpack and small messenger pouch, and practical charcoal trousers and boots. Small music-note enamel pin conveys the bard role; no instrument covering the face or body. Distinct head silhouette while matching the other character's proportions and detailed pixel craft.
+
+Delivery check: the four 576px, quality-100 WebP responses totaled 226,564 bytes versus 2,312,860 bytes for the source PNGs (90.2% smaller). Measured on the local standalone production server with an `Accept: image/webp` request; actual browser width/format varies.
