@@ -1,5 +1,6 @@
-# On every push to main (every merged PR): build the three images, push them to GHCR, and
-# point deploy/kustomization.yaml at them. Argo CD sees that commit and deploys it.
+# On every push to main (every merged PR): build the three images, push them to GHCR, then
+# write main + the new image tags to the `deploy` branch. Argo CD tracks `deploy`, so main stays
+# protected (PRs only) and the bot never pushes to it.
 # Adapted from skyhook-io/cnh-starter.
 name: build-and-deploy
 
@@ -7,7 +8,6 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - deploy/kustomization.yaml
       - "**.md"
       - "meeting-recordings/**"
       - "demo/**"
@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Point the manifests at the new images
+      - name: Point the manifests at the new images, on the deploy branch
         env:
           OWNER: ${{ github.repository_owner }}
         run: |
@@ -75,17 +75,12 @@ jobs:
           OWNER="${OWNER,,}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for attempt in 1 2 3 4 5; do
-            git fetch -q origin main
-            git reset -q --hard FETCH_HEAD
-            for n in web search-api game-api; do
-              N="$n" IMG="ghcr.io/${OWNER}/conquest-$n" T="$TAG" \
-                yq -i '(.images[] | select(.name == strenv(N))) |= (.newName = strenv(IMG) | .newTag = strenv(T))' deploy/kustomization.yaml
-            done
-            if git diff --quiet; then exit 0; fi
-            git commit -qam "deploy: ${TAG} [skip ci]"
-            if git push -q origin HEAD:main; then exit 0; fi
-            sleep $((attempt * 3))
+          # Build deploy from the commit this run built, so each deploy matches its images.
+          git fetch -q origin "$GITHUB_SHA"
+          git reset -q --hard "$GITHUB_SHA"
+          for n in web search-api game-api; do
+            N="$n" IMG="ghcr.io/${OWNER}/conquest-$n" T="$TAG" \
+              yq -i '(.images[] | select(.name == strenv(N))) |= (.newName = strenv(IMG) | .newTag = strenv(T))' deploy/kustomization.yaml
           done
-          echo "Couldn't push the deploy commit after 5 tries." >&2
-          exit 1
+          git commit -qam "deploy: ${TAG} [skip ci]"
+          git push -qf origin HEAD:deploy

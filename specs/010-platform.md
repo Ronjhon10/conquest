@@ -22,8 +22,8 @@ Gets Conquest running on Kubernetes and makes three sponsor tracks real: **Radar
 - `packages/telemetry`: `startTelemetry(serviceName: string): void` for Node services. Wraps `@opentelemetry/sdk-node` with auto-instrumentations (http, undici/fetch, Elasticsearch), OTLP exporters for traces, metrics and logs straight to Dash0 (endpoint and `Authorization=Bearer` header from env), and `deployment.environment` from `DEPLOY_ENV`. A no-op when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset (tests, laptops).
 - Dockerfiles: `apps/web/Dockerfile` (Next standalone) and `services/Dockerfile` (`--build-arg SERVICE=search-api|game-api`). All listen on `PORT` 8080 with `/healthz` and `/readyz`, run as uid 1000. Images: `ghcr.io/ronjhon10/conquest-{web,search-api,game-api}:<sha7>` and `:latest`, public.
 - `deploy/`: kustomize for Argo CD, namespace `team-<team>`: Deployments `web`, `search-api`, `game-api` (1 replica each, requests 100m and 192-256Mi), Service `app` (port 80 → web, the only routed entry), internal Services `search-api` and `game-api` (port 80), the inert starter HTTPRoute, env from Secret `conquest-secrets` (every key optional; created by a human, never in git).
-- `argocd/application.yaml`: Application `app` in `team-<team>` tracking `main`, path `deploy`, automated prune + self-heal. `deploy/setup-team.sh <team>` fills in the team name.
-- `.github/workflows/ci.yml` on every PR and on main: `npm ci`, lint, typecheck, test. `.github/workflows/build-and-deploy.yaml` on push to main: build the three images and commit `deploy: <sha7> [skip ci]` with the new tags; Argo CD deploys that commit.
+- `argocd/application.yaml`: Application `app` in `team-<team>` tracking branch `deploy`, path `deploy`, automated prune + self-heal. `deploy/setup-team.sh <team>` fills in the team name.
+- `.github/workflows/ci.yml` on every PR and on main: `npm ci`, lint, typecheck, test. `.github/workflows/build-and-deploy.yaml` on push to main: build the three images and force-push branch `deploy` (main plus a `deploy: <sha7>` commit with the new tags); Argo CD tracks `deploy`.
 - `.gitar/review/conventions.md` and five rules in `.gitar/rules/`.
 - `.agents/skills/`: Radar's `get-started`, `ship`, `debug-failure`, `canary-release`, `demo-story` skills with Conquest notes on top.
 - `docker-compose.yml` for local dev (later step): the three apps; Elasticsearch from Serverless or a local single node.
@@ -43,8 +43,8 @@ Gets Conquest running on Kubernetes and makes three sponsor tracks real: **Radar
    - No secrets, tokens or `.env` values in diffs; no personal text in telemetry attributes.
    - Every new player action is instrumented per the 000 telemetry conventions.
    - (Tests named by criterion ID is in the review conventions, not a separate rule.)
-   Turn on CI failure diagnosis and auto-apply (`gitar auto-apply:on`). Protect `main` with a ruleset: PRs only, `ci` must pass, GitHub Actions may bypass (for the deploy commit). Save one Gitar review and one Gitar auto-fix to `demo/evidence/` as they happen.
-8. **Images and deploy.** Merges to `main` build images and the Action's bot commits the new tags (the ruleset lets GitHub Actions push that commit). Argo CD deploys it. Seed runs as a one-off Kubernetes Job using the search-api image (`npm run seed -w services/search-api`), following `examples/agent-workflows/README.md`.
+   Turn on CI failure diagnosis and auto-apply (`gitar auto-apply:on`). Protect `main` with a ruleset: PRs only, `ci` must pass, no bypass (deploy commits go to branch `deploy`). Save one Gitar review and one Gitar auto-fix to `demo/evidence/` as they happen.
+8. **Images and deploy.** Merges to `main` build images and the Action writes the new tags to branch `deploy`, which Argo CD tracks. `main` itself only changes through PRs. Seed runs as a one-off Kubernetes Job using the search-api image (`npm run seed -w services/search-api`), following `examples/agent-workflows/README.md`.
 9. **Radar all day.** Screenshot Checks for `team-<team>` in the first hour ("before") and before 5:30 ("after"), fixing findings that apply to our workloads. Use Radar's Topology, Timeline and MCP while shipping. The `demo-story` skill drafts the 5:30 story.
 
 ## Acceptance criteria

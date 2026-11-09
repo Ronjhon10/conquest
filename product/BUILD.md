@@ -29,7 +29,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Platform (010)
 
-- [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`, Actions bypass). (PL-4) owner: Max
+- [x] **P.1** CI workflow (lint, typecheck, test) and `main` ruleset (PR + green `ci`; deploys go to branch `deploy`). (PL-4) owner: Max
 - [ ] **P.2** Gitar: config committed (`.gitar/`); **human** starts the trial and installs the app; turn on auto-apply. (PL-9) owner:
 - [ ] **P.3** `packages/telemetry` with `startTelemetry`. (PL-1, PL-2) owner:
 - [ ] **P.4** `docker-compose.yml` for the three apps (Dockerfiles, manifests, Argo CD app and deploy workflow are done). (PL-3) owner:
