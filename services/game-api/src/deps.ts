@@ -6,11 +6,16 @@ import { createElasticStore, esClientFromEnv } from "./store/elastic";
 import { createMemoryStore } from "./store/memory";
 import { createRepos, type Repos } from "./store/repos";
 import type { DocStore } from "./store/store";
+import { createElasticStats } from "./stats/elastic";
+import { createMemoryStats } from "./stats/memory";
+import type { Stats } from "./stats/stats";
 
 export type Deps = {
   store: DocStore;
   repos: Repos;
   search: SearchClient;
+  /** Leaderboard and report: Elasticsearch aggregations in the service, JS over the repos otherwise. */
+  stats: Stats;
   /** null = no OPENAI_API_KEY: every feature uses its deterministic fallback (OV-5). */
   llm: Llm | null;
   /** Clock and id source, injectable so tests are deterministic. */
@@ -20,10 +25,12 @@ export type Deps = {
 
 export function memoryDeps(over: Partial<Omit<Deps, "store" | "repos">> = {}): Deps {
   const store = createMemoryStore();
+  const repos = createRepos(store);
   return {
     store,
-    repos: createRepos(store),
+    repos,
     search: createFakeSearchClient(),
+    stats: createMemoryStats(repos),
     llm: null,
     now: () => new Date(),
     newId: randomUUID,
@@ -48,5 +55,7 @@ export function depsFromEnv(env: NodeJS.ProcessEnv = process.env): Deps & { note
   const llm = llmFromEnv(env);
   if (!llm) notes.push("OPENAI_API_KEY unset: using deterministic fallbacks");
 
-  return { store, repos: createRepos(store), search, llm, now: () => new Date(), newId: randomUUID, notes };
+  const repos = createRepos(store);
+  const stats = es ? createElasticStats(es, repos) : createMemoryStats(repos);
+  return { store, repos, search, stats, llm, now: () => new Date(), newId: randomUUID, notes };
 }
