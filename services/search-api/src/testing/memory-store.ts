@@ -65,12 +65,12 @@ export class MemoryTalkStore implements TalkStore {
     });
   }
 
-  async searchTalks(q: string, limit: number): Promise<TalkHit[]> {
+  async searchTalks(q: string, limit: number, offset = 0): Promise<TalkHit[]> {
     const qTerms = [...new Set(tokens(q))];
     if (qTerms.length === 0) {
       return [...this.talks.values()]
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at) || a.id.localeCompare(b.id))
-        .slice(0, limit)
+        .slice(offset, offset + limit)
         .map((talk) => ({ talk, score: 1, highlight: snippet(talk.abstract, []) }));
     }
     const hits: TalkHit[] = [];
@@ -92,7 +92,7 @@ export class MemoryTalkStore implements TalkStore {
       }
       if (score > 0) hits.push({ talk, score, highlight: snippet(talk.abstract, matched) });
     }
-    return hits.sort((a, b) => b.score - a.score || a.talk.id.localeCompare(b.talk.id)).slice(0, limit);
+    return hits.sort((a, b) => b.score - a.score || a.talk.id.localeCompare(b.talk.id)).slice(offset, offset + limit);
   }
 
   async rooms() {

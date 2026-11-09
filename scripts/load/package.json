@@ -1,0 +1,13 @@
+{
+  "name": "@conquest/load",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "load": "tsx src/index.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "tsx": "^4.23.15"
+  }
+}

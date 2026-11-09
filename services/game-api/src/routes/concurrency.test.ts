@@ -1,3 +1,4 @@
+import { PHOTO_LIMIT } from "../xp/rules";
 import { fixtures, GetAttendeeResponse, INDEX, LeaderboardResponse, PartyResponse, type Attendee, type XpEvent } from "@conquest/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../app";
@@ -36,7 +37,9 @@ describe("concurrent player mutations across service instances", () => {
   it("GM-17 eight parallel awards keep attendee XP and event totals equal", async () => {
     const { deps, post, seed } = setup();
     await seed("a", "AAAAAA");
-    const responses = await Promise.all(Array.from({ length: 8 }, (_, i) => post("/xp", { attendee_id: "a", kind: "photo" }, i % 2 === 0)));
+    // Four photos and four check-ins on different talks, all at once (the photo cap is 6).
+    const award = (i: number) => (i < 4 ? { attendee_id: "a", kind: "photo" } : { attendee_id: "a", kind: "checkin", talk_id: `talk-${i - 3}` });
+    const responses = await Promise.all(Array.from({ length: 8 }, (_, i) => post("/xp", award(i), i % 2 === 0)));
     expect(responses.map((r) => r.status)).toEqual(Array(8).fill(200));
     const events = await deps.repos.xpEvents.find({ attendee_id: "a" });
     expect(events).toHaveLength(8);
@@ -56,11 +59,11 @@ describe("concurrent player mutations across service instances", () => {
   it("GM-8 racing photos cannot consume the final photo slot twice", async () => {
     const { deps, post, seed } = setup();
     await seed("a", "AAAAAA");
-    for (let i = 0; i < 19; i++) expect((await post("/xp", { attendee_id: "a", kind: "photo" })).status).toBe(200);
+    for (let i = 0; i < PHOTO_LIMIT - 1; i++) expect((await post("/xp", { attendee_id: "a", kind: "photo" })).status).toBe(200);
     const responses = await Promise.all([post("/xp", { attendee_id: "a", kind: "photo" }), post("/xp", { attendee_id: "a", kind: "photo" }, true)]);
     expect(responses.map((r) => r.status).sort()).toEqual([200, 409]);
-    expect(await deps.repos.xpEvents.count({ attendee_id: "a", kind: "photo" })).toBe(20);
-    expect((await deps.repos.attendees.get("a"))?.xp).toBe(500);
+    expect(await deps.repos.xpEvents.count({ attendee_id: "a", kind: "photo" })).toBe(PHOTO_LIMIT);
+    expect((await deps.repos.attendees.get("a"))?.xp).toBe(PHOTO_LIMIT * 25);
   });
 
   it("GM-9 simultaneous networking in opposite directions pays each attendee once", async () => {

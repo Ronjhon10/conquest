@@ -171,9 +171,10 @@
 }
 
 .roomNode {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  height: 100%;
   width: 100%;
   min-height: 44px;
   padding: 0 3px 4px;
@@ -208,9 +209,11 @@
 }
 
 .bossSprite {
-  display: block;
-  width: clamp(50px, 14vw, 88px);
-  height: clamp(50px, 14vw, 88px);
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  max-width: 100%;
+  min-height: 0;
 }
 
 .bossSprite img, .you img {
@@ -219,6 +222,8 @@
   height: auto;
   image-rendering: pixelated;
 }
+
+.bossSprite img { height: 100%; object-fit: contain; }
 
 .roomName {
   display: block;
@@ -328,7 +333,7 @@
   background: var(--ground);
 }
 
-.actionBar a {
+.actionBar a, .actionBar button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -367,3 +372,286 @@
   .xp { gap: 4px; }
   .xp progress { width: 54px; }
 }
+
+/* The map route is one phone screen, with no outer website chrome. */
+.routeShell {
+  min-height: 100dvh;
+  color: #fff;
+  background-color: #080c1b;
+  background-image: radial-gradient(circle at 3px 3px, #667496 1px, transparent 1px), radial-gradient(circle at 17px 23px, #d0daef 1px, transparent 1px);
+  background-size: 39px 47px, 89px 103px;
+}
+
+.routeContent {
+  min-height: 100dvh;
+}
+
+.routeContent > :global(.error-notice), .routeContent > :global(.loading-notice) {
+  max-width: 520px;
+  margin: auto;
+  padding: 24px;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: max(16px, env(safe-area-inset-top)) 12px 0;
+  color: #fff;
+}
+
+.phoneHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.identity { min-width: 0; }
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  text-decoration: none;
+  font: 800 clamp(19px, 4.7vw, 34px)/1 var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+.wordmark :global(.ui-icon) {
+  flex-shrink: 0;
+  width: clamp(22px, 5vw, 38px);
+  height: clamp(30px, 6vw, 48px);
+  color: #f5c354;
+}
+
+.identity > p {
+  font-size: clamp(8px, 1.9vw, 12px);
+  line-height: 1.5;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 7px 0 0;
+}
+
+.playerCard {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 8px;
+  border: 2px solid #000;
+  border-radius: 14px;
+  box-shadow: 5px 5px 0 #000;
+  background: #fff;
+  color: #000;
+}
+
+.playerCard :global(.avatar) {
+  flex-shrink: 0;
+}
+
+.playerInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.playerInfo > strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 800 clamp(12px, 3vw, 22px)/1.2 var(--font-display);
+  margin-bottom: 6px;
+}
+
+.playerInfo .xp {
+  gap: 4px;
+  font-size: clamp(8px, 1.8vw, 11px);
+  white-space: nowrap;
+}
+
+.playerInfo progress {
+  width: 100%;
+  max-width: 80px;
+  min-width: 22px;
+  border: 1px solid #000;
+  flex: 1;
+}
+
+.coins {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding-left: 7px;
+  border-left: 2px solid #000;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.coins > strong {
+  font: 800 clamp(18px, 4vw, 28px)/1 var(--font-display);
+}
+
+.coins > span {
+  font: 700 clamp(7px, 1.7vw, 10px)/1.1 var(--font-display);
+}
+
+.screen .controls {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.screen .controls > label, .screen .days button {
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 2px solid #000;
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  font: 800 clamp(12px, 2.8vw, 19px)/1.2 var(--font-display);
+  box-shadow: 4px 5px 0 #000;
+}
+
+.screen .controls > label { flex: 1 1 auto; }
+.screen .controls input { width: 20px; height: 20px; }
+.screen .days { margin: 0; gap: 8px; }
+.screen .days button { min-width: 64px; }
+.screen .days button[aria-pressed="true"] { background: var(--blue); color: #fff; outline: 0; border-color: #000; }
+
+.screen .mapFrame {
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.screen .worldScroll {
+  height: auto;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.screen .world { max-width: none; }
+
+.screen .selectedRoom {
+  outline: 3px solid #ffd16c;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #fff, 0 0 0 8px #000;
+  background: #0000ff50;
+}
+
+.screen .encounter {
+  margin: 20px 2px 22px 0;
+  border-radius: 16px;
+}
+
+.screen .selectedLabel {
+  font: 800 clamp(13px, 3vw, 20px)/1.2 var(--font-display);
+  letter-spacing: 0;
+  padding: 16px 16px 0;
+}
+
+.screen .details h3 { font-weight: 800; }
+.screen .details .access { font-size: 13px; }
+.screen .encounter .details > a { min-height: 52px; font-weight: 800; border-radius: 12px; }
+
+.actionBar a, .actionBar button { gap: 8px; }
+.actionBar :global(.ui-icon) { flex-shrink: 0; width: 22px; height: 22px; }
+
+.screen .actionBar {
+  padding: 0 4px 24px 0;
+  background: transparent;
+  border: 0;
+}
+
+.screen .actionBar a, .screen .actionBar button {
+  min-height: 52px;
+  font: 800 clamp(11px, 2.8vw, 18px)/1.2 var(--font-display);
+  padding-inline: 7px;
+  border-radius: 12px;
+  box-shadow: 4px 5px 0 #000;
+}
+
+.bottomNav {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  padding: 14px 4px max(16px, env(safe-area-inset-bottom)) 0;
+  margin-top: auto;
+  border-top: 2px solid #5a6487;
+  background: #080c1bf5;
+}
+
+.bottomNav a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 2px;
+  border: 2px solid #000;
+  border-radius: 12px;
+  box-shadow: 4px 5px 0 #000;
+  color: #000;
+  background: #fff;
+  font: 800 clamp(12px, 2.8vw, 20px)/1.1 var(--font-display);
+  text-decoration: none;
+}
+
+.bottomNav a[aria-current="page"] { background: var(--blue); color: #fff; }
+.screen a:focus-visible, .screen button:focus-visible, .screen input:focus-visible { outline: 3px solid #ffd16c; outline-offset: 4px; }
+
+.questPanel {
+  margin: 12px 6px 20px 0;
+  padding: 18px;
+  border: 2px solid #000;
+  border-radius: 14px;
+  background: #fff;
+  color: #000;
+  box-shadow: 5px 5px 0 #000;
+}
+
+.questPanel > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.questPanel h2 { margin: 0; font-size: 22px; }
+.questPanel button { min-width: 44px; min-height: 44px; border: 2px solid #000; border-radius: 8px; background: #fff; font-size: 24px; }
+.questPanel ul { padding: 0; list-style: none; }
+.questPanel li { padding: 14px 0; border-bottom: 1px solid #b5b7b9; }
+.questPanel p, .questPanel span { font-size: 12px; line-height: 1.5; }
+
+@media (max-width: 380px) {
+  .phoneHeader { grid-template-columns: 1fr; gap: 14px; }
+  .wordmark { font-size: 26px; }
+  .playerCard { padding: 10px; }
+  .playerInfo > strong { font-size: 17px; }
+  .playerInfo .xp { font-size: 11px; }
+  .coins > span { font-size: 10px; }
+  .screen .controls { gap: 7px; }
+  .screen .controls > label, .screen .days button { padding-inline: 9px; }
+  .actionBar :global(.ui-icon) { width: 18px; height: 18px; }
+}
+
+
+.encounter .chips {
+  width: fit-content;
+  gap: 0;
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: #000;
+}
+.encounter .chips > * { padding: 0; border: 0; font-size: 11px; }
+.encounter .chips > *:not(:last-child)::after { content: "·"; padding-inline: 7px; }

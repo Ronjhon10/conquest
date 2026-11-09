@@ -1,6 +1,6 @@
 import { fixtures, INDEX, type Attendee, type XpEvent } from "@conquest/contracts";
 import { describe, expect, it, vi } from "vitest";
-import { createElasticStore, toQuery } from "./elastic";
+import { createElasticStore, toQuery, unsearchableFields } from "./elastic";
 import { MAPPINGS } from "./indexes";
 import { createMemoryStore } from "./memory";
 import { createRepos, UPDATE_RETRIES } from "./repos";
@@ -147,7 +147,8 @@ describe("index setup", () => {
 
 it("GM-17 upgrades existing attendee indexes with the durable outbox mapping", async () => {
   const putMapping = vi.fn().mockResolvedValue({ acknowledged: true });
-  const client = { indices: { exists: vi.fn().mockResolvedValue(true), putMapping } };
+  const getMapping = vi.fn(async ({ index }: { index: string }) => ({ [index]: { mappings: MAPPINGS[index as keyof typeof MAPPINGS] } }));
+  const client = { indices: { exists: vi.fn().mockResolvedValue(true), putMapping, getMapping } };
   const store = createElasticStore(client as unknown as import("@elastic/elasticsearch").Client);
   await store.ensureIndexes();
   await store.ensureIndexes();
@@ -155,4 +156,75 @@ it("GM-17 upgrades existing attendee indexes with the durable outbox mapping", a
   expect(putMapping).toHaveBeenCalledWith({ index: INDEX.attendees, properties: {
     _xp_journal: { type: "object", enabled: false }, _xp_pending: { type: "boolean" },
   } });
+});
+
+describe("GM-23 stale index mappings", () => {
+  const staleAttendees = {
+    ...MAPPINGS[INDEX.attendees],
+    properties: { ...MAPPINGS[INDEX.attendees].properties, linkedin_url: { type: "keyword", index: false, doc_values: false } },
+  } as const;
+  const fakeClient = (docs: number) => {
+    const indices = {
+      exists: vi.fn().mockResolvedValue(true),
+      getMapping: vi.fn(async ({ index }: { index: string }) => ({
+        [index]: { mappings: index === INDEX.attendees ? staleAttendees : MAPPINGS[index as keyof typeof MAPPINGS] },
+      })),
+      putMapping: vi.fn().mockResolvedValue({ acknowledged: true }),
+      delete: vi.fn().mockResolvedValue({ acknowledged: true }),
+      create: vi.fn().mockResolvedValue({ acknowledged: true }),
+    };
+    return { indices, count: vi.fn().mockResolvedValue({ count: docs }) };
+  };
+  const quiet = () => vi.spyOn(console, "log").mockImplementation(() => {});
+
+  it("GM-23 finds linkedin_url unsearchable in an attendees index made by an older build", () => {
+    expect(unsearchableFields(MAPPINGS[INDEX.attendees], staleAttendees)).toEqual(["linkedin_url"]);
+    expect(unsearchableFields(MAPPINGS[INDEX.attendees], MAPPINGS[INDEX.attendees])).toEqual([]);
+    expect(unsearchableFields(MAPPINGS[INDEX.attendees], undefined)).toEqual([]);
+  });
+
+  it("GM-23 recreates an empty stale attendees index so a LinkedIn link can be looked up", async () => {
+    const log = quiet();
+    const client = fakeClient(0);
+    await createElasticStore(client as unknown as import("@elastic/elasticsearch").Client).ensureIndexes();
+    expect(client.indices.delete).toHaveBeenCalledTimes(1);
+    expect(client.indices.delete).toHaveBeenCalledWith({ index: INDEX.attendees }, { ignore: [404] });
+    expect(client.indices.create).toHaveBeenCalledWith({ index: INDEX.attendees, mappings: MAPPINGS[INDEX.attendees] });
+    log.mockRestore();
+  });
+
+  it("GM-23 rebuilds a stale attendees index that holds documents without losing any", async () => {
+    const log = quiet();
+    const client = { ...fakeClient(5), reindex: vi.fn().mockResolvedValue({ total: 5 }) };
+    await createElasticStore(client as unknown as import("@elastic/elasticsearch").Client).ensureIndexes();
+    const temp = `${INDEX.attendees}-migrate`;
+    expect(client.reindex.mock.calls.map(([r]) => [r.source.index, r.dest.index])).toEqual([
+      [INDEX.attendees, temp],
+      [temp, INDEX.attendees],
+    ]);
+    expect(client.indices.create).toHaveBeenCalledWith({ index: temp, mappings: MAPPINGS[INDEX.attendees] });
+    expect(client.indices.create).toHaveBeenCalledWith({ index: INDEX.attendees, mappings: MAPPINGS[INDEX.attendees] });
+    expect(client.indices.delete).toHaveBeenLastCalledWith({ index: temp });
+    log.mockRestore();
+  });
+
+  it("GM-23 leaves the original index alone when the copy comes up short", async () => {
+    const log = quiet();
+    const base = fakeClient(5);
+    const count = vi.fn(async ({ index }: { index: string }) => ({ count: index.endsWith("-migrate") ? 4 : 5 }));
+    const client = { ...base, count, reindex: vi.fn().mockResolvedValue({ total: 4 }) };
+    await expect(createElasticStore(client as unknown as import("@elastic/elasticsearch").Client).ensureIndexes()).rejects.toThrow(/copied 4 of 5/);
+    expect(base.indices.delete).not.toHaveBeenCalledWith({ index: INDEX.attendees });
+    log.mockRestore();
+  });
+});
+
+it("GM-17 writes refresh explicitly so the next read sees them without waiting for the Serverless refresh cycle", async () => {
+  const create = vi.fn().mockResolvedValue({ _seq_no: 0, _primary_term: 1 });
+  const index = vi.fn().mockResolvedValue({ _seq_no: 1, _primary_term: 1 });
+  const store = createElasticStore({ create, index } as unknown as import("@elastic/elasticsearch").Client);
+  await store.create(INDEX.xpEvents, "ev-1", event({}));
+  await store.put(INDEX.attendees, "att-jane", fixtures.attendee, { seq_no: 0, primary_term: 1 });
+  expect(create.mock.calls[0]![0].refresh).toBe(true);
+  expect(index.mock.calls[0]![0].refresh).toBe(true);
 });

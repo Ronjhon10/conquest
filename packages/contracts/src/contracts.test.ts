@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import * as c from "./index";
 
 describe("contracts", () => {
+  it("GM-11 shared XP thresholds match the level formula", () => {
+    expect([1, 2, 3, 4].map(c.xpForLevel)).toEqual([0, 100, 400, 900]);
+  });
+
   it("OV-2 fixtures parse against their schemas", () => {
     for (const s of c.fixtures.speakers) c.Speaker.parse(s);
     for (const t of c.fixtures.talks) c.Talk.parse(t);

@@ -45,7 +45,7 @@ Allies: `GET /attendees/:id` returns `allies`, everyone the attendee networked w
    | --- | --- | --- |
    | `checkin` on a talk on your map (a boss) | 150 | once per talk |
    | `checkin` on any other talk | 100 | once per talk |
-   | `photo` | 25 | at most 20 per attendee; `talk_id` optional |
+   | `photo` | 25 | at most 6 per attendee (so photos can't outweigh talks); `talk_id` optional |
    | `network` | 50 to **each** of the two attendees | once per pair, in either direction; not yourself |
    | `quest` | the quest's `xp` | once per quest, awarded automatically |
 
@@ -88,7 +88,7 @@ Allies: `GET /attendees/:id` returns `allies`, everyone the attendee networked w
 - **GM-24** `PATCH /attendees/:id` changes only `headline`, `photo` and `class`; anything else sent is ignored; a bad photo is `400 bad_photo`.
 - **GM-6** Boss check-in gives 150 XP and +1 coin; non-boss check-in gives 100 XP; a second check-in to the same talk is refused (`409 already_checked_in`).
 - **GM-7** A check-in gets multiplier 1.25 and `xp = round(base * 1.25)` when a party member already checked into that talk, else 1.0.
-- **GM-8** Photo gives 25 XP and the 21st photo is refused (`409 photo_limit`).
+- **GM-8** Photo gives 25 XP and the 7th photo is refused (`409 photo_limit`).
 - **GM-9** Network by code gives 50 XP to both attendees; repeating the pair either way is refused (`409 already_connected`); own code is refused (`400 self`).
 - **GM-10** Reaching a quest's target awards its XP exactly once, `talk_ids` restricts which check-ins count, and a `boss` quest counts only check-ins to talks on the attendee's map.
 - **GM-11** `level` follows `floor(sqrt(xp/100)) + 1` (0 → 1, 100 → 2, 400 → 3, 900 → 4).

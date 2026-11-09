@@ -26,8 +26,8 @@ export function createApp({ store }: AppDeps = {}) {
   api.get("/healthz", (c) => c.json(health));
 
   api.get("/talks", async (c) => {
-    const { q, limit } = parse(SearchTalksQuery, c.req.query());
-    const results = await need().searchTalks(q, limit);
+    const { q, limit, offset } = parse(SearchTalksQuery, c.req.query());
+    const results = await need().searchTalks(q, limit, offset);
     return c.json(SearchTalksResponse.parse({ results }));
   });
 
