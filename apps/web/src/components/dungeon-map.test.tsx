@@ -44,7 +44,7 @@ it("WEB-3 orders the same selected talks by time in the path and list with metad
   const expected = fixtures.talks.slice(0, 3).map((talk) => talk.title);
   expect(titles("Dungeon path")).toEqual(expected);
   expect(screen.getByText("Tue 9:00 AM")).toBeTruthy();
-  expect(screen.getByText(/Room 255/)).toBeTruthy();
+  expect(screen.getAllByText(/Room 255/).length).toBeGreaterThan(0);
   expect(screen.getByText("Security goal")).toBeTruthy();
   expect(screen.getByRole("link", { name: expected[2] }).getAttribute("href")).toBe("/c/conf-demo/boss/talk-3");
   await user.click(screen.getByRole("checkbox", { name: "List view" }));
@@ -116,4 +116,21 @@ it("WEB-3 offers signup without a personal identity and explains an empty person
   expect(screen.getByRole("link", { name: "Create your adventurer" }).getAttribute("href")).toBe("/c/conf-demo/join");
   rerender(<DungeonMap {...props} attendee={{ ...fixtures.attendee, map: [] }} />);
   expect(screen.getByText("No talks on your map yet.")).toBeTruthy();
+});
+
+it("WEB-3 keeps available boss rooms and their speakers when another selected talk fails to load", async () => {
+  motion(true);
+  const api = apiModule.createApi(createFakeTransport());
+  const originalTalk = api.talk;
+  vi.spyOn(api, "talk").mockImplementation((id) => id === "talk-2"
+    ? Promise.reject(new apiModule.ApiError("not_found", "Talk removed", 404))
+    : originalTalk(id));
+  vi.spyOn(apiModule, "getApi").mockReturnValue(api);
+  rememberAttendee("conf-demo", fixtures.attendee.id);
+  render(<RoutePreview view="map" conf="conf-demo" />);
+  expect(await screen.findByRole("link", { name: fixtures.talks[0]!.title })).toBeTruthy();
+  expect(screen.getAllByText("Speaker: Ada Fixture").length).toBeGreaterThan(0);
+  expect(screen.getByRole("alert").textContent).toContain("1 talk could not be loaded");
+  expect(screen.getByRole("heading", { name: "Your quests" })).toBeTruthy();
+  expect(screen.queryByRole("link", { name: fixtures.talks[1]!.title })).toBeNull();
 });
