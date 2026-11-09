@@ -12,10 +12,10 @@ resources:
 images:
   - name: web
     newName: ghcr.io/ronjhon10/conquest-web
-    newTag: latest
+    newTag: f9387ce
   - name: search-api
     newName: ghcr.io/ronjhon10/conquest-search-api
-    newTag: latest
+    newTag: f9387ce
   - name: game-api
     newName: ghcr.io/ronjhon10/conquest-game-api
-    newTag: latest
+    newTag: f9387ce
