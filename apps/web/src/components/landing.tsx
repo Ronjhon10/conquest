@@ -1,5 +1,6 @@
 import { fixtures, type CharacterClass } from "@conquest/contracts";
 import Link from "next/link";
+import { formatTalkTime } from "../lib/time";
 import { Avatar } from "./avatar";
 import { Icon } from "./icon";
 import { ActionLink } from "./ui";
@@ -43,7 +44,7 @@ function HomeBossMap() {
                   />
                 </span>
                 <span className="home-boss-map__copy">
-                  <span className="home-boss-map__eyebrow">{talk.room} · {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(talk.starts_at))}</span>
+                  <span className="home-boss-map__eyebrow">{talk.room} · {formatTalkTime(talk.starts_at)}</span>
                   <strong>{speakers.join(", ")}</strong>
                   <span>{talk.title}</span>
                 </span>
