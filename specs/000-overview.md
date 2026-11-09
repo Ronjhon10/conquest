@@ -20,21 +20,21 @@ Every sponsor track is used for real:
 ## Architecture
 
 ```
-                 ┌──────────────── Kubernetes (event cluster, namespace conquest) ────────────────┐
- browser ──HTTPS─▶ ingress ─┬─ /              ─▶ web         (Next.js, attendee + organizer + speaker UI)
- (OTel RUM)        │        ├─ /api/search/*  ─▶ search-api  (Hono, Node 22)  ──┐
-                   │        └─ /api/game/*    ─▶ game-api    (Hono, Node 22)  ──┤──▶ elasticsearch (ECK, single node)
-                   │                                game-api ──HTTP──▶ search-api (rank)
-                   │        all three ──OTLP──▶ otel-collector ──OTLP──▶ Dash0
-                   │        Radar connected to the cluster (UI + MCP)
-                   └────────────────────────────────────────────────────────────────────────────────┘
- GitHub: lane branch ─PR─▶ CI (lint, typecheck, test) + Gitar review/auto-fix ─merge─▶ main ─▶ image build ─▶ deploy
+                 ┌──────── Radar vcluster (hackathon-provided, namespace team-<team>) ────────┐
+ browser ──HTTPS─▶ Service app:80 ─▶ web (Next.js, attendee + organizer + speaker UI)            │
+ (Dash0 RUM)       │                   ├─ /api/search/* (rewrite) ─▶ search-api (Hono, Node 22) ──┼──▶ Elastic Serverless
+                   │                   └─ /api/game/*   (rewrite) ─▶ game-api   (Hono, Node 22) ──┤    (outside the cluster)
+                   │                                      game-api ──HTTP──▶ search-api (rank)   │
+                   │  Argo CD (preinstalled) syncs deploy/ ; Radar connected (UI + MCP + AI)       │
+                   └───────────────────────────────────────────────────────────────────────────────┘
+ search-api, game-api, browser ──OTLP──▶ Dash0 (directly; no collector in the cluster)
+ GitHub: lane branch ─PR─▶ ci + Gitar review/auto-fix ─merge─▶ main ─▶ build-and-deploy (3 images, deploy commit) ─▶ Argo CD
  OpenAI (event credits): dungeon theme, character + goal suggestions, recap post, embeddings for semantic search
 ```
 
-- The browser only talks to the ingress. `web` calls the APIs from the browser with relative URLs (`/api/search/...`, `/api/game/...`).
+- The platform routes the team URL only to Service `app` port 80, which is `web`. The browser calls the APIs with relative URLs (`/api/search/...`, `/api/game/...`) and `web` proxies them to the internal Services `search-api` and `game-api` (Next rewrites).
 - `game-api` is the only writer of game state. `search-api` owns the talk and speaker indexes and ranking.
-- Elasticsearch is the only datastore. No Postgres, no Redis, no files on disk.
+- Elasticsearch (Elastic Serverless, via the hackathon trial) is the only datastore. No Postgres, no Redis, no files on disk. It stays outside the cluster because the cluster budget is 2 CPU / 4 GiB.
 
 ## Repo layout
 
@@ -48,7 +48,10 @@ packages/contracts/       shared TS types + zod schemas    owned by this spec; c
 packages/telemetry/       OTel setup helper for services   lane: Platform
 scripts/seed/             KubeCon schedule -> NDJSON       lane: Search
 data/kubecon-na-2026.ndjson  seed talks + speakers         lane: Search
-deploy/k8s/               kustomize manifests              lane: Platform
+deploy/                   kustomize manifests (Argo CD)    lane: Platform
+argocd/                   Argo CD Application              lane: Platform
+.gitar/                   Gitar review rules               lane: Platform
+.agents/skills/           Radar procedures for agents      lane: Platform
 .github/workflows/        CI, image build, deploy          lane: Platform
 ```
 
@@ -58,7 +61,7 @@ Four lanes, built in parallel. Each lane owns its folders, works on `<name>/<lan
 
 | Lane | Owns | Specs | Owner |
 | --- | --- | --- | --- |
-| Platform | cluster, deploy, Elasticsearch install, OTel collector, Dash0, Radar, CI, Gitar, `packages/telemetry` | 010 | |
+| Platform | cluster + GitOps deploy, Elastic Serverless setup, Dash0 wiring, Radar, CI, Gitar, `packages/telemetry` | 010 | |
 | Search | indexes `talks`, `speakers`; seed data; `search-api` | 020 | |
 | Game | indexes `conferences`, `attendees`, `xp-events`, `parties`, `coins`; `game-api` | 030 | |
 | Web | `apps/web`, accessibility | 040 | |
@@ -181,14 +184,14 @@ One cluster, index names prefixed `conquest-`: `conquest-talks`, `conquest-speak
 ### Telemetry conventions (every lane)
 
 - Service names: `conquest-web`, `conquest-search-api`, `conquest-game-api`. Resource attribute `deployment.environment` = `dev` | `demo`.
-- Services call `startTelemetry(serviceName)` from `packages/telemetry` first thing; it sets up traces, metrics and logs over OTLP to `OTEL_EXPORTER_OTLP_ENDPOINT` (the collector). Auto-instrument HTTP and the Elasticsearch client.
+- Services call `startTelemetry(serviceName)` from `packages/telemetry` first thing; it sets up traces, metrics and logs over OTLP straight to Dash0 (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS` with the bearer token). Auto-instrument HTTP and the Elasticsearch client.
 - Custom attributes use the `conquest.` prefix: `conquest.conference.id`, `conquest.xp.kind`, `conquest.xp.amount`, `conquest.party.size`, `conquest.search.goals_count`. **Never put names, LinkedIn text, notes or other personal text in telemetry.** IDs are fine.
 - Metrics: `conquest.xp.awarded` (counter, attrs kind), `conquest.checkins` (counter), `conquest.search.rank.duration` (histogram, ms), `conquest.leaderboard.duration` (histogram, ms).
 - Logs are JSON to stdout with `trace_id` and `span_id`.
 
 ### Environment and secrets
 
-Real values are never committed. Locally they live in `.env` (gitignored); on the cluster in a Secret `conquest-secrets` created by a human. `.env.example` lists every name: `ELASTICSEARCH_URL`, `ELASTICSEARCH_API_KEY`, `OPENAI_API_KEY`, `SEARCH_API_URL` (game-api → search-api), `OTEL_EXPORTER_OTLP_ENDPOINT`, `DASH0_AUTH_TOKEN` (collector only), `DASH0_ENDPOINT`, `NEXT_PUBLIC_DASH0_RUM_*` (web).
+Real values are never committed. Locally they live in `.env` (gitignored); on the cluster in Secret `conquest-secrets` created by a human (keys in `deploy/README.md`). `.env.example` lists every name: `ELASTICSEARCH_URL`, `ELASTICSEARCH_API_KEY`, `OPENAI_API_KEY`, `SEARCH_API_URL` (game-api and web → search-api), `GAME_API_URL` (web → game-api), `OTEL_EXPORTER_OTLP_ENDPOINT`, `DASH0_AUTH_TOKEN`, `NEXT_PUBLIC_DASH0_RUM_*` (web, ingest-only token).
 
 ### OpenAI use
 
@@ -218,13 +221,12 @@ The two-minute video follows this. Everything we build serves it first.
 
 - **OV-1** The demo path above runs end to end on the deployed URL on the event cluster.
 - **OV-2** `packages/contracts` exports every type and zod schema above, and `npm run typecheck` passes across the workspace.
-- **OV-3** Every service answers `GET /healthz` with `200 {"ok":true}`.
+- **OV-3** Every service (and web) answers `GET /healthz` and `GET /readyz` with `200 {"ok":true}` and listens on `PORT` (8080 in the cluster).
 - **OV-4** Every API error body matches `{ error: { code, message } }`.
 - **OV-5** Every OpenAI-backed feature works with `OPENAI_API_KEY` unset, using its fallback.
 - **OV-6** No test calls OpenAI, Dash0 or a remote Elasticsearch; unit tests use fakes, and integration tests needing Elasticsearch run only when `ES_INTEGRATION=1` against a local container.
 
 ## Open questions
 
-- Does the event hand out a cluster per team, and does it have room for Elasticsearch (2 GiB)? **Default until answered:** yes; if not, Platform creates a small cloud cluster (a human creates it with their card) and the specs don't change.
-- Is RRF (reciprocal rank fusion) available on the Elasticsearch license we get? **Default:** try the `rrf` retriever; if refused, combine BM25 and semantic in one `bool.should` query (020 says how).
+- Is RRF (reciprocal rank fusion) available on the Elastic Serverless trial? **Default:** try the `rrf` retriever; if refused, combine BM25 and semantic in one `bool.should` query (020 says how).
 - Video or live presentation? **Default:** record the two-minute video by 5:15; be ready to demo live too.

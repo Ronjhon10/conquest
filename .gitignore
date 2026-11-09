@@ -8,3 +8,6 @@ build/
 .next/
 .vercel/
 .wrangler/
+*kubeconfig*
+*.pem
+*.key

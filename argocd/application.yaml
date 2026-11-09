@@ -1,0 +1,20 @@
+# Create this once (ask your agent to apply it through Radar's MCP, apply_resource), and Argo CD
+# deploys deploy/ on every push to main. The repo is public so Argo CD reads it without credentials.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app
+  namespace: team-__TEAM__
+spec:
+  project: team-__TEAM__
+  source:
+    repoURL: https://github.com/Ronjhon10/conquest.git
+    targetRevision: main
+    path: deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: team-__TEAM__
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
