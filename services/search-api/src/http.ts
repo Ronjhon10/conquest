@@ -1,5 +1,6 @@
 // Shared HTTP plumbing (000: errors are { error: { code, message } }, every service serves /healthz).
 import { errorBody } from "@conquest/contracts";
+import { log } from "@conquest/telemetry";
 import type { Context, Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
@@ -42,7 +43,8 @@ export function installErrorHandling(app: Hono) {
   app.onError((err, c) => {
     if (err instanceof ApiError) return fail(c, err.status, err.code, err.message);
     if (err instanceof HTTPException) return fail(c, err.status as ContentfulStatusCode, "http_error", err.message);
-    console.error(JSON.stringify({ level: "error", msg: err.message, stack: err.stack }));
+    // Backend messages and stack headers can contain a user's query, profile, or note.
+    log("error", "Unhandled request failure", { "error.type": err.constructor.name });
     return fail(c, 500, "internal", "Something went wrong");
   });
 }
