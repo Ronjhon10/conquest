@@ -74,7 +74,7 @@ async function awardXpInner(
 ): Promise<{ event: XpEvent; attendee: Attendee }> {
   const multiplier = spec.multiplier ?? 1;
   const event = await deps.repos.xpEvents.create({
-    id: deps.newId(),
+    id: spec.kind === "quest" && spec.questId ? `${attendee.id}:quest:${spec.questId}` : deps.newId(),
     conference_id: attendee.conference_id,
     attendee_id: attendee.id,
     kind: spec.kind,
