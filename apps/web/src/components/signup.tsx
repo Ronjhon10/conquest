@@ -146,7 +146,7 @@ export function SignupForm({
         if (imported.photo) setPhoto(imported.photo);
         setLinkedinNotice(
           imported.photo
-            ? "Connected to LinkedIn. Your name and photo are ready. Add your profile link below."
+            ? "Connected to LinkedIn. Your name and photo are ready. You can add your profile link below."
             : "Connected to LinkedIn. Your name is ready. Choose a photo below or use your class character.",
         );
       })
@@ -385,7 +385,7 @@ export function SignupForm({
             </section>
             <div className="form-field">
               <label htmlFor="linkedin">
-                LinkedIn profile link <span>(required)</span>
+                LinkedIn profile link <span>(optional)</span>
               </label>
               <input
                 id="linkedin"
@@ -393,7 +393,6 @@ export function SignupForm({
                 type="text"
                 inputMode="url"
                 autoComplete="url"
-                required
                 value={fields.linkedin_url}
                 onChange={(e) => change("linkedin_url", e.target.value)}
                 aria-invalid={Boolean(fieldErrors.linkedin_url)}

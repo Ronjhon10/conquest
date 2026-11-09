@@ -84,6 +84,25 @@ it("WEB-23 restores the signup draft, imports name/photo, and saves the photo wi
     headline: "Engineer",
   });
 });
+it("WEB-23 lets a LinkedIn-authenticated attendee continue without manually pasting a profile link", async () => {
+  window.history.replaceState(null, "", "/c/conf-demo/join?linkedin=connected");
+  vi.spyOn(globalThis, "fetch").mockResolvedValue(
+    Response.json({ name: "New attendee", photo: null }),
+  );
+  const { api, navigate, user } = setup();
+  const save = vi.spyOn(api, "createAttendee");
+  await screen.findByText(/Your name is ready/);
+  await user.click(
+    screen.getByRole("button", { name: /Choose your character/ }),
+  );
+  await user.click(
+    await screen.findByRole("button", { name: /Enter the dungeon/ }),
+  );
+  await waitFor(() =>
+    expect(navigate).toHaveBeenCalledWith("/c/conf-demo/map"),
+  );
+  expect(save.mock.calls[0]?.[0]).not.toHaveProperty("linkedin_url");
+});
 it("WEB-23 lets users upload a photo when LinkedIn has no usable photo and preserves their edited name", async () => {
   window.history.replaceState(null, "", "/c/conf-demo/join?linkedin=connected");
   sessionStorage.setItem(

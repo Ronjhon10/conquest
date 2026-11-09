@@ -16,7 +16,7 @@ The local env file is ignored by Git. A local file may already have been prepare
 
 - Click Continue with LinkedIn, consent, and return to the same conference's signup.
 - Name and photo are imported. Details typed before leaving are restored from this tab's sessionStorage when it is available. An edited name is preserved.
-- Enter the LinkedIn profile link separately. LinkedIn's OIDC response provides no public profile URL, headline, or about text. These are never inferred from the member ID or scraped.
+- Optionally enter the LinkedIn profile link separately. LinkedIn's OIDC response provides no public profile URL, headline, or about text. These are never inferred from the member ID or scraped. Signing in can continue without a pasted link, matching the updated Game contract.
 - Photos are fetched server-side only from LinkedIn's HTTPS image CDN, without redirects, and cropped/compressed to a 256×256 JPEG below 40 KB. If the photo is unavailable, the attendee can upload one or use class art.
 - Continue choosing a character/goals and create the attendee using the existing Game API.
 

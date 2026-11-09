@@ -90,6 +90,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Log
 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
+- 2026-11-09 14:19  W.2b integration  Danny (Codex)  Merged newest main (map room art and updated Game/signup rules). LinkedIn link is now optional in Web, matching Game; authenticated profile import can proceed without a pasted URL. Full suite 278 passed/3 skipped; Web typecheck, lint and production build pass. Activation remains W.2c.
 - 2026-11-09 14:15  W.2b  Danny (Codex)  Optional LinkedIn OpenID Connect sign-in for name/photo import; encrypted expiring cookies, state/nonce and signed-token validation, bounded CDN-only photo import into the existing JPEG contract, signup draft recovery, and manual fallback. 25 focused checks; full suite 250 passed/3 skipped, lint/typecheck/production build pass. Local signup/recovery routes return 200; browser host unavailable. Developer-app credentials/product activation and real consent verification remain W.2c. Prepared ignored local settings; no deployment changes or deploy.
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
