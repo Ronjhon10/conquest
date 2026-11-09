@@ -61,10 +61,10 @@ Four lanes, built in parallel. Each lane owns its folders, works on `<name>/<lan
 
 | Lane | Owns | Specs | Owner |
 | --- | --- | --- | --- |
-| Platform | cluster + GitOps deploy, Elastic Serverless setup, Dash0 wiring, Radar, CI, Gitar, `packages/telemetry` | 010 | |
-| Search | indexes `talks`, `speakers`; seed data; `search-api` | 020 | |
-| Game | indexes `conferences`, `attendees`, `xp-events`, `parties`, `coins`; `game-api` | 030 | |
-| Web | `apps/web`, accessibility | 040 | |
+| Platform | cluster + GitOps deploy, Elastic Serverless setup, Dash0 wiring, Radar, CI, Gitar, `packages/telemetry` | 010 | Jake Nef |
+| Search | indexes `talks`, `speakers`; seed data; `search-api` | 020 | Max |
+| Game | indexes `conferences`, `attendees`, `xp-events`, `parties`, `coins`; `game-api` | 030 | Jacob Bingham |
+| Web | `apps/web`, accessibility | 040 | Danny |
 
 Order of first steps so nobody waits: step 0.1 in `product/BUILD.md` (workspace + contracts) is done first by anyone, ~20 minutes. After that, all four lanes start together.
 

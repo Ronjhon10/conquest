@@ -3,7 +3,7 @@
 Status: Accepted
 Prefix: `GM`
 Lane: Game
-Owner:
+Owner: Jacob Bingham
 
 ## Purpose
 
