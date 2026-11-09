@@ -1,4 +1,5 @@
 import { Icon } from "./icon";
+import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import type { Theme } from "@conquest/contracts";
@@ -100,7 +101,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           CONQUEST
         </Link>
         <nav aria-label="Main navigation">
-          <Link href="/c/conf-demo/map">My map</Link>
+          <Link href={`/c/${DEMO_CONFERENCE_ID}/map`}>My map</Link>
           <Link href="/organizer/new" className="nav-organize">
             Organizers <Icon name="arrow-up-right" />
           </Link>

@@ -1011,6 +1011,39 @@ textarea.cq-field {
   z-index: 1;
   width: 38%;
 }
+/* Home hero: one character on the ground; it hops when you start (home-hero.tsx). */
+.home-hero__ground {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 28px 12px 0;
+  background: var(--ground);
+  border-bottom: var(--stroke) solid var(--ink);
+}
+.home-hero__character {
+  display: block;
+  width: min(62%, 260px);
+  margin-bottom: -3%;
+  transform-origin: 50% 100%;
+}
+.home-hero__character .avatar {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+.home-hero__character--hop {
+  animation: home-hop 520ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+@keyframes home-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  15% { transform: translateY(0) scale(1.08, 0.9); }
+  50% { transform: translateY(-28%) scale(0.95, 1.06); }
+  85% { transform: translateY(0) scale(1.06, 0.94); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero__character--hop { animation: none; }
+}
 .home-stage__floor {
   display: flex;
   align-items: center;

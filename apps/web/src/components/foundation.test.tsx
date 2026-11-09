@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { fixtures } from "@conquest/contracts";
+import { DEMO_CONFERENCE_ID } from "../lib/demo";
 import { Landing } from "./landing";
 import { RouteContent } from "./route-preview";
 import { ErrorNotice, themeStyle } from "./ui";
@@ -9,13 +10,14 @@ import { ErrorNotice, themeStyle } from "./ui";
 it("WEB-1 renders the landing and every planned page shell with fixture data", () => {
   const landingHtml = renderToStaticMarkup(createElement(Landing));
   expect(landingHtml).toContain("Make conferences fun");
+  // Two actions only: start (signup on the demo conference) and the live leaderboard.
+  expect(landingHtml.match(/class="cq-btn/g)).toHaveLength(2);
   expect(landingHtml).toContain("Start your adventure");
-  expect(landingHtml).toContain('href="/organizer/new"');
-  expect(landingHtml).toContain("Create a conference");
-  expect(landingHtml).toContain('class="text-link"');
-  expect(landingHtml).toContain('aria-label="Boss encounters in time order"');
-  expect(landingHtml).toContain("Ada Fixture");
-  expect(landingHtml).toContain("Lin Sample");
+  expect(landingHtml).toContain(`href="/c/${DEMO_CONFERENCE_ID}/join"`);
+  expect(landingHtml).toContain(`href="/organizer/${DEMO_CONFERENCE_ID}/live"`);
+  expect(landingHtml).not.toContain("conf-demo/boss");
+  expect(landingHtml).toContain("home-hero__character");
+  expect(landingHtml).toContain('aria-label="Sample boss map for KubeCon NA 2026"');
   expect(landingHtml).toContain("Every speaker is a boss.");
   for (const view of [
     "join",
