@@ -1,12 +1,12 @@
 import { INDEX } from "@conquest/contracts";
 import { describe, expect, it } from "vitest";
 import { loadSchedule } from "./data";
-import { ensureInferenceEndpoint, inferenceEndpointBody, searchOptions } from "./embeddings";
+import { embeddingsAvailable, ensureInferenceEndpoint, inferenceEndpointBody, searchOptions } from "./embeddings";
 import { clientFromEnv, esPort, type SearchResult } from "./es";
 import { ensureIndexes } from "./indexes";
 import { searchTalksBody } from "./queries";
 import { seed } from "./seed";
-import { EsTalkStore } from "./store";
+import { EsTalkStore, REDETECT_MS } from "./store";
 import { MemoryEs } from "./testing/memory-es";
 
 const KEY = { OPENAI_API_KEY: "sk-test-not-real" };
@@ -91,6 +91,54 @@ describe("embeddings and hybrid search (S.4)", () => {
       throw Object.assign(new Error("down"), { meta: { statusCode: 503 } });
     };
     await expect(new EsTalkStore(es, { semantic: true, rrf: true }).searchTalks("x", 5)).rejects.toThrow("down");
+  });
+
+  it("SR-5 without a key in the service, an endpoint someone already created is used (read only)", async () => {
+    const es = new MemoryEs();
+    expect(await embeddingsAvailable(es, {})).toBe(true);
+    expect(es.requests.map((r) => r.method)).toEqual(["GET"]);
+    es.respond = () => ({ status: 404, body: {} });
+    expect(await embeddingsAvailable(es, {})).toBe(false);
+    expect(es.requests.some((r) => r.method !== "GET")).toBe(false);
+  });
+
+  it("SR-5 a BM25-only store re-checks in the background at most once a minute and turns semantic on", async () => {
+    let t = 1_000;
+    let checks = 0;
+    let next = { semantic: false, rrf: false };
+    const es = new MemoryEs();
+    es.search = async () => ({ hits: [], total: 0, aggregations: null });
+    const store = new EsTalkStore(es, { semantic: false, rrf: false }, async () => (checks++, next), () => t);
+    await store.searchTalks("x", 5);
+    expect(checks).toBe(0); // too soon after start
+    t += REDETECT_MS;
+    await store.searchTalks("x", 5);
+    await store.maybeRedetect();
+    expect(checks).toBe(1);
+    expect(store.options.semantic).toBe(false);
+    next = { semantic: true, rrf: true };
+    t += REDETECT_MS - 1;
+    await store.searchTalks("x", 5);
+    expect(checks).toBe(1); // still within the minute
+    t += 1;
+    await (store.searchTalks("x", 5), store.maybeRedetect());
+    await new Promise((r) => setTimeout(r, 0));
+    expect(checks).toBe(2);
+    expect(store.options).toEqual({ semantic: true, rrf: true });
+    t += REDETECT_MS * 5;
+    await store.searchTalks("x", 5);
+    expect(checks).toBe(2); // semantic on: no more checks
+  });
+
+  it("SR-11 a failing re-check never fails a search", async () => {
+    let t = 0;
+    const es = new MemoryEs();
+    es.search = async () => ({ hits: [], total: 0, aggregations: null });
+    const store = new EsTalkStore(es, undefined, async () => Promise.reject(new Error("es down")), () => t);
+    t += REDETECT_MS;
+    await expect(store.searchTalks("x", 5)).resolves.toEqual([]);
+    await store.maybeRedetect();
+    expect(store.options.semantic).toBe(false);
   });
 
   it("SR-11 with embeddings on, a fresh talks index gets the semantic field", async () => {
