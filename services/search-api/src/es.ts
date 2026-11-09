@@ -16,7 +16,7 @@ export interface EsPort {
   mget<T>(index: string, ids: string[]): Promise<T[]>;
   search<T>(index: string, body: Record<string, unknown>): Promise<SearchResult<T>>;
   /** Raw request for the few calls the port doesn't model (inference endpoints, license). */
-  request(method: "GET" | "PUT" | "POST", path: string, body?: object): Promise<{ status: number; body: unknown }>;
+  request(method: "GET" | "PUT" | "POST" | "DELETE", path: string, body?: object): Promise<{ status: number; body: unknown }>;
 }
 
 export function clientFromEnv(env: NodeJS.ProcessEnv = process.env): Client {
@@ -26,7 +26,8 @@ export function clientFromEnv(env: NodeJS.ProcessEnv = process.env): Client {
   return new Client({ node, ...(apiKey ? { auth: { apiKey } } : {}) });
 }
 
-const BULK_CHUNK = 500;
+// Small chunks: with semantic_text each bulk request also embeds its documents.
+const BULK_CHUNK = 100;
 
 export function esPort(client: Client): EsPort {
   return {

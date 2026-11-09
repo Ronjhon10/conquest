@@ -43,7 +43,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.1** Scrape KubeCon NA 2026 schedule → `data/kubecon-na-2026.ndjson` (talks + speakers). (SR-1) owner: Max
 - [x] **S.2** Index mappings, idempotent seed. (SR-2) owner: Max
 - [x] **S.3** `GET /talks` hybrid search with highlight and fuzziness; `GET /talks/:id`, `GET /speakers/:id`. (SR-3, SR-4, SR-11, SR-12) owner: Max
-- [ ] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
+- [x] **S.4** Embeddings inference endpoint + `semantic_text`; RRF with fallback. (SR-5) owner: Max
 - [ ] **S.5** `POST /rank`: per-goal search, fusion, clash-free pick, reasons, time order. (SR-6..SR-9) owner: Max
 - [ ] **S.6** `POST /suggest-goals` from aggregations. (SR-10) owner: Max
 - [ ] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
@@ -63,11 +63,12 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 ## Lane: Web (040)
 
-- [ ] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
+- [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
 - [ ] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
 - [ ] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
+- [ ] **W.5a** Organizer theme studio: description → preview → revise/apply, themed map scenery and optional background within Conquest's consistent style. Coordinate theme preview/update and presentation contracts with Game before integration. (WEB-18..WEB-20) owner: Danny
 - [ ] **W.6** Recap page and speaker page. (WEB-8) owner: Danny
 - [ ] **W.7** RUM + traceparent. owner: Danny
 - [ ] **W.8** Accessibility tests: axe + keyboard-only Playwright flows. (WEB-9, WEB-10) owner: Danny
@@ -88,4 +89,6 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 12:50  S.1  Max (Claude)  scripts/seed scraper (one GET of the LF schedule page, embedded Sessionize JSON) -> data/kubecon-na-2026.ndjson: 480 real talks, 703 speakers. SR-1 tests on the transform and the committed file.
 - 2026-11-09 13:20  G.2-G.10  Jacob (Claude + Sonnet agents in parallel)  All game-api routes built against fakes: conferences + theme fallback/contrast, attendees (LinkedIn normalize, photo, code, map, goal quests, allies), POST /xp with rules module, parties + 1.25x, quest completion (incl. coin quests), coins + recognition, leaderboard/report as ES aggregations (memory twin for tests), recap with template fallback, xp.award span + metrics. 116 tests green; demo path smoke-tested in memory. Not yet run against real Elasticsearch.
 - 2026-11-09 12:55  S.2  Max (Claude)  search-api EsPort (client adapter + in-memory fake), conquest-talks/conquest-speakers mappings (semantic field only when embeddings are on), idempotent `npm run seed -w services/search-api` by id. SR-2 unit tests; ES_INTEGRATION=1 test written, not run locally (no Docker on this Mac).
+- 2026-11-09 13:00  W.1  Danny (Codex)  Brand-system frame, local fonts, all route previews, shared typed/validated API client, 12-talk/3-attendee memory fixtures, loading/error recovery, scoped dungeon theme variables. WEB-1/WEB-12/WEB-14 tests; full tests, lint, typecheck and production build pass. Browser host unavailable; visual QA remains for the next browser session. Theme studio recorded as W.5a, not implemented here.
 - 2026-11-09 13:05  S.3  Max (Claude)  GET /talks (fuzzy multi_match, 160-char abstract highlight), /talks/:id, /speakers/:id, /readyz checks the indexes. TalkStore with EsTalkStore and an in-memory store over the committed schedule, which search-api also serves when ELASTICSEARCH_URL is unset. SR-3, SR-4, SR-11, SR-12 tests.
+- 2026-11-09 13:15  S.4  Max (Claude)  conquest-embeddings inference endpoint (OpenAI text-embedding-3-small) created on start and before seeding when OPENAI_API_KEY is set; semantic_text field; rrf retriever with a one-way fallback to bool.should (semantic 2x) when refused; `seed -- --recreate`. Unit tests for every fallback; SR-5 is an ES_INTEGRATION=1 + OPENAI_API_KEY test, not run here (no Docker, no key).
