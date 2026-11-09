@@ -1,0 +1,220 @@
+# "Conquest live": the organizer's live view of the game (spec 010 Behavior 4, PL-7).
+# Apply: ./observability/dash0/apply.sh   (idempotent: dash0.com/id pins the dashboard)
+# Every query is scoped to the cluster (deployment_environment_name="demo"); laptops report "dev".
+apiVersion: perses.dev/v1alpha1
+kind: PersesDashboard
+metadata:
+  name: conquest-live
+  labels:
+    dash0.com/id: dfbb1620-2d26-4ed5-99f1-50c27d553306
+spec:
+  display:
+    name: Conquest live
+    description: XP, check-ins, search and API health for the Conquest dungeon on the event cluster.
+  duration: 1h
+  refreshInterval: 30s
+  layouts:
+    - kind: Grid
+      spec:
+        display:
+          title: The game
+        items:
+          - { x: 0, "y": 0, width: 6, height: 5, content: { $ref: "#/spec/panels/xp_total" } }
+          - { x: 6, "y": 0, width: 6, height: 5, content: { $ref: "#/spec/panels/checkins_total" } }
+          - { x: 12, "y": 0, width: 6, height: 5, content: { $ref: "#/spec/panels/players_active" } }
+          - { x: 18, "y": 0, width: 6, height: 5, content: { $ref: "#/spec/panels/rank_p95_stat" } }
+          - { x: 0, "y": 5, width: 12, height: 8, content: { $ref: "#/spec/panels/xp_per_minute" } }
+          - { x: 12, "y": 5, width: 12, height: 8, content: { $ref: "#/spec/panels/checkins_per_minute" } }
+    - kind: Grid
+      spec:
+        display:
+          title: Behind the scenes
+        items:
+          - { x: 0, "y": 13, width: 12, height: 8, content: { $ref: "#/spec/panels/requests_by_status" } }
+          - { x: 12, "y": 13, width: 12, height: 8, content: { $ref: "#/spec/panels/error_rate" } }
+          - { x: 0, "y": 21, width: 12, height: 8, content: { $ref: "#/spec/panels/latency_p95" } }
+          - { x: 12, "y": 21, width: 12, height: 8, content: { $ref: "#/spec/panels/rank_p95" } }
+  panels:
+    xp_total:
+      kind: Panel
+      spec:
+        display: { name: XP awarded (last hour) }
+        plugin:
+          kind: StatChart
+          spec:
+            calculation: last-number
+            format: { unit: decimal }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: round(sum(increase({otel_metric_name="conquest.xp.awarded", deployment_environment_name="demo"}[1h])))
+                  seriesNameFormat: XP
+    checkins_total:
+      kind: Panel
+      spec:
+        display: { name: Boss check-ins (last hour) }
+        plugin:
+          kind: StatChart
+          spec:
+            calculation: last-number
+            format: { unit: decimal }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: round(sum(increase({otel_metric_name="conquest.checkins", deployment_environment_name="demo"}[1h])))
+                  seriesNameFormat: check-ins
+    players_active:
+      kind: Panel
+      spec:
+        display:
+          name: XP actions (last 15 min)
+          description: Player actions that earned XP (check-ins, photos, networking, quests). A stand-in for active attendees; telemetry never carries who did them.
+        plugin:
+          kind: StatChart
+          spec:
+            calculation: last-number
+            format: { unit: decimal }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: round(sum(increase({otel_metric_name="dash0.spans", service_name="conquest-game-api", otel_span_name="xp.award", deployment_environment_name="demo"}[15m])))
+                  seriesNameFormat: XP actions
+    rank_p95_stat:
+      kind: Panel
+      spec:
+        display: { name: Map ranking p95 (ms) }
+        plugin:
+          kind: StatChart
+          spec:
+            calculation: last-number
+            format: { unit: decimal }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: histogram_quantile(0.95, sum by (le) (rate({otel_metric_name="conquest.search.rank.duration", deployment_environment_name="demo"}[15m])))
+                  seriesNameFormat: ms
+    xp_per_minute:
+      kind: Panel
+      spec:
+        display: { name: XP awarded per minute, by kind }
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: line }
+            yAxis: { min: 0 }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: sum by (kind) (rate({otel_metric_name="conquest.xp.awarded", deployment_environment_name="demo"}[5m])) * 60
+                  seriesNameFormat: "{{kind}}"
+    checkins_per_minute:
+      kind: Panel
+      spec:
+        display: { name: Boss check-ins per minute }
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: bar }
+            yAxis: { min: 0 }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: sum(rate({otel_metric_name="conquest.checkins", deployment_environment_name="demo"}[5m])) * 60
+                  seriesNameFormat: check-ins
+    requests_by_status:
+      kind: Panel
+      spec:
+        display: { name: API requests per minute, by service and status }
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: line }
+            yAxis: { min: 0 }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: sum by (service_name, http_response_status_code) (rate({otel_metric_name="dash0.spans", otel_span_kind="SERVER", deployment_environment_name="demo"}[5m])) * 60
+                  seriesNameFormat: "{{service_name}} {{http_response_status_code}}"
+    error_rate:
+      kind: Panel
+      spec:
+        display:
+          name: Error rate per service (4xx and 5xx)
+          description: Counts non-2xx responses, not just ERROR spans, so a 404 the user sees shows up here.
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: line }
+            yAxis: { min: 0, format: { unit: percent-decimal } }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: >-
+                    sum by (service_name) (rate({otel_metric_name="dash0.spans", otel_span_kind="SERVER", deployment_environment_name="demo", http_response_status_code=~"[45].."}[5m]))
+                    / sum by (service_name) (rate({otel_metric_name="dash0.spans", otel_span_kind="SERVER", deployment_environment_name="demo"}[5m]))
+                  seriesNameFormat: "{{service_name}}"
+    latency_p95:
+      kind: Panel
+      spec:
+        display: { name: p95 latency (ms) - XP award and leaderboard }
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: line }
+            yAxis: { min: 0 }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: histogram_quantile(0.95, sum by (le) (rate({otel_metric_name="dash0.spans.duration", service_name="conquest-game-api", otel_span_name="xp.award", deployment_environment_name="demo"}[5m]))) * 1000
+                  seriesNameFormat: XP award (SLO line 300 ms)
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: histogram_quantile(0.95, sum by (le) (rate({otel_metric_name="conquest.leaderboard.duration", deployment_environment_name="demo"}[5m])))
+                  seriesNameFormat: leaderboard
+    rank_p95:
+      kind: Panel
+      spec:
+        display: { name: Map ranking p95 (ms) - Elasticsearch hybrid search }
+        plugin:
+          kind: TimeSeriesChart
+          spec:
+            visual: { display: line }
+            yAxis: { min: 0 }
+        queries:
+          - kind: TimeSeriesQuery
+            spec:
+              plugin:
+                kind: PrometheusTimeSeriesQuery
+                spec:
+                  query: histogram_quantile(0.95, sum by (le) (rate({otel_metric_name="conquest.search.rank.duration", deployment_environment_name="demo"}[5m])))
+                  seriesNameFormat: rank p95

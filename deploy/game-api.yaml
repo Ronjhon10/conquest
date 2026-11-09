@@ -5,7 +5,12 @@ metadata:
   labels:
     app: game-api
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # never take the last ready pod down during a deploy
+      maxSurge: 1
   selector:
     matchLabels:
       app: game-api
@@ -14,6 +19,15 @@ spec:
       labels:
         app: game-api
     spec:
+      automountServiceAccountToken: false   # the app never calls the Kubernetes API
+      terminationGracePeriodSeconds: 30
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: game-api
       containers:
         - name: game-api
           image: game-api
@@ -64,8 +78,12 @@ spec:
               cpu: 100m
               memory: 192Mi
             limits:
-              cpu: 500m
+              cpu: 250m   # team-quota caps limits.cpu at 10 for the whole vcluster (platform included)
               memory: 512Mi
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5   # let the Service drop this pod before it stops (no 503s during deploys)
           readinessProbe:
             httpGet:
               path: /readyz

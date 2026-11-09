@@ -5,7 +5,12 @@ metadata:
   labels:
     app: web
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # never take the last ready pod down during a deploy
+      maxSurge: 1
   selector:
     matchLabels:
       app: web
@@ -14,6 +19,15 @@ spec:
       labels:
         app: web
     spec:
+      automountServiceAccountToken: false   # the app never calls the Kubernetes API
+      terminationGracePeriodSeconds: 30
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: web
       containers:
         - name: web
           image: web
@@ -24,14 +38,18 @@ spec:
             - name: DEPLOY_ENV
               value: demo
             - name: NEXT_PUBLIC_DASH0_DASHBOARD_URL
-              value: \"\"
+              value: "https://app.dash0.com/dashboards/dfbb1620-2d26-4ed5-99f1-50c27d553306?dataset=default"
           resources:
             requests:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: 1000m
+              cpu: 500m   # team-quota caps limits.cpu at 10 for the whole vcluster (platform included)
               memory: 512Mi
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: 5   # let the Service drop this pod before it stops (no 503s during deploys)
           readinessProbe:
             httpGet:
               path: /readyz

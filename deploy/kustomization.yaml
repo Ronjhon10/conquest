@@ -8,6 +8,7 @@ resources:
   - search-api.yaml
   - game-api.yaml
   - services.yaml
+  - pdb.yaml
   - httproute.yaml
 images:
   - name: web

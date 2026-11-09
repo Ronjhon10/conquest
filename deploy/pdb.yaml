@@ -1,0 +1,32 @@
+# Keep one pod of each service up during node drains and cluster upgrades (Radar Checks: PodDisruptionBudget).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: web
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: search-api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: search-api
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: game-api
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: game-api
