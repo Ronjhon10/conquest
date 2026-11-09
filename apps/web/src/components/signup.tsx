@@ -24,15 +24,23 @@ import {
 } from "../lib/signup";
 import { prepareProfilePhoto } from "../lib/photo";
 import { rememberAttendee } from "../lib/identity";
+import { importLinkedinProfile } from "../lib/linkedin";
 import { Avatar } from "./avatar";
 import { ErrorNotice, LoadingNotice, PageHeading } from "./ui";
 
 const classes: CharacterClass[] = ["knight", "wizard", "rogue", "bard"];
-export function Signup({ conf }: { conf: string }) {
+export function Signup({
+  conf,
+  linkedinEnabled = false,
+}: {
+  conf: string;
+  linkedinEnabled?: boolean;
+}) {
   const router = useRouter();
   return (
     <SignupForm
       conf={conf}
+      linkedinEnabled={linkedinEnabled}
       api={getApi}
       navigate={(path) => router.push(path)}
     />
@@ -43,10 +51,12 @@ export function SignupForm({
   conf,
   api,
   navigate,
+  linkedinEnabled = false,
 }: {
   conf: string;
   api: () => Api;
   navigate: (path: string) => void;
+  linkedinEnabled?: boolean;
 }) {
   const [conferenceName, setConferenceName] = useState("");
   const [loadError, setLoadError] = useState("");
@@ -71,10 +81,114 @@ export function SignupForm({
   const [processingPhoto, setProcessingPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [linkedinNotice, setLinkedinNotice] = useState("");
+  const [importingLinkedin, setImportingLinkedin] = useState(false);
   const busyRef = useRef(false);
   const photoVersion = useRef(0);
   const characterHeading = useRef<HTMLHeadingElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const status = url.searchParams.get("linkedin");
+    if (!status) return;
+    const draftKey = `conquest:${conf}:linkedin-draft`;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(draftKey) ?? "null");
+      if (saved && Date.now() - saved.at < 15 * 60 * 1000 && saved.fields) {
+        const restored = saved.fields;
+        setFields((old) => ({
+          ...old,
+          ...Object.fromEntries(
+            ["linkedin_url", "name", "headline", "about"]
+              .filter((key) => typeof restored[key] === "string")
+              .map((key) => [key, restored[key]]),
+          ),
+        }));
+        if (
+          typeof saved.photo === "string" &&
+          saved.photo.startsWith("data:image/jpeg;base64,") &&
+          saved.photo.length <= 40 * 1024
+        )
+          setPhoto(saved.photo);
+      }
+    } catch {
+      /* Sign-in still works if tab storage is unavailable. */
+    }
+    if (status !== "connected") {
+      setLinkedinNotice(
+        status === "cancelled"
+          ? "LinkedIn sign-in was cancelled. You can try again or enter your profile below."
+          : "LinkedIn sign-in couldn't be completed. Try again or enter your profile below.",
+      );
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch {
+        /* Optional storage. */
+      }
+      url.searchParams.delete("linkedin");
+      window.history.replaceState(
+        null,
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+      return;
+    }
+    let active = true;
+    const controller = new AbortController();
+    setImportingLinkedin(true);
+    importLinkedinProfile(conf, controller.signal)
+      .then((imported) => {
+        if (!active) return;
+        setFields((old) => ({
+          ...old,
+          name: old.name.trim() ? old.name : imported.name,
+        }));
+        if (imported.photo) setPhoto(imported.photo);
+        setLinkedinNotice(
+          imported.photo
+            ? "Connected to LinkedIn. Your name and photo are ready. Add your profile link below."
+            : "Connected to LinkedIn. Your name is ready. Choose a photo below or use your class character.",
+        );
+      })
+      .catch(() => {
+        if (active)
+          setLinkedinNotice(
+            "Your LinkedIn details couldn't be imported. Try signing in again or enter your profile below.",
+          );
+      })
+      .finally(() => {
+        if (!active) return;
+        setImportingLinkedin(false);
+        try {
+          sessionStorage.removeItem(draftKey);
+        } catch {
+          /* Optional storage. */
+        }
+        url.searchParams.delete("linkedin");
+        window.history.replaceState(
+          null,
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [conf]);
+  function beginLinkedin() {
+    try {
+      sessionStorage.setItem(
+        `conquest:${conf}:linkedin-draft`,
+        JSON.stringify({ fields, photo, at: Date.now() }),
+      );
+    } catch {
+      /* Users can still import their LinkedIn name/photo without storage. */
+    }
+    window.location.assign(
+      `/api/auth/linkedin/start?conference=${encodeURIComponent(conf)}`,
+    );
+  }
   useEffect(() => {
     let active = true;
     setLoadError("");
@@ -122,7 +236,7 @@ export function SignupForm({
   }
   async function reviewCharacter(event: FormEvent) {
     event.preventDefault();
-    if (busyRef.current || processingPhoto) return;
+    if (busyRef.current || processingPhoto || importingLinkedin) return;
     const errors = validateProfile(fields);
     setFieldErrors(errors);
     setError("");
@@ -225,8 +339,50 @@ export function SignupForm({
           noValidate
           className="cq-card signup-form"
         >
-          <fieldset disabled={busy} className="form-fields">
+          <fieldset
+            disabled={busy || importingLinkedin}
+            className="form-fields"
+          >
             <legend className="cq-label">Your profile</legend>
+            <section
+              className="linkedin-signin"
+              aria-labelledby="linkedin-signin-title"
+            >
+              <div className="linkedin-signin-copy">
+                <span className="linkedin-monogram" aria-hidden="true">
+                  in
+                </span>
+                <div>
+                  <h2 id="linkedin-signin-title">
+                    Start with your LinkedIn profile
+                  </h2>
+                  <p className="field-hint">
+                    Bring in your name and photo, then make your adventurer your
+                    own.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="cq-btn linkedin-signin-button"
+                disabled={!linkedinEnabled || importingLinkedin}
+                onClick={beginLinkedin}
+                aria-describedby="linkedin-signin-hint"
+              >
+                {importingLinkedin
+                  ? "Importing your profile…"
+                  : "Continue with LinkedIn"}
+                <Icon name="arrow-right" />
+              </button>
+              <p id="linkedin-signin-hint" className="field-hint">
+                {linkedinEnabled
+                  ? "You’ll sign in on LinkedIn and approve access to your name and photo. Or enter your details below."
+                  : "LinkedIn sign-in is not available yet. Enter your details below to continue."}
+              </p>
+              <p role="status" className="field-hint linkedin-status">
+                {linkedinNotice}
+              </p>
+            </section>
             <div className="form-field">
               <label htmlFor="linkedin">
                 LinkedIn profile link <span>(required)</span>
@@ -246,7 +402,7 @@ export function SignupForm({
               />
               <p id="linkedin-hint" className="field-hint">
                 Copy your profile link from LinkedIn (Share profile → Copy
-                link). We only link to it; enter your details below.
+                link). This lets your conference allies find you on LinkedIn.
               </p>
               {fieldErrors.linkedin_url && (
                 <p id="linkedin-error" className="field-error" role="alert">
@@ -346,7 +502,7 @@ export function SignupForm({
           </fieldset>
           <button
             className="cq-btn signup-cta"
-            disabled={busy || processingPhoto}
+            disabled={busy || processingPhoto || importingLinkedin}
             type="submit"
           >
             {busy ? (
