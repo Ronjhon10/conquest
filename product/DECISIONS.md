@@ -47,4 +47,4 @@ Judgment calls made while building, so nobody has to ask twice. Newest at the bo
   - "Active attendees" became "XP actions (last 15 min)": telemetry carries no attendee IDs.
   - "Check-ins per talk" became check-ins per minute: `conquest.checkins` has no talk attribute. Game lane could add `conquest.talk.id` (IDs are allowed).
   - The error-rate panel counts 4xx and 5xx responses from server spans, because game-api's 404s aren't ERROR spans (Agent0 finding).
-
+- 2026-11-09 (Jake Nef/Claude) 030 Behavior 1 / GM-23, issue #61: live `conquest-attendees` was created by an older build with `linkedin_url` as `index: false`, so every signup with a LinkedIn link was a 500. `ensureIndexes` now compares each existing index with the current mapping; a field we filter on that the live index does not index triggers a rebuild that keeps every document (copy to a `-migrate` temp index, recreate, copy back, counts checked at each step, temp kept if anything is short). It runs before the server listens. Verified on our Serverless project with scratch `qa-tmp-*` indexes.

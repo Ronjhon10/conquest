@@ -66,6 +66,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **G.10** `xp.award` telemetry. (GM-18) owner: Jacob Bingham
 
 - [x] **G.R1** Review fixes: atomic XP totals/outbox, concurrent action limits, quest deduplication and exclusive party membership. (GM-6, GM-8..GM-10, GM-12, GM-14, GM-17) owner: Jake Nef
+- [x] **G.R2** Live QA: rebuild a game index whose live mapping can't search a field we filter on, keeping its documents (issue #61). (GM-23) owner: Jake Nef
 
 ## Lane: Web (040)
 
@@ -120,3 +121,4 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - 2026-11-09 16:20  S.4 live  Max (Claude)  Reseeded Serverless with embeddings (480 talks, 703 speakers, semantic on). `npm run verify` live: 7/8 pass; SR-5 fixed by weighting semantic 2x in RRF.
 - 2026-11-09 16:40  S.6 live  Max (Claude)  suggest-goals samples exactly the top 50 hits (Serverless sampler was ~300); `npm run verify` live 8/8; DEMO-SNAPSHOT.md regenerated from Elasticsearch (hybrid, RRF).
 - 2026-11-09 15:35  P.7  Jake Nef (Claude)  Dash0 MCP (Agent0) and CLI connected. observability/dash0/: "Conquest live" dashboard, XP SLO (99% of xp.award succeed) and XP p95 > 300 ms check rule, applied with `dash0 apply` (idempotent). Live data confirmed: traces from both services, XP and check-in metrics, rank p95. Agent0 investigated 31 game-api ERROR spans: the web app's hardcoded `conf-demo` conference 404s on the cluster (demo/evidence/2026-11-09-1525-*). deploy/web.yaml carries the dashboard URL for the organizer view (W.5). Still open for P.7: RUM (W.7), organizer link in web (W.5).
+- 2026-11-09 14:40  G.R2  Jake Nef (Claude)  Live e2e QA found signup 500 (linkedin_url not indexed in the live attendees index, Radar logs). ensureIndexes rebuilds stale indexes keeping documents; GM-23 tests; verified against Serverless on scratch indexes.
