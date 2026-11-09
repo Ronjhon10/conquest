@@ -1,6 +1,6 @@
 import { fixtures, type CharacterClass } from "@conquest/contracts";
+import Link from "next/link";
 import { Avatar } from "./avatar";
-import { DungeonMap } from "./dungeon-map";
 import { Icon } from "./icon";
 import { ActionLink } from "./ui";
 
@@ -11,6 +11,52 @@ const classes: { id: CharacterClass; name: string; fits: string }[] = [
   { id: "rogue", name: "Rogue", fits: "Security and compliance" },
   { id: "bard", name: "Bard", fits: "Developers, community and the curious" },
 ];
+
+const mapStops = fixtures.attendee.map
+  .flatMap((boss) => {
+    const talk = fixtures.talks.find(({ id }) => id === boss.talk_id);
+    if (!talk) return [];
+    const speakers = talk.speaker_ids
+      .flatMap((id) => fixtures.speakers.find((speaker) => speaker.id === id)?.name ?? []);
+    return [{ talk, speakers }];
+  })
+  .sort((a, b) => Date.parse(a.talk.starts_at) - Date.parse(b.talk.starts_at));
+
+function HomeBossMap() {
+  return (
+    <div className="home-boss-map" aria-label="Sample boss map for Demo Con">
+      <div className="home-boss-map__header">
+        <span className="cq-chip">Sample map · Demo Con</span>
+        <p>Follow the trail. Meet the bosses.</p>
+      </div>
+      <div className="home-boss-map__terrain">
+        <span className="home-boss-map__start" aria-hidden="true">START</span>
+        <ol className="home-boss-map__route" aria-label="Boss encounters in time order">
+          {mapStops.map(({ talk, speakers }, index) => (
+            <li key={talk.id} className={`home-boss-map__stop home-boss-map__stop--${index + 1}`}>
+              <Link href={`/c/conf-demo/boss/${talk.id}`} className="home-boss-map__boss">
+                <span className="home-boss-map__number" aria-hidden="true">{index + 1}</span>
+                <span className="home-boss-map__room-art" aria-hidden="true">
+                  <img
+                    src={`/rooms/${index % 2 === 0 ? "keynote" : "workshop"}-v1.png`}
+                    alt=""
+                  />
+                </span>
+                <span className="home-boss-map__copy">
+                  <span className="home-boss-map__eyebrow">{talk.room} · {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(new Date(talk.starts_at))}</span>
+                  <strong>{speakers.join(", ")}</strong>
+                  <span>{talk.title}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+        <span className="home-boss-map__end" aria-hidden="true">YOUR QUEST</span>
+      </div>
+      <p className="home-boss-map__legend">Every speaker is a boss. Open an encounter to see why it fits your goals, where it is, and how to earn XP.</p>
+    </div>
+  );
+}
 
 export function Landing() {
   return (
@@ -71,23 +117,16 @@ export function Landing() {
           <h2 id="trail-title">A path through the day.</h2>
           <p>
             Pick your goals. Conquest searches every talk and turns the best
-            fits into boss rooms on your map, in time order, never two at once.
-            Each speaker is the boss of their room.
+            fits into one map of boss rooms, in time order, never two at once.
+            Each speaker is a boss on the route.
           </p>
           <p>
-            Each stop says why it was picked. Prefer a list, or step-free rooms
-            only? Switch with one tap.
+            Open a boss to see why it was picked, then choose a list or
+            step-free rooms only from your personal map.
           </p>
         </div>
         <div className="home-trail__map">
-          <span className="cq-chip cq-chip--light">Sample map · Demo Con</span>
-          <DungeonMap
-            conference={fixtures.conference}
-            attendee={fixtures.attendee}
-            talks={fixtures.talks}
-            speakers={fixtures.speakers}
-            conf="conf-demo"
-          />
+          <HomeBossMap />
         </div>
       </section>
 
