@@ -14,6 +14,7 @@ ARG APP_VERSION=dev
 WORKDIR /app
 COPY --from=build --chown=1000:1000 /repo/apps/web/.next/standalone ./
 COPY --from=build --chown=1000:1000 /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=1000:1000 /repo/apps/web/public ./apps/web/public
 ENV NODE_ENV=production PORT=8080 HOSTNAME=0.0.0.0 APP_VERSION=${APP_VERSION} NEXT_TELEMETRY_DISABLED=1
 USER 1000
 EXPOSE 8080

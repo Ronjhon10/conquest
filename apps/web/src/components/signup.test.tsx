@@ -172,7 +172,7 @@ it("WEB-2 refuses empty goals and offers a readable draft retry", async () => {
   );
   for (const goal of ["Platform engineering", "Observability", "Security"]) {
     await user.click(
-      await screen.findByRole("button", { name: new RegExp(`^✓ ${goal}$`) }),
+      await screen.findByRole("button", { name: new RegExp(`^${goal}$`) }),
     );
   }
   await user.click(screen.getByRole("button", { name: /Enter the dungeon/ }));

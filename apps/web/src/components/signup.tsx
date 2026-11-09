@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "./icon";
 import {
   useEffect,
   useRef,
@@ -348,7 +349,13 @@ export function SignupForm({
             disabled={busy || processingPhoto}
             type="submit"
           >
-            {busy ? "Preparing your character…" : "Choose your character →"}
+            {busy ? (
+              "Preparing your character…"
+            ) : (
+              <>
+                Choose your character <Icon name="arrow-right" />
+              </>
+            )}
           </button>
         </form>
       ) : (
@@ -359,7 +366,8 @@ export function SignupForm({
               photo={photo}
               characterClass={characterClass}
               seed={draft?.avatar_seed}
-              size={112}
+              size={224}
+              variant="full"
             />
             <div>
               <h2 ref={characterHeading} tabIndex={-1}>
@@ -383,10 +391,14 @@ export function SignupForm({
                 >
                   <Avatar
                     name={option}
+                    size={112}
                     characterClass={option}
                     seed={draft?.avatar_seed}
                   />
-                  <strong>{option}</strong>
+                  <span className="class-option-label">
+                    <Icon name={option} />
+                    <strong>{option}</strong>
+                  </span>
                   <span>
                     {draft?.class === option ? "Suggested" : "Choose class"}
                   </span>
@@ -420,7 +432,7 @@ export function SignupForm({
                     else setGoalError("Choose up to six goals.");
                   }}
                 >
-                  {goals.includes(goal) ? "✓ " : "+ "}
+                  <Icon name={goals.includes(goal) ? "check" : "plus"} />
                   {goal}
                 </button>
               ))}
@@ -473,7 +485,13 @@ export function SignupForm({
               Back
             </button>
             <button className="cq-btn signup-cta" type="submit" disabled={busy}>
-              {busy ? "Building your map…" : "Enter the dungeon →"}
+              {busy ? (
+                "Building your map…"
+              ) : (
+                <>
+                  Enter the dungeon <Icon name="arrow-right" />
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+import { Icon } from "./icon";
 import Link from "next/link";
 import { ActionLink } from "./ui";
 
@@ -18,7 +19,7 @@ export function Landing() {
           </p>
           <div className="actions">
             <ActionLink href="/c/conf-demo/join">
-              Start your adventure <span aria-hidden="true">→</span>
+              Start your adventure <Icon name="arrow-right" />
             </ActionLink>
             <ActionLink href="/organizer/new" secondary>
               Create a conference
@@ -48,7 +49,7 @@ export function Landing() {
           </div>
           <p className="small-copy">Matches your goal: platform engineering.</p>
           <Link href="/c/conf-demo/boss/talk-1" className="cq-btn">
-            View your next talk <span aria-hidden="true">→</span>
+            View your next talk <Icon name="arrow-right" />
           </Link>
           <div className="preview-route" aria-label="Demo path">
             <span>01 / FIND A TALK</span>
@@ -66,7 +67,7 @@ export function Landing() {
             EVERY SESSION.
           </h2>
           <Link href="/c/conf-demo/map" className="text-link">
-            Explore the demo map <span aria-hidden="true">→</span>
+            Explore the demo map <Icon name="arrow-right" />
           </Link>
         </div>
         <div className="journey-cards">
@@ -104,7 +105,7 @@ export function Landing() {
         </h2>
         <p>Set the theme. Create the quests. Bring people together.</p>
         <ActionLink href="/organizer/new">
-          Create your conference <span aria-hidden="true">→</span>
+          Create your conference <Icon name="arrow-right" />
         </ActionLink>
       </section>
     </div>
