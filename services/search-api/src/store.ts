@@ -5,7 +5,7 @@ import { INDEX, type Speaker, type Talk } from "@conquest/contracts";
 import type { EsPort } from "./es";
 import { searchTalksBody, talksBySpeakerBody, type SearchOptions } from "./queries";
 import { fromTalkDoc, type TalkDoc } from "./seed";
-import { facetsFromAggs, suggestBody, type Facets } from "./suggest";
+import { facetsFromResult, suggestBody, type Facets } from "./suggest";
 
 export type TalkHit = { talk: Talk; score: number; highlight: string | null };
 
@@ -116,7 +116,8 @@ export class EsTalkStore implements TalkStore {
     return res.hits.map((h) => fromTalkDoc(h.source));
   }
   async facets(about: string) {
-    return facetsFromAggs((await this.es.search<TalkDoc>(INDEX.talks, suggestBody(about))).aggregations);
+    const res = await this.es.search<Pick<TalkDoc, "tags" | "track">>(INDEX.talks, suggestBody(about));
+    return facetsFromResult(res.hits.map((h) => h.source), res.aggregations);
   }
   async ready() {
     try {
