@@ -76,6 +76,8 @@ The checklist, split into four lanes that run at the same time. Each step names 
 
 - [x] **W.1** App shell, theme CSS variables, typed API client with `NEXT_PUBLIC_FAKE_API` fakes and fixtures. (WEB-1, WEB-12, WEB-14) owner: Danny
 - [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
+- [x] **W.2b** Optional LinkedIn OpenID Connect profile import, credential setup and recovery. (WEB-21..WEB-23) owner: Danny
+- [x] **W.2c** **Human activation:** enable the LinkedIn developer app's OpenID Connect product, add client ID/secret to the Web runtime settings, then verify a real consent round trip. User confirmed the newest version worked after the live compatibility fixes. Setup: `apps/web/LINKEDIN_SETUP.md`. owner: Danny
 - [x] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page (check in, photo, coin), connect page (QR + typed code + allies), party page, XP feedback. (WEB-6, WEB-11, WEB-17) owner: Danny
 - [ ] **W.5** Organizer: new, setup (theme, quests, rooms), live leaderboard, report. (WEB-7, WEB-13) owner: Danny
@@ -93,6 +95,10 @@ The checklist, split into four lanes that run at the same time. Each step names 
 ## Log
 
 <!-- YYYY-MM-DD HH:MM  step  who  what -->
+- 2026-11-09 14:54  W.2c  Danny (Codex)  User confirmed the newest LinkedIn sign-in version worked after correcting the live issuer and nonce compatibility. Developer-app activation and a real consent round trip are verified locally. No production deployment performed.
+- 2026-11-09 14:52  W.2b live fix  Danny (Codex)  Safe diagnostics identified stale issuer validation followed by a missing nonce in LinkedIn's real token. Matched the live discovery issuer and used LinkedIn's confidential code flow with mandatory state, server-side client authentication and full signature/issuer/audience/expiry/subject checks. Old nonce-based transactions require a fresh sign-in. Actual callback returned connected after the fix; on-screen photo import still awaiting user confirmation. Full suite 285 passed/3 skipped, typecheck/lint/build pass.
+- 2026-11-09 14:19  W.2b integration  Danny (Codex)  Merged newest main (map room art and updated Game/signup rules). LinkedIn link is now optional in Web, matching Game; authenticated profile import can proceed without a pasted URL. Full suite 278 passed/3 skipped; Web typecheck, lint and production build pass. Activation remains W.2c.
+- 2026-11-09 14:15  W.2b  Danny (Codex)  Optional LinkedIn OpenID Connect sign-in for name/photo import; encrypted expiring cookies, state/nonce and signed-token validation, bounded CDN-only photo import into the existing JPEG contract, signup draft recovery, and manual fallback. 25 focused checks; full suite 250 passed/3 skipped, lint/typecheck/production build pass. Local signup/recovery routes return 200; browser host unavailable. Developer-app credentials/product activation and real consent verification remain W.2c. Prepared ignored local settings; no deployment changes or deploy.
 - 2026-11-09 11:40  0.1  Max (Claude)  Workspace, packages/contracts (schemas, route bodies, INDEX names, fixtures), search-api + game-api skeletons with 501 stubs per route, Next app shell. 12 tests green; typecheck, lint, next build pass.
 - 2026-11-09 12:10  P.1 + tooling  Max (Claude)  CI, main ruleset, Gitar review conventions + 5 rules, Radar cnh-starter layout (deploy/, argocd/, build-and-deploy, skills), specs 000/010 aligned with research.
 - 2026-11-09 12:40  P.2  Max  Gitar Pro trial started, GitHub App installed on Ronjhon10/conquest. First Gitar-reviewed PR is the one that ticked this box.

@@ -681,6 +681,35 @@ svg {
 }
 
 /* W.2: signup and reusable player avatars. */
+.linkedin-signin {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 2px solid var(--ink);
+  background: var(--ground);
+}
+.linkedin-signin-copy {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.linkedin-signin-copy h2 {
+  margin-bottom: 8px;
+  font-size: 22px;
+}
+.linkedin-monogram {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  font: 800 30px/1 var(--font-display);
+}
+.linkedin-signin .field-hint { margin: 0; }
+.linkedin-signin-button { justify-content: space-between; }
+.linkedin-status:empty { display: none; }
 .sr-only {
   position: absolute;
   width: 1px;

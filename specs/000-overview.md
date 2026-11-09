@@ -212,7 +212,7 @@ The two-minute video follows this. Everything we build serves it first.
 
 ## Non-goals
 
-- Accounts, login, LinkedIn OAuth, or fetching anything from LinkedIn. The attendee pastes their profile link (we store it as text and link to it), picks their own profile photo from their device, and types or pastes their headline and about. Our servers never request linkedin.com. (Decided 2026-11-09: LinkedIn blocks server fetches and its terms forbid scraping.)
+- Required accounts or authorization for game/organizer routes, and scraping LinkedIn. Optional official LinkedIn OpenID Connect sign-in imports the consenting member's name/photo per 040 (user request, 2026-11-09); manual signup remains available. Public profile links are optional and self-entered, as are headline/about text. This authentication step does not add account protection to existing routes.
 - Storing photos taken for XP. Taking a photo awards XP; that photo stays on the device. The one exception is the profile photo the attendee chooses, stored small on their attendee document.
 - Anti-cheat on XP or the leaderboard.
 - More than one game type. It's always a dungeon crawler; only the theme changes.

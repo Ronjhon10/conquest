@@ -1,5 +1,11 @@
 # Decisions
 
+- 2026-11-09 (Danny/Codex) W.2b / WEB-22 live compatibility: safe callback diagnostics isolated ID-token validation failures. LinkedIn's live discovery publishes issuer `https://www.linkedin.com/oauth` (the written guide shows an outdated origin-only issuer); the subsequent actual callback omitted nonce. Use the exact live issuer and the documented confidential authorization-code flow with mandatory encrypted state cookies and server-side client authentication, without requesting nonce. Preserve signature/audience/expiry/authorized-client/subject validation; reject old in-flight nonce-based transactions and require a fresh start. Diagnostics contain only allowlisted codes, fixed stages/statuses and claim names, never token claims or provider descriptions. Regression fixtures now match the observed issuer and nonce-less token shape.
+
+- 2026-11-09 (Danny/Codex) W.2b integration follow-up: merged the latest Game/signup and illustrated-map work without conflicts. Aligned Web validation with Game's now-optional LinkedIn link so an OIDC-authenticated attendee can continue without manually pasting a link; supplied links are still validated. Updated 000's obsolete OAuth non-goal to match the user's explicit integration request. No additional Game contracts or service behavior changed.
+
+- 2026-11-09 (Danny/Codex, user request) W.2b / WEB-21..WEB-23: supersede the earlier decision to skip LinkedIn sign-in with optional official OpenID Connect authentication for importing the consenting member's name/photo. No scraping, email/posting scopes, or Game contract changes. Profile URL/headline/about remain self-entered because OIDC does not provide them. Signup details survive the redirect in tab storage when available; encrypted ten-minute cookies hold only the transaction/import data, never provider tokens. LinkedIn credentials are required for a live consent test; implementation and tests remain usable without them. This step does not implement the separately requested character stylization or persistent account authorization.
+
 Judgment calls made while building, so nobody has to ask twice. Newest at the bottom.
 
 <!-- - YYYY-MM-DD HH:MM (who) spec/criterion: what we chose and why. Docs to update: ... -->

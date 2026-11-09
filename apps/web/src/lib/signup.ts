@@ -39,7 +39,7 @@ export function normalizeLinkedIn(value: string): string | null {
 }
 export function validateProfile(fields: ProfileFields): ProfileErrors {
   return {
-    ...(!normalizeLinkedIn(fields.linkedin_url)
+    ...(fields.linkedin_url.trim() && !normalizeLinkedIn(fields.linkedin_url)
       ? {
           linkedin_url:
             "Enter a LinkedIn profile link, such as linkedin.com/in/your-name.",
@@ -53,11 +53,11 @@ export function draftRequest(
   fields: ProfileFields,
 ): DraftAttendeeRequest {
   const linkedin_url = normalizeLinkedIn(fields.linkedin_url);
-  if (!linkedin_url || !fields.name.trim())
+  if ((fields.linkedin_url.trim() && !linkedin_url) || !fields.name.trim())
     throw new Error("Check your profile details.");
   return {
     conference_id,
-    linkedin_url,
+    ...(linkedin_url ? { linkedin_url } : {}),
     name: fields.name.trim(),
     headline: fields.headline.trim(),
     about: fields.about.trim(),

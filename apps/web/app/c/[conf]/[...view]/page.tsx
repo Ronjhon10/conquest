@@ -1,6 +1,9 @@
 import { Signup } from "../../../../src/components/signup";
 import { notFound } from "next/navigation";
 import { RoutePreview } from "../../../../src/components/route-preview";
+import { linkedinAvailable } from "../../../../src/lib/linkedin-server";
+// Sign-in availability depends on runtime secrets, not build-time environment.
+export const dynamic = "force-dynamic";
 const titles: Record<string, string> = {
   join: "Join the adventure",
   map: "Your dungeon map",
@@ -23,6 +26,7 @@ export default async function Page({ params }: Props) {
     (name === "boss" ? view.length !== 2 : view.length !== 1)
   )
     notFound();
-  if (name === "join") return <Signup conf={conf} />;
+  if (name === "join")
+    return <Signup conf={conf} linkedinEnabled={linkedinAvailable()} />;
   return <RoutePreview conf={conf} view={name} talkId={view[1]} />;
 }
