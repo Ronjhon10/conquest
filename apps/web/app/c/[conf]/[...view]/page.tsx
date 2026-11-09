@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { RoutePreview } from "../../../../src/components/route-preview";
 import { linkedinAvailable } from "../../../../src/lib/linkedin-server";
 import { CharacterProfile } from "../../../../src/components/character-profile";
+import { RecapView } from "../../../../src/components/recap";
 // Sign-in availability depends on runtime secrets, not build-time environment.
 export const dynamic = "force-dynamic";
 const titles: Record<string, string> = {
@@ -31,5 +32,11 @@ export default async function Page({ params }: Props) {
   if (name === "join")
     return <Signup conf={conf} linkedinEnabled={linkedinAvailable()} />;
   if (name === "profile") return <CharacterProfile conf={conf} />;
+  if (name === "recap")
+    return (
+      <div className="page-container">
+        <RecapView conf={conf} />
+      </div>
+    );
   return <RoutePreview conf={conf} view={name} talkId={view[1]} />;
 }
