@@ -52,7 +52,7 @@ The checklist, split into four lanes that run at the same time. Each step names 
 - [x] **S.7** Telemetry spans/metrics per 020 Behavior 6. owner: Max
 
 - [x] **S.R1** Complete room-discovery contract and Game conference integration, independent of talk-search limits. (OV-2, GM-3) owner: Jake Nef
-- [x] **S.R2** Repair completed map backfill beyond the first schedule page and keyword fallback during inference outages. (GM-5, SR-11, OV-2, OV-5) owner: Jake Nef
+- [x] **S.R2** Repair completed map backfill beyond the first schedule page and keyword fallback during inference outages. (GM-5, SR-11, OV-2) owner: Jake Nef
 
 ## Lane: Game (030)
 
