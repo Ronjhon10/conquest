@@ -160,15 +160,6 @@ svg {
   letter-spacing: 0;
   font-weight: 400;
 }
-.hero {
-  max-width: 1360px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  padding: 64px 5% 72px;
-  gap: 7%;
-  align-items: center;
-}
 .cq-label {
   display: flex;
   align-items: center;
@@ -184,25 +175,6 @@ svg {
   min-width: 12px;
   height: 2px;
   background: var(--ink);
-}
-.hero h1 {
-  font-size: clamp(48px, 5.5vw, 84px);
-  letter-spacing: -0.04em;
-  line-height: 0.98;
-  margin: 30px 0 24px;
-}
-.hero h1 > span {
-  display: inline-block;
-  background: var(--blue);
-  color: var(--on-blue);
-  padding: 0 8px 6px;
-  margin-top: 5px;
-}
-.hero-description {
-  max-width: 460px;
-  font-size: 16px;
-  line-height: 24px;
-  margin-bottom: 28px;
 }
 .actions {
   display: flex;
@@ -275,60 +247,6 @@ svg {
   color: var(--on-blue);
   padding: 6px 14px 8px;
 }
-.hero-footnote {
-  font-size: 13px;
-  line-height: 19px;
-  margin-top: 26px;
-}
-.hero-preview {
-  padding: 24px;
-  gap: 20px;
-}
-.preview-top,
-.chips {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.preview-top {
-  justify-content: space-between;
-}
-.hero-preview .cq-label {
-  margin: 0;
-}
-.hero-preview h2 {
-  font-size: 36px;
-  line-height: 1.05;
-  margin: 0;
-}
-.small-copy {
-  font-size: 13px;
-  line-height: 19px;
-  margin: 0;
-}
-.preview-route {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 12px;
-  border-left: 2px solid var(--ink);
-  padding-left: 16px;
-  font-size: 11px;
-}
-.journey-section {
-  border-top: var(--stroke) solid var(--ink);
-  padding: 48px 5% 56px;
-  display: grid;
-  grid-template-columns: 1fr 2.2fr;
-  gap: 32px;
-  max-width: 1360px;
-  margin: auto;
-}
-.section-intro h2 {
-  font-size: 32px;
-  line-height: 1.05;
-  margin: 24px 0 16px;
-}
 .text-link {
   font-size: 13px;
   font-weight: 700;
@@ -336,39 +254,6 @@ svg {
   min-height: 44px;
   align-items: center;
   gap: 12px;
-}
-.journey-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  padding-right: 6px;
-}
-.journey-card h3 {
-  margin: 12px 0 0;
-}
-.journey-card p {
-  font-size: 13px;
-  line-height: 19px;
-  margin: 0;
-}
-.organizer-strip {
-  text-align: center;
-  padding: 56px 24px 64px;
-  background: var(--surface);
-  border-block: var(--stroke) solid var(--ink);
-}
-.organizer-strip .cq-label {
-  max-width: 420px;
-  margin: 0 auto 24px;
-}
-.organizer-strip h2 {
-  font-size: 48px;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-}
-.organizer-strip > p:not(.cq-label) {
-  font-size: 13px;
-  margin-bottom: 24px;
 }
 .site-footer {
   padding: 32px 5%;
@@ -558,21 +443,6 @@ svg {
   }
 }
 @media (max-width: 1000px) {
-  .hero {
-    gap: 36px;
-  }
-  .hero h1 {
-    font-size: 60px;
-  }
-  .hero-preview h2 {
-    font-size: 28px;
-  }
-  .journey-section {
-    grid-template-columns: 1fr;
-  }
-  .journey-card {
-    padding: 18px;
-  }
   .site-footer > span:last-child {
     display: none;
   }
@@ -598,46 +468,8 @@ svg {
   .nav-organize {
     padding: 0 10px;
   }
-  .hero {
-    grid-template-columns: 1fr;
-    padding: 32px 22px 40px 16px;
-    gap: 32px;
-  }
-  .hero h1 {
-    font-size: 60px;
-  }
-  .hero .cq-label {
-    font-size: 11px;
-  }
-  .hero-description {
-    font-size: 15px;
-  }
-  .hero-preview {
-    padding: 18px;
-  }
-  .hero-preview h2 {
-    font-size: 28px;
-  }
   .actions {
     gap: 20px;
-  }
-  .journey-section {
-    padding: 32px 22px 40px 16px;
-  }
-  .journey-cards {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    padding: 0;
-  }
-  .journey-card h3 {
-    font-size: 25px;
-  }
-  .journey-card p {
-    font-size: 14px;
-    line-height: 22px;
-  }
-  .organizer-strip h2 {
-    font-size: 38px;
   }
   .site-footer {
     padding: 24px 16px;
@@ -1113,5 +945,262 @@ textarea.cq-field {
   .class-option-label .ui-icon {
     width: 18px;
     height: 18px;
+  }
+}
+
+/* Home page. The characters are dungeon-layer art (pixelated <img>); everything
+   around them is the Conquest frame: ink borders, hard shadows, one blue. */
+.home-hero {
+  max-width: 1360px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+  padding: 64px 5% 72px;
+}
+.home-hero h1 {
+  font-size: clamp(52px, 6vw, 88px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 28px 0 24px;
+}
+.home-hero h1 > span {
+  display: inline-block;
+  background: var(--blue);
+  color: var(--on-blue);
+  padding: 0 10px 6px;
+  margin-top: 6px;
+}
+.home-lede {
+  max-width: 470px;
+  margin-bottom: 32px;
+}
+.home-stage {
+  margin: 0 6px 6px 0;
+  background: var(--surface);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.home-party {
+  list-style: none;
+  margin: 0;
+  padding: 24px 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  background: var(--ground);
+  border-bottom: var(--stroke) solid var(--ink);
+}
+/* The art is square with wide transparent sides, so neighbours overlap. */
+.home-party__member {
+  width: 34%;
+  margin-inline: -8%;
+  margin-bottom: -3%;
+}
+.home-party__member .avatar {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+.home-party__member--knight,
+.home-party__member--rogue {
+  z-index: 1;
+  width: 38%;
+}
+.home-stage__floor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.home-section {
+  max-width: 1360px;
+  margin: auto;
+  border-top: var(--stroke) solid var(--ink);
+  padding: 56px 5% 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 48px;
+  align-items: start;
+}
+.home-section__intro h2 {
+  font-size: 40px;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 24px 0 16px;
+}
+.home-section__intro p:not(.cq-label) {
+  max-width: 420px;
+}
+
+.home-trail__map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.home-trail__path {
+  list-style: none;
+  margin: 0;
+  padding: 0 6px 0 22px;
+  border-left: 3px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.home-trail__stop {
+  position: relative;
+  max-width: 520px;
+}
+.home-trail__stop:nth-child(2) {
+  margin-left: 40px;
+}
+.home-trail__stop::before {
+  content: "";
+  position: absolute;
+  left: -32px;
+  top: 26px;
+  width: 14px;
+  height: 14px;
+  background: var(--surface);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 50%;
+}
+.home-trail__stop:nth-child(2)::before {
+  left: -72px;
+}
+.home-trail__stop:first-child::before {
+  background: var(--blue);
+}
+.home-trail__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.home-trail__stop h3 {
+  font-size: 22px;
+  margin: 4px 0 0;
+  padding-right: 64px;
+}
+.home-trail__stop p {
+  font-size: 13px;
+  line-height: 19px;
+  margin: 0;
+}
+.home-marker {
+  display: inline-block;
+  font: 700 11px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 6px 8px;
+  background: var(--blue);
+  color: var(--on-blue);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-sm);
+}
+.home-trail__you {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+}
+
+.home-classes__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0 6px 6px 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.home-class {
+  align-items: center;
+  text-align: center;
+}
+.home-class__art {
+  display: block;
+  width: 100%;
+  background: var(--ground);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.home-class .avatar {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+.home-class .avatar-art {
+  transform: scale(1.35) translateY(4%);
+}
+.home-class h3 {
+  margin: 0;
+}
+.home-class p {
+  font-size: 13px;
+  line-height: 19px;
+  margin: 0;
+}
+
+.home-organizer {
+  text-align: center;
+  padding: 56px 16px 64px;
+  background: var(--surface);
+  border-block: var(--stroke) solid var(--ink);
+}
+.home-organizer .cq-label {
+  max-width: 420px;
+  margin: 0 auto 24px;
+}
+.home-organizer h2 {
+  font-size: 48px;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.home-organizer > p:not(.cq-label) {
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1000px) {
+  .home-hero,
+  .home-section {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .home-classes__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .home-hero {
+    padding: 32px 16px 40px;
+  }
+  .home-hero h1 {
+    font-size: 52px;
+  }
+  .home-section {
+    padding: 40px 16px 48px;
+  }
+  .home-section__intro h2 {
+    font-size: 32px;
+  }
+  .home-trail__stop:nth-child(2) {
+    margin-left: 0;
+  }
+  .home-trail__stop:nth-child(2)::before {
+    left: -32px;
+  }
+  .home-classes__grid {
+    gap: 14px;
+  }
+  .home-organizer h2 {
+    font-size: 36px;
   }
 }

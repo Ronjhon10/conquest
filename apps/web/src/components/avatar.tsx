@@ -23,6 +23,7 @@ export function Avatar({
   seed = "conquest",
   size = 64,
   variant = "portrait",
+  eager = false,
 }: {
   name: string;
   photo?: string | null;
@@ -30,6 +31,8 @@ export function Avatar({
   seed?: string;
   size?: number;
   variant?: "portrait" | "full";
+  /** Load immediately; for art above the fold. */
+  eager?: boolean;
 }) {
   if (photo?.startsWith("data:image/jpeg;base64,")) {
     return (
@@ -55,6 +58,7 @@ export function Avatar({
         alt={`${name}'s ${characterClass ?? "adventurer"} character`}
         sizes={`${Math.ceil(size * (variant === "portrait" ? 2.4 : 1))}px`}
         quality={100}
+        loading={eager ? "eager" : undefined}
       />
     </span>
   );
