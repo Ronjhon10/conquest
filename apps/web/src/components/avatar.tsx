@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { CharacterClass } from "@conquest/contracts";
+import { isCharacterSheet, outfitPosition } from "../lib/character-sheet";
 
 const characterArt: Record<CharacterClass, string> = {
   knight: "/characters/knight-v1.png",
@@ -23,6 +24,7 @@ export function Avatar({
   seed = "conquest",
   size = 64,
   variant = "portrait",
+  eager = false,
 }: {
   name: string;
   photo?: string | null;
@@ -30,7 +32,38 @@ export function Avatar({
   seed?: string;
   size?: number;
   variant?: "portrait" | "full";
+  /** Load immediately; compatible with the home-page preview. */
+  eager?: boolean;
 }) {
+  if (isCharacterSheet(photo)) {
+    const { x, y } = outfitPosition(characterClass);
+    const viewBox =
+      variant === "full"
+        ? `${x * 128} ${y * 128} 128 128`
+        : `${x * 128 + 24} ${y * 128} 80 80`;
+    return (
+      <span
+        className={`avatar avatar-sprite avatar-${variant}`}
+        style={{ width: size, height: size }}
+      >
+        <svg
+          width={size}
+          height={size}
+          viewBox={viewBox}
+          role="img"
+          aria-label={`${name}'s ${characterClass ?? "adventurer"} game character`}
+          style={{
+            width: "100%",
+            height: "100%",
+            imageRendering: "pixelated",
+            overflow: "hidden",
+          }}
+        >
+          <image href={photo} x="0" y="0" width="256" height="256" />
+        </svg>
+      </span>
+    );
+  }
   if (photo?.startsWith("data:image/jpeg;base64,")) {
     return (
       <img
@@ -55,6 +88,7 @@ export function Avatar({
         alt={`${name}'s ${characterClass ?? "adventurer"} character`}
         sizes={`${Math.ceil(size * (variant === "portrait" ? 2.4 : 1))}px`}
         quality={100}
+        loading={eager ? "eager" : undefined}
       />
     </span>
   );

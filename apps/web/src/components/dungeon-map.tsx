@@ -97,7 +97,7 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
           </div>
           {attendee && (
             <div className={styles.playerCard}>
-              <Avatar name={attendee.name} photo={attendee.photo} characterClass={attendee.class} seed={attendee.avatar_seed} size={40} />
+              <Link href={`/c/${encodeURIComponent(conf)}/profile`} aria-label="Edit your character"><Avatar name={attendee.name} photo={attendee.photo} characterClass={attendee.class} seed={attendee.avatar_seed} size={40} /></Link>
               <div className={styles.playerInfo}>
                 <strong title={attendee.name}>{attendee.name}</strong>
                 <div className={styles.xp}>
@@ -179,9 +179,9 @@ export function DungeonMap({ conference, attendee, talks, speakers = [], conf, f
         </>
       )}
       {fullPage && (
-        <nav className={styles.bottomNav} aria-label="Attendee pages">
+        <nav className={`section-nav ${styles.bottomNav}`} aria-label="Attendee pages">
           {[["join", "Join"], ["map", "Map"], ["connect", "Allies"], ["party", "Party"], ["recap", "Recap"]].map(([route, label]) => (
-            <Link className={`cq-btn ${route === "map" ? "" : "cq-btn--secondary"}`} key={route} href={`/c/${encodeURIComponent(conf)}/${route}`} aria-current={route === "map" ? "page" : undefined}>{label}</Link>
+            <Link key={route} href={`/c/${encodeURIComponent(conf)}/${route}`} aria-current={route === "map" ? "page" : undefined}>{label}</Link>
           ))}
         </nav>
       )}

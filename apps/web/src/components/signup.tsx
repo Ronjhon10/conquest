@@ -26,9 +26,10 @@ import { prepareProfilePhoto } from "../lib/photo";
 import { rememberAttendee } from "../lib/identity";
 import { importLinkedinProfile } from "../lib/linkedin";
 import { Avatar } from "./avatar";
+import { CharacterWardrobe, DEFAULT_CHARACTER } from "./character-wardrobe";
+import { rememberCharacterSource } from "../lib/character";
 import { ErrorNotice, LoadingNotice, PageHeading } from "./ui";
 
-const classes: CharacterClass[] = ["knight", "wizard", "rogue", "bard"];
 export function Signup({
   conf,
   linkedinEnabled = false,
@@ -77,6 +78,8 @@ export function SignupForm({
   const [customGoal, setCustomGoal] = useState("");
   const [goalError, setGoalError] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [characterPhoto, setCharacterPhoto] = useState(DEFAULT_CHARACTER);
+  const [generatingCharacter, setGeneratingCharacter] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [processingPhoto, setProcessingPhoto] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -85,7 +88,6 @@ export function SignupForm({
   const [importingLinkedin, setImportingLinkedin] = useState(false);
   const busyRef = useRef(false);
   const photoVersion = useRef(0);
-  const characterHeading = useRef<HTMLHeadingElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -206,8 +208,8 @@ export function SignupForm({
     };
   }, [api, conf, loadAttempt]);
   useEffect(() => {
-    if (stage === "character") characterHeading.current?.focus();
-  }, [stage]);
+    setCharacterPhoto(DEFAULT_CHARACTER);
+  }, [photo]);
   function change(field: keyof ProfileFields, value: string) {
     setFields((old) => ({ ...old, [field]: value }));
     setFieldErrors((old) => ({ ...old, [field]: undefined }));
@@ -280,7 +282,14 @@ export function SignupForm({
   }
   async function enterDungeon(event: FormEvent) {
     event.preventDefault();
-    if (busyRef.current || !profile || !draft) return;
+    if (
+      busyRef.current ||
+      !profile ||
+      !draft ||
+      generatingCharacter ||
+      processingPhoto
+    )
+      return;
     if (!goals.length) {
       setGoalError("Choose at least one goal for your conference.");
       return;
@@ -294,9 +303,19 @@ export function SignupForm({
     setError("");
     try {
       const { attendee } = await api().createAttendee(
-        attendeeRequest(profile, draft, characterClass, goals, photo),
+        attendeeRequest(profile, draft, characterClass, goals, characterPhoto),
       );
+      // Recovering an existing LinkedIn character must still apply reviewed art.
+      if (
+        attendee.photo !== characterPhoto ||
+        attendee.class !== characterClass
+      )
+        await api().updateAttendee(attendee.id, {
+          photo: characterPhoto,
+          class: characterClass,
+        });
       rememberAttendee(conf, attendee.id);
+      rememberCharacterSource(conf, attendee.id, photo);
       navigate(`/c/${encodeURIComponent(conf)}/map`);
     } catch (e) {
       setError(readableError(e));
@@ -515,52 +534,23 @@ export function SignupForm({
         </form>
       ) : (
         <form onSubmit={enterDungeon} className="signup-character-form">
-          <section className="cq-card character-preview">
-            <Avatar
-              name={fields.name}
-              photo={photo}
-              characterClass={characterClass}
-              seed={draft?.avatar_seed}
-              size={224}
-              variant="full"
-            />
-            <div>
-              <h2 ref={characterHeading} tabIndex={-1}>
-                {fields.name}
-              </h2>
-              <p className="character-class-name">{characterClass}</p>
-              <span className="cq-chip">READY FOR LEVEL 1</span>
-            </div>
-          </section>
-          <fieldset disabled={busy} className="cq-card class-fieldset">
-            <legend className="cq-label">Choose your class</legend>
-            <div className="class-options">
-              {classes.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className="cq-tile class-option"
-                  aria-label={`${option}${draft?.class === option ? " (suggested)" : ""}`}
-                  aria-pressed={characterClass === option}
-                  onClick={() => setCharacterClass(option)}
-                >
-                  <Avatar
-                    name={option}
-                    size={112}
-                    characterClass={option}
-                    seed={draft?.avatar_seed}
-                  />
-                  <span className="class-option-label">
-                    <Icon name={option} />
-                    <strong>{option}</strong>
-                  </span>
-                  <span>
-                    {draft?.class === option ? "Suggested" : "Choose class"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <CharacterWardrobe
+            name={fields.name}
+            sourcePhoto={photo}
+            photo={characterPhoto}
+            characterClass={characterClass}
+            suggestedClass={draft?.class}
+            disabled={busy || processingPhoto}
+            onPhoto={setCharacterPhoto}
+            onClass={setCharacterClass}
+            onBusy={setGeneratingCharacter}
+            onSourceChange={choosePhoto}
+          />
+          {photoError && (
+            <p role="alert" className="field-error">
+              {photoError}
+            </p>
+          )}
           <fieldset disabled={busy} className="cq-card goals-fieldset">
             <legend className="cq-label">
               What do you want from this conference?
@@ -631,7 +621,7 @@ export function SignupForm({
             <button
               type="button"
               className="cq-btn cq-btn--secondary"
-              disabled={busy}
+              disabled={busy || generatingCharacter || processingPhoto}
               onClick={() => {
                 setStage("profile");
                 setError("");
@@ -639,7 +629,11 @@ export function SignupForm({
             >
               Back
             </button>
-            <button className="cq-btn signup-cta" type="submit" disabled={busy}>
+            <button
+              className="cq-btn signup-cta"
+              type="submit"
+              disabled={busy || generatingCharacter || processingPhoto}
+            >
               {busy ? (
                 "Building your map…"
               ) : (

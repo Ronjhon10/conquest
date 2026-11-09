@@ -212,7 +212,10 @@ export function createFakeTransport(storage?: DemoStorage): Transport {
         result = { attendee: created };
       } else {
         const attendee = find(attendees, id);
-        if (action === "recap")
+        if (method === "PATCH" && !action) {
+          Object.assign(attendee, C.UpdateAttendeeRequest.parse(body));
+          result = { attendee };
+        } else if (action === "recap")
           result = {
             recap: {
               post_text:

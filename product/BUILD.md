@@ -95,6 +95,7 @@ Order: by 3:45 the demo blockers (W.4 check-in and photo, S.W1 links); by 4:30 t
 - [x] **W.2** Attendee signup flow with LinkedIn link and profile photo. (WEB-2, WEB-15, WEB-16) owner: Danny
 - [x] **W.2b** Optional LinkedIn OpenID Connect profile import, credential setup and recovery. (WEB-21..WEB-23) owner: Danny
 - [x] **W.2c** **Human activation:** enable the LinkedIn developer app's OpenID Connect product, add client ID/secret to the Web runtime settings, then verify a real consent round trip. User confirmed the newest version worked after the live compatibility fixes. Setup: `apps/web/LINKEDIN_SETUP.md`. owner: Danny
+- [ ] **W.2d** Photo-based character likeness, consistent class outfits, profile editor and saved map avatars. (WEB-24..WEB-26) owner: Danny
 - [x] **W.3** Dungeon map: visual path + list view + step-free toggle. (WEB-3..WEB-5) owner: Danny
 - [ ] **W.4** Boss page: check in, photo, XP feedback (WEB-6, WEB-17); merge #59; then wire in the helpers' views (S.W1, G.W1, P.W1) as their PRs land. Connect, party and coin moved to G.W1 (Jacob). owner: Danny
 - [ ] **W.5** Organizer: setup page and live leaderboard (WEB-13). New-conference form and report moved to S.W1 (Max). Quest and room editors: cut unless time. owner: Danny
