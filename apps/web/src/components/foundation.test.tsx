@@ -7,9 +7,12 @@ import { RouteContent } from "./route-preview";
 import { ErrorNotice, themeStyle } from "./ui";
 
 it("WEB-1 renders the landing and every planned page shell with fixture data", () => {
-  expect(renderToStaticMarkup(createElement(Landing))).toContain(
-    "Start your adventure",
-  );
+  const landingHtml = renderToStaticMarkup(createElement(Landing));
+  expect(landingHtml).toContain("Make conferences fun");
+  expect(landingHtml).toContain("Start your adventure");
+  expect(landingHtml).toContain('href="/organizer/new"');
+  expect(landingHtml).toContain("Create a conference");
+  expect(landingHtml).toContain('class="text-link"');
   for (const view of [
     "join",
     "map",
