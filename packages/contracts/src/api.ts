@@ -36,8 +36,9 @@ export type Health = z.infer<typeof Health>;
 
 export const SearchTalksQuery = z.object({
   q: z.string().default(""),
+  offset: z.coerce.number().int().min(0).max(9900).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-});
+}).refine((q) => q.offset === 0 || !q.q.trim(), { message: "offset is only supported for the unfiltered schedule", path: ["offset"] });
 export type SearchTalksQuery = z.infer<typeof SearchTalksQuery>;
 export const SearchTalksResponse = z.object({
   results: z.array(z.object({ talk: Talk, score: z.number(), highlight: z.string().nullable() })),

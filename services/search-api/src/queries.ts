@@ -22,13 +22,14 @@ export const highlight = {
   fields: { abstract: { fragment_size: HIGHLIGHT_CHARS, number_of_fragments: 1, no_match_size: HIGHLIGHT_CHARS } },
 };
 
-export function searchTalksBody(q: string, size: number, opts: SearchOptions): Record<string, unknown> {
+export function searchTalksBody(q: string, size: number, opts: SearchOptions, offset = 0): Record<string, unknown> {
   const text = q.trim();
-  if (!text) return { size, query: { match_all: {} }, sort: [{ starts_at: "asc" }, { id: "asc" }], highlight };
-  if (!opts.semantic) return { size, query: keywordQuery(text), highlight };
+  const page = offset > 0 && !text ? { from: offset } : {};
+  if (!text) return { size, ...page, query: { match_all: {} }, sort: [{ starts_at: "asc" }, { id: "asc" }], highlight };
+  if (!opts.semantic) return { size, ...page, query: keywordQuery(text), highlight };
   if (opts.rrf) {
     return {
-      size,
+      size, ...page,
       retriever: {
         rrf: {
           // Semantic counts 2x, as in the bool.should fallback: on the real schedule an equal-weight
@@ -45,7 +46,7 @@ export function searchTalksBody(q: string, size: number, opts: SearchOptions): R
   }
   // RRF refused: one bool.should with the semantic clause boosted 2x (020 Behavior 3).
   return {
-    size,
+    size, ...page,
     query: { bool: { should: [keywordQuery(text), { semantic: { ...semanticQuery(text).semantic, boost: SEMANTIC_WEIGHT } }] } },
     highlight,
   };

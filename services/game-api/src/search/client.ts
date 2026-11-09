@@ -19,7 +19,7 @@ export interface SearchClient {
   suggestGoals(about: string): Promise<string[]>;
   /** null when the talk doesn't exist (030 Behavior 8: check-ins need a real talk). */
   getTalk(id: string): Promise<{ talk: Talk; speakers: Speaker[] } | null>;
-  searchTalks(q: string, limit?: number): Promise<Talk[]>;
+  searchTalks(q: string, limit?: number, offset?: number): Promise<Talk[]>;
   rooms(): Promise<string[]>;
 }
 
@@ -56,8 +56,8 @@ export function createHttpSearchClient(baseUrl: string, fetchImpl: typeof fetch 
     async getTalk(id) {
       return call(`/talks/${encodeURIComponent(id)}`, GetTalkResponse);
     },
-    async searchTalks(q, limit = 20) {
-      const params = new URLSearchParams({ q, limit: String(limit) });
+    async searchTalks(q, limit = 20, offset = 0) {
+      const params = new URLSearchParams({ q, limit: String(limit), offset: String(offset) });
       const r = required(await call(`/talks?${params}`, SearchTalksResponse), "/talks");
       return r.results.map((x) => x.talk);
     },
@@ -119,9 +119,9 @@ export function createFakeSearchClient(
       return { talk, speakers: talk.speaker_ids.flatMap((sid) => speakers.filter((s) => s.id === sid)) };
     },
 
-    async searchTalks(q, limit = 20) {
+    async searchTalks(q, limit = 20, offset = 0) {
       const found = q.trim() === "" ? talks : talks.filter((t) => hits(t, q) > 0);
-      return found.slice(0, limit);
+      return found.slice(offset, offset + limit);
     },
   };
 }
