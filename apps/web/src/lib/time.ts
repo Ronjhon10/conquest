@@ -2,7 +2,10 @@
 // whatever timezone the attendee's phone (or the server) is set to.
 export const CONFERENCE_TIME_ZONE = "America/Denver";
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekdayFmt = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: CONFERENCE_TIME_ZONE,
+});
 
 const clock = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
@@ -13,6 +16,5 @@ const clock = new Intl.DateTimeFormat("en-US", {
 /** "Tue 9:00 AM": the talk's weekday and start time at the venue. */
 export function formatTalkTime(iso: string): string {
   const start = new Date(iso);
-  const weekday = WEEKDAYS[start.getDay()];
-  return `${weekday} ${clock.format(start)}`;
+  return `${weekdayFmt.format(start)} ${clock.format(start)}`;
 }
