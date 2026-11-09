@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "./app";
 import { loadSchedule } from "./data";
 import { EsTalkStore } from "./store";
-import { facetsFromAggs, NOT_GOALS, pickGoals, suggestBody, titleCase, type Facets } from "./suggest";
+import { facetsFromResult, NOT_GOALS, pickGoals, suggestBody, titleCase, type Facets } from "./suggest";
 import { MemoryEs } from "./testing/memory-es";
 import { MemoryTalkStore } from "./testing/memory-store";
 
@@ -78,33 +78,32 @@ describe("POST /suggest-goals (S.6)", () => {
     expect(titleCase("opentelemetry")).toBe("OpenTelemetry");
   });
 
-  it("SR-10 the Elasticsearch request samples the top 50 BM25 hits and counts tags index-wide in one call", async () => {
+  it("SR-10 the Elasticsearch request takes exactly the top 50 BM25 hits (no per-shard sampler) and counts tags index-wide in one call", async () => {
     const body = suggestBody("platform teams");
     expect(body.query).toHaveProperty("multi_match");
-    expect(body.aggs.sample.sampler).toEqual({ shard_size: 50 });
-    expect(Object.keys(body.aggs.sample.aggs)).toEqual(["tags", "tracks"]);
+    expect(body.size).toBe(50);
+    expect(body._source).toEqual(["tags", "track"]);
+    expect(JSON.stringify(body)).not.toContain("sampler");
     expect(body.aggs.all.global).toEqual({});
-    expect(suggestBody("  ").query).toEqual({ match_none: {} });
+    expect(suggestBody("  ")).toMatchObject({ size: 0, query: { match_none: {} } });
 
     const es = new MemoryEs();
     const seen: unknown[] = [];
     es.search = async (_i, b) => {
       seen.push(b);
+      const hit = (tags: string[], track: string) => ({ id: "t", score: 1, highlight: null, source: { tags, track } });
       return {
-        hits: [],
+        hits: [hit(["security", "falco", "security"], "Security"), hit(["security"], "Security"), hit(["opa"], "Security")],
         total: 3,
-        aggregations: {
-          sample: { tags: { buckets: [{ key: "security", doc_count: 3 }] }, tracks: { buckets: [{ key: "Security", doc_count: 3 }] } },
-          all: { doc_count: 480, tags: { buckets: [{ key: "security", doc_count: 40 }] } },
-        },
+        aggregations: { all: { doc_count: 480, tags: { buckets: [{ key: "security", doc_count: 40 }] } } },
       } as never;
     };
     expect(await new EsTalkStore(es).facets("x")).toEqual({
-      sample: { tags: [{ term: "security", count: 3 }], tracks: [{ term: "Security", count: 3 }] },
+      sample: { tags: [{ term: "security", count: 2 }, { term: "falco", count: 1 }, { term: "opa", count: 1 }], tracks: [{ term: "Security", count: 3 }] },
       all: { docs: 480, tags: [{ term: "security", count: 40 }] },
     });
     expect(seen).toHaveLength(1);
-    expect(facetsFromAggs(null)).toEqual({ sample: { tags: [], tracks: [] }, all: { docs: 0, tags: [] } });
+    expect(facetsFromResult([], null)).toEqual({ sample: { tags: [], tracks: [] }, all: { docs: 0, tags: [] } });
   });
 
   it("OV-4 a body without about is a 400 with the error shape", async () => {
