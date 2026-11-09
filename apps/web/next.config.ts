@@ -10,6 +10,8 @@ const gameApi = process.env.GAME_API_URL ?? "http://localhost:4002";
 const config: NextConfig = {
   transpilePackages: ["@conquest/contracts"],
   output: "standalone",
+  // OAuth callback query strings contain authorization codes and state.
+  logging: { incomingRequests: { ignore: [/\/api\/auth\/linkedin(?:\/|\?)/] } },
   images: {
     qualities: [75, 100],
     imageSizes: [32, 48, 64, 96, 128, 224, 256, 384, 448, 576],

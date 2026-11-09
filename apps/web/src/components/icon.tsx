@@ -1,8 +1,12 @@
 import type { CharacterClass } from "@conquest/contracts";
 
 type IconName =
-  "arrow-right" | "arrow-up-right" | "check" | "plus" | CharacterClass;
+  "arrow-right" | "arrow-up-right" | "check" | "plus" | "sword" | "quests" | "talk" | "people" | CharacterClass;
 const paths: Record<IconName, React.ReactNode> = {
+  sword: <><path d="M10 3h4v12l-2 3-2-3zM5 8h14M12 1v2M12 18v5M9 22h6" /><path d="M4 6v4M20 6v4" /></>,
+  quests: <><path d="M6 5H3v16h14v-3M7 2h14v16H7zM10 6h8M10 10h8M10 14h5" /></>,
+  talk: <><path d="M3 4h18v13H10l-5 4v-4H3zM7 8h10M7 12h7" /></>,
+  people: <><circle cx="12" cy="6" r="3" /><circle cx="4" cy="10" r="2" /><circle cx="20" cy="10" r="2" /><path d="M6 22v-5a6 6 0 0 1 12 0v5zM6 14H4a3 3 0 0 0-3 3v4h5M18 14h2a3 3 0 0 1 3 3v4h-5" /></>,
   "arrow-right": (
     <>
       <path d="M3 12h17m-6-6 6 6-6 6" />

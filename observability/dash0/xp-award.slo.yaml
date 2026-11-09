@@ -1,0 +1,37 @@
+# XP SLO (spec 010 Behavior 4, PL-7): XP awards succeed. Error rate under 1% = 99% good.
+# Dash0 SLOs take one ratio objective, so the p95 < 300 ms half is the check rule in
+# xp-award-latency.checkrule.yaml. Apply: ./observability/dash0/apply.sh
+apiVersion: openslo.com/v1
+kind: SLO
+metadata:
+  name: conquest-xp-award-success
+  labels:
+    dash0.com/origin: conquest-xp-award-success
+  annotations:
+    dash0.com/display-name: Conquest XP awards succeed (99%)
+spec:
+  description: 99% of XP awards (check-ins, photos, networking, quests) on the event cluster complete without error, over a rolling 28 days.
+  service: conquest-game-api
+  budgetingMethod: Occurrences
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  indicator:
+    metadata:
+      name: conquest-xp-award-success-ratio
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: '{otel_metric_name="dash0.spans",service_name="conquest-game-api",otel_span_name="xp.award",deployment_environment_name="demo",otel_span_status_code!="ERROR"}'
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: '{otel_metric_name="dash0.spans",service_name="conquest-game-api",otel_span_name="xp.award",deployment_environment_name="demo"}'
+  objectives:
+    - displayName: 99% of XP awards succeed
+      target: 0.99

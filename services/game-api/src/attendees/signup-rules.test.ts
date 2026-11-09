@@ -171,5 +171,7 @@ describe("class keywords", () => {
     expect(classFromKeywords("Security SRE", "")).toBe("rogue");
     expect(classFromKeywords("SRE", "on-call for infra and platform; some security reviews")).toBe("knight");
     expect(classFromKeywords("Product designer", "")).toBe("bard");
+    // Found in browser testing: plurals count, so this SRE is a knight, not a rogue.
+    expect(classFromKeywords("Staff SRE", "I run Kubernetes platforms and care about observability, eBPF and security.")).toBe("knight");
   });
 });

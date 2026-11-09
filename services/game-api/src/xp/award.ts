@@ -23,13 +23,11 @@ export async function partyMultiplier(deps: Deps, attendee: Attendee, talkId: st
   if (!attendee.party_id) return 1.0;
   const party = await deps.repos.parties.get(attendee.party_id);
   if (!party) return 1.0;
-  for (const memberId of party.member_ids) {
-    if (memberId === attendee.id) continue;
-    if ((await deps.repos.xpEvents.count({ attendee_id: memberId, kind: "checkin", talk_id: talkId })) > 0) {
-      return PARTY_MULTIPLIER;
-    }
-  }
-  return 1.0;
+  // One query for the talk's check-ins, not one per member: round trips are slow on Serverless.
+  const others = new Set(party.member_ids.filter((id) => id !== attendee.id));
+  if (others.size === 0) return 1.0;
+  const checkins = await deps.repos.xpEvents.find({ kind: "checkin", talk_id: talkId });
+  return checkins.some((e) => others.has(e.attendee_id)) ? PARTY_MULTIPLIER : 1.0;
 }
 
 // G.6 (GM-10)
@@ -92,6 +90,7 @@ async function awardXpInner(deps: Deps, attendee: Attendee, spec: AwardSpec): Pr
   if (!committed.created && spec.kind === "checkin") {
     throw new ApiError(409, "already_checked_in", "Already checked into this talk");
   }
-  const latest = committed.created ? await checkQuests(deps, attendee.id) : null;
+  // Quest XP never counts toward a quest target, so a quest award can't complete another quest.
+  const latest = committed.created && spec.kind !== "quest" ? await checkQuests(deps, attendee.id) : null;
   return { ...committed, attendee: latest ?? committed.attendee };
 }

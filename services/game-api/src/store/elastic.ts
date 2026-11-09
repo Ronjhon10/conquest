@@ -1,4 +1,4 @@
-// DocStore on Elasticsearch (000: the only datastore). Writes use refresh "wait_for" so reads,
+// DocStore on Elasticsearch (000: the only datastore). Writes refresh before returning so reads,
 // the leaderboard and the report see them right away (030 Behavior 13).
 import { Client, errors, type estypes } from "@elastic/elasticsearch";
 import { MAPPINGS, GAME_INDEXES, XP_JOURNAL_MAPPING, type GameIndex } from "./indexes";
@@ -22,6 +22,22 @@ export function esClientFromEnv(env: NodeJS.ProcessEnv = process.env): Client | 
   });
 }
 
+/**
+ * Writes are visible to the next read, leaderboard and report (030 Behavior 13). An explicit
+ * refresh, not "wait_for": on Elastic Serverless "wait_for" waits for the next scheduled refresh
+ * (~4 s per write measured live), and a check-in does several writes, so it hit the 15 s proxy
+ * timeout. refresh=true measured ~0.5 s. See issue #62.
+ */
+export const WRITE_REFRESH = true;
+
+/** Top-level fields our mapping searches on that the live mapping stores as `index: false`. */
+export function unsearchableFields(want: estypes.MappingTypeMapping, live: estypes.MappingTypeMapping | undefined): string[] {
+  const liveProps = (live?.properties ?? {}) as Record<string, { index?: boolean }>;
+  return Object.entries((want.properties ?? {}) as Record<string, { type?: string; index?: boolean }>)
+    .filter(([name, p]) => p.type !== undefined && p.type !== "object" && p.index !== false && liveProps[name]?.index === false)
+    .map(([name]) => name);
+}
+
 export function createElasticStore(es: Client): DocStore {
   const version = (r: { _seq_no?: number; _primary_term?: number }): Version => ({
     seq_no: r._seq_no ?? 0,
@@ -38,17 +54,48 @@ export function createElasticStore(es: Client): DocStore {
     },
 
     async ensureIndexes() {
-      for (const [index, mappings] of Object.entries(MAPPINGS)) {
-        if (await es.indices.exists({ index })) {
-          if (index === GAME_INDEXES.attendees) await es.indices.putMapping({ index, properties: XP_JOURNAL_MAPPING });
-          continue;
-        }
+      const create = async (index: string, mappings: estypes.MappingTypeMapping) => {
         try {
           await es.indices.create({ index, mappings });
         } catch (err) {
           // Another replica created it first: that's fine, it's the same mapping.
           if (!(err instanceof errors.ResponseError && err.body?.error?.type === "resource_already_exists_exception")) throw err;
         }
+      };
+      for (const [index, mappings] of Object.entries(MAPPINGS)) {
+        if (!(await es.indices.exists({ index }))) {
+          await create(index, mappings);
+          continue;
+        }
+        // An index made by an older build can have a field we now filter on stored as index: false,
+        // and Elasticsearch can't turn indexing on in place. Rebuild it with the current mapping,
+        // keeping every document: copy out to a temp index, recreate, copy back, check the count.
+        // Runs before the server listens, so this pod takes no writes meanwhile.
+        const live = await es.indices.getMapping({ index });
+        const drift = unsearchableFields(mappings, live[index]?.mappings);
+        if (drift.length > 0) {
+          const { count } = await es.count({ index });
+          console.log(JSON.stringify({ level: "warn", msg: "rebuilding index with current mapping", index, fields: drift, docs: count }));
+          if (count > 0) {
+            const temp = `${index}-migrate`;
+            await es.indices.delete({ index: temp }, { ignore: [404] });
+            await es.indices.create({ index: temp, mappings });
+            await es.reindex({ source: { index }, dest: { index: temp }, refresh: true, wait_for_completion: true });
+            const copied = (await es.count({ index: temp })).count;
+            if (copied !== count) throw new Error(`${index}: copied ${copied} of ${count} documents; original left untouched`);
+            await es.indices.delete({ index });
+            await create(index, mappings);
+            await es.reindex({ source: { index: temp }, dest: { index }, refresh: true, wait_for_completion: true });
+            const restored = (await es.count({ index })).count;
+            if (restored !== count) throw new Error(`${index}: restored ${restored} of ${count} documents; copy kept in ${temp}`);
+            await es.indices.delete({ index: temp });
+          } else {
+            await es.indices.delete({ index }, { ignore: [404] });
+            await create(index, mappings);
+          }
+          continue;
+        }
+        if (index === GAME_INDEXES.attendees) await es.indices.putMapping({ index, properties: XP_JOURNAL_MAPPING });
       }
     },
 
@@ -65,7 +112,7 @@ export function createElasticStore(es: Client): DocStore {
 
     async create<T>(index: GameIndex, id: string, doc: T) {
       try {
-        return version(await es.create({ index, id, document: doc, refresh: "wait_for" }));
+        return version(await es.create({ index, id, document: doc, refresh: WRITE_REFRESH }));
       } catch (err) {
         if (err instanceof errors.ResponseError && err.statusCode === 409) throw new AlreadyExistsError(index, id);
         throw err;
@@ -78,7 +125,7 @@ export function createElasticStore(es: Client): DocStore {
           index,
           id,
           document: doc,
-          refresh: "wait_for",
+          refresh: WRITE_REFRESH,
           ...(ifVersion ? { if_seq_no: ifVersion.seq_no, if_primary_term: ifVersion.primary_term } : {}),
         });
         return version(r);
@@ -93,6 +140,7 @@ export function createElasticStore(es: Client): DocStore {
         index,
         query: toQuery(filter),
         size: opts.size ?? DEFAULT_FIND_SIZE,
+        ...(opts.afterId ? { search_after: [opts.afterId] } : {}),
         ...(opts.sort ? { sort: [{ [opts.sort.field]: { order: opts.sort.order } }] } : {}),
       });
       return r.hits.hits.flatMap((h) => (h._source === undefined ? [] : [h._source]));

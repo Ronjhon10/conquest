@@ -1,10 +1,10 @@
 // 030 Behavior 4: keyword fallback for the character class (used when OpenAI is off or answers badly).
 import type { CharacterClass } from "@conquest/contracts";
 
-// The class with the most whole-word hits wins; this order only breaks ties. "devops"/"secops" count as ops.
+// The class with the most whole-word hits wins (plurals count); this order only breaks ties. "devops"/"secops" count as ops.
 const RULES: [CharacterClass, RegExp][] = [
-  ["rogue", /\b(?:security|compliance|secops|devsecops)\b/gi],
-  ["knight", /\b(?:platform|infra|infrastructure|sre|(?:dev|sec)?ops)\b/gi],
+  ["rogue", /\b(?:security|securities|compliance|secops|devsecops)\b/gi],
+  ["knight", /\b(?:platforms?|infra|infrastructure|sres?|(?:dev|sec)?ops)\b/gi],
   ["wizard", /\b(?:data|ml|ai|research\w*)\b/gi],
 ];
 

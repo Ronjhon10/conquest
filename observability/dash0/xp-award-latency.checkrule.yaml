@@ -1,0 +1,7 @@
+# The latency half of the XP SLO (spec 010 Behavior 4, PL-7): alert when XP-award p95 goes over 300 ms
+# on the event cluster. Apply: ./observability/dash0/apply.sh  (id pins it; re-applying updates it)
+apiVersion: dash0.com/v1alpha1
+kind: CheckRule
+id: c67ced41-5174-45d3-9c03-2f75772f2f50
+name: Conquest XP award p95 over 300 ms
+expression: histogram_quantile(0.95, sum by (le) (rate({otel_metric_name="dash0.spans.duration", service_name="conquest-game-api", otel_span_name="xp.award", deployment_environment_name="demo"}[5m]))) > 0.3

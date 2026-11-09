@@ -59,6 +59,7 @@ export function createMemoryStore(): DocStore & { indexes: Set<GameIndex> } {
     },
     async find<T>(index: GameIndex, filter: Filter, opts: FindOptions = {}): Promise<T[]> {
       let docs = [...rows(index).values()].map((r) => r.doc as Record<string, unknown>).filter((d) => matches(d, filter));
+      if (opts.afterId) docs = docs.filter((d) => String(d.id) > opts.afterId!);
       if (opts.sort) {
         const { field, order } = opts.sort;
         const dir = order === "asc" ? 1 : -1;

@@ -53,13 +53,13 @@ describe("embeddings and hybrid search (S.4)", () => {
     expect(await searchOptions(es, true)).toEqual({ semantic: true, rrf: true });
   });
 
-  it("SR-5 hybrid search is an rrf retriever over the keyword and semantic queries", () => {
+  it("SR-5 hybrid search is an rrf retriever over the keyword and semantic queries, semantic weighted 2x", () => {
     const body = searchTalksBody("keeping my cluster from getting hacked", 5, { semantic: true, rrf: true });
     expect(body.retriever).toEqual({
       rrf: {
         retrievers: [
-          { standard: { query: { multi_match: { query: "keeping my cluster from getting hacked", fields: ["title^3", "abstract", "speaker_names^2", "tags^2"], fuzziness: "AUTO" } } } },
-          { standard: { query: { semantic: { field: "semantic", query: "keeping my cluster from getting hacked" } } } },
+          { retriever: { standard: { query: { multi_match: { query: "keeping my cluster from getting hacked", fields: ["title^3", "abstract", "speaker_names^2", "tags^2"], fuzziness: "AUTO" } } } }, weight: 1 },
+          { retriever: { standard: { query: { semantic: { field: "semantic", query: "keeping my cluster from getting hacked" } } } }, weight: 2 },
         ],
         rank_window_size: 50,
       },
