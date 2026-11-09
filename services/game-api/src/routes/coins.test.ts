@@ -147,4 +147,14 @@ describe("coins and recognition", () => {
     expect(noTalk.status).toBe(404);
     expect(await code(noTalk)).toBe("talk_not_found");
   });
+
+  it("GM-13 two racing gifts for the same talk: one lands, the other is refused and refunded", async () => {
+    const t = setup();
+    await t.addAttendee({ coins: 3 });
+    await t.checkIn("att-jane", "talk-4");
+    const [a, b] = await Promise.all([t.give("att-jane", "talk-4"), t.give("att-jane", "talk-4")]);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    expect((await t.deps.repos.attendees.get("att-jane"))?.coins).toBe(2);
+    expect((await t.recognition("spk-lin")).coins).toBe(1);
+  });
 });

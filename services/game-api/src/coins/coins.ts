@@ -3,6 +3,7 @@
 import type { CoinGift, GiveCoinRequest, GiveCoinResponse, SpeakerRecognition } from "@conquest/contracts";
 import type { Deps } from "../deps";
 import { ApiError } from "../http";
+import { AlreadyExistsError } from "../store/store";
 
 const noCoins = () => new ApiError(409, "no_coins", "No coins left to give");
 
@@ -30,15 +31,24 @@ export async function giveCoin(deps: Deps, req: GiveCoinRequest): Promise<GiveCo
   });
   if (!updated) throw new ApiError(404, "not_found", "Attendee not found");
 
-  const gift: CoinGift = await repos.coins.create({
-    id: deps.newId(),
-    conference_id: attendee.conference_id,
-    from_attendee_id: attendee.id,
-    speaker_id: speakerId,
-    talk_id: req.talk_id,
-    note: req.note,
-    at: deps.now().toISOString(),
-  });
+  // The gift id is fixed per attendee and talk, so two racing gifts for the same talk can't both land;
+  // the loser gets its coin back.
+  let gift: CoinGift;
+  try {
+    gift = await repos.coins.create({
+      id: `${attendee.id}:${req.talk_id}`,
+      conference_id: attendee.conference_id,
+      from_attendee_id: attendee.id,
+      speaker_id: speakerId,
+      talk_id: req.talk_id,
+      note: req.note,
+      at: deps.now().toISOString(),
+    });
+  } catch (err) {
+    if (!(err instanceof AlreadyExistsError)) throw err;
+    await repos.attendees.update(attendee.id, (a) => ({ ...a, coins: a.coins + 1 }));
+    throw new ApiError(409, "already_gifted", "You already gave a coin for this talk");
+  }
   return { gift, attendee: updated };
 }
 
