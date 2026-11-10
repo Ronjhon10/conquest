@@ -10,28 +10,31 @@ const route = vi.hoisted(() => ({ path: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.path }));
 afterEach(() => { cleanup(); route.path = "/"; });
 
-it("WEB-3 gives the map one integrated phone shell with player stats and attendee navigation", async () => {
+it("WEB-3 keeps the branded shell on the map and gives every attendee page one tab bar", async () => {
   route.path = "/c/conf-demo/map";
   render(<AppShell><RouteContent view="map" conf="conf-demo" data={{ conference: fixtures.conference, attendee: fixtures.attendee, talks: fixtures.talks, rows: [], speakers: fixtures.speakers }} /></AppShell>);
   expect(screen.getAllByRole("main")).toHaveLength(1);
-  expect(screen.queryByRole("navigation", { name: "Main navigation" })).toBeNull();
-  expect(screen.queryByRole("contentinfo")).toBeNull();
-  expect(screen.getByRole("link", { name: "Conquest home" }).getAttribute("href")).toBe("/");
-  expect(screen.getByRole("link", { name: "Conquest home" }).querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
-  expect(screen.queryByText("Conference preview")).toBeNull();
+  expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeTruthy();
+  expect(screen.getByRole("contentinfo")).toBeTruthy();
   expect(screen.getByText(fixtures.attendee.name)).toBeTruthy();
-  expect(screen.getByText(`${fixtures.attendee.xp} XP`)).toBeTruthy();
   expect(screen.getByRole("progressbar", { name: "Progress to next level" })).toBeTruthy();
   const nav = within(screen.getByRole("navigation", { name: "Attendee pages" }));
-  expect(nav.getAllByRole("link")).toHaveLength(5);
+  expect(nav.getAllByRole("link").map((l) => l.textContent)).toEqual(["Map", "Allies", "Party", "Recap", "You"]);
   expect(nav.getByRole("link", { name: "Map" }).getAttribute("aria-current")).toBe("page");
   const user = userEvent.setup();
-  await user.click(screen.getByRole("button", { name: "Quests" }));
-  expect(screen.getByRole("region", { name: "Your quests" })).toBeTruthy();
+  await user.click(screen.getByText(/^Quests \(/));
   expect(screen.getByText(fixtures.attendee.quests[0]!.title)).toBeTruthy();
-  await user.click(screen.getByRole("button", { name: "Close quests" }));
-  expect(screen.queryByRole("region", { name: "Your quests" })).toBeNull();
-  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Quests" }));
+});
+
+it("WEB-3 the boss page highlights the Map tab, and signup has no tab bar", () => {
+  route.path = "/c/conf-demo/boss/talk-1";
+  const { unmount } = render(<AppShell><p>Boss</p></AppShell>);
+  const nav = within(screen.getByRole("navigation", { name: "Attendee pages" }));
+  expect(nav.getByRole("link", { name: "Map" }).getAttribute("aria-current")).toBe("page");
+  unmount();
+  route.path = "/c/conf-demo/join";
+  render(<AppShell><p>Join</p></AppShell>);
+  expect(screen.queryByRole("navigation", { name: "Attendee pages" })).toBeNull();
 });
 
 it("WEB-1 keeps the normal website shell on non-map routes", () => {

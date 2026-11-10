@@ -15,7 +15,6 @@ import { DungeonMap } from "./dungeon-map";
 import { BossActions } from "./boss-actions";
 import { ConnectView } from "./connect";
 import { PartyPage } from "./party";
-import mapStyles from "./dungeon-map.module.css";
 import { currentAttendee, forgetAttendee } from "../lib/identity";
 import { ApiError, getApi, readableError } from "../lib/api";
 import { formatTalkTime } from "../lib/time";
@@ -62,7 +61,7 @@ export function RouteContent({
 }) {
   const { conference, attendee, talks, rows } = data;
   if (view === "map") {
-    return <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} fullPage />;
+    return <DungeonMap conference={conference} attendee={attendee} talks={talks} speakers={data.speakers} conf={conf} />;
   }
   const organizer = ["new", "setup", "live", "report", "theme"].includes(view);
   const selectedTalk = talks.find((t) => t.id === talkId);
@@ -82,37 +81,6 @@ export function RouteContent({
           ? "Follow your curiosity. These sessions are the next stops on your journey."
           : "Your talks, quests, and conference connections."}
       </PageHeading>
-      <nav
-        className="section-nav"
-        aria-label={organizer ? "Organizer pages" : "Attendee pages"}
-      >
-        {(organizer
-          ? [
-              ["setup", "Overview"],
-              ["theme", "Theme studio"],
-              ["live", "Leaderboard"],
-              ["report", "Report"],
-            ]
-          : [
-              ["map", "Map"],
-              ["connect", "Allies"],
-              ["party", "Party"],
-              ["recap", "Recap"],
-            ]
-        ).map(([key, label]) => (
-          <Link
-            key={key}
-            aria-current={key === view ? "page" : undefined}
-            href={
-              organizer
-                ? `/organizer/${encodeURIComponent(conf)}${key === "setup" ? "" : `/${key}`}`
-                : `/c/${encodeURIComponent(conf)}/${key}`
-            }
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
       {attendee && !organizer && view !== "join" && (
         <div className="player-strip">
           <Avatar
@@ -354,7 +322,7 @@ export function RoutePreview({
     (view === "new" || view === "speaker") &&
     process.env.NEXT_PUBLIC_FAKE_API !== "1";
   return (
-    <div className={view === "map" ? mapStyles.routeContent : "page-container"}>
+    <div className="page-container">
       {error ? (
         <ErrorNotice message={error} onRetry={() => setAttempt((n) => n + 1)} />
       ) : data ? (

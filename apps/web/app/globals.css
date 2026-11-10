@@ -462,9 +462,6 @@ svg {
   .site-header nav a {
     font-size: 11px;
   }
-  .site-header nav > a:first-child {
-    display: none;
-  }
   .nav-organize {
     padding: 0 10px;
   }
@@ -1161,5 +1158,67 @@ textarea.cq-field {
   }
   .home-organizer h2 {
     font-size: 36px;
+  }
+}
+/* Attendee tab bar: a strip under the header on laptops, a fixed bottom bar on phones. */
+.attendee-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: var(--stroke) solid var(--ink);
+  background: var(--surface, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.attendee-tabs a {
+  min-height: 44px;
+  min-width: 72px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.attendee-tabs a svg {
+  width: 20px;
+  height: 20px;
+}
+.attendee-tabs a[aria-current="page"] {
+  background: var(--blue);
+  color: var(--on-blue, #fff);
+  box-shadow: var(--shadow-sm);
+}
+@media (max-width: 720px) {
+  .attendee-tabs {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    justify-content: space-around;
+    gap: 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-top: var(--stroke) solid var(--ink);
+  }
+  .attendee-tabs a {
+    min-width: 0;
+    flex: 1;
+    padding: 4px 2px;
+  }
+  main.with-tabs {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+  main.with-tabs + .site-footer {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
 }
